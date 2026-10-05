@@ -1,195 +1,151 @@
-Day 1 · Matthew's task
+# Core marketplace database
 
-# Core schema for the 37-day MVP
+This schema supports a multi-seller ecommerce MVP. A buyer can check out a cart containing products from multiple stores. The checkout is one parent order, split into one seller order and one delivery per store.
 
-Ten marketplace tables cover the whole order lifecycle — buyer orders, seller fulfills, logistics assigns, rider delivers with proof, admin sees it all. Laravel also creates framework-support tables outside this core schema. **No payment gateway, reviews, promotions, or notifications tables** — those are descoped for this timeline. Start migrations in the order below; each tier only depends on tables above it.
+Laravel also creates framework-support tables such as `password_reset_tokens`, `sessions`, `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs`, and `migrations`. Those are not marketplace tables.
 
-## Build-order dependency map
+## Order lifecycle
 
-An arrow means “the table it points from must exist first, because the table it points to holds a foreign key back to it.” Work top to bottom and nothing you build will reference a table that doesn't exist yet.
+```text
+buyer
+  └── order (one checkout; shipping address is snapshotted)
+       ├── seller order (one per store)
+       │    ├── order items (product name and price are snapshotted)
+       │    └── delivery (one per seller order)
+       └── seller order ...
+```
 
-Five build tiers, users at the root. `categories` has no incoming arrow — it depends on nothing, build it any time before products.
+The unique constraint on `(order_id, store_id)` prevents duplicate seller orders for the same store in one checkout. A unique `deliveries.seller_order_id` enforces the MVP rule of one package per seller order. These can be relaxed later if the product needs split packages.
 
-foreign key dependency
-
-nullable FK (set later, not at creation)
-
-N build tier (migration order)
-
-## Field reference
-
-Every column in the marketplace tables, grouped the same way as the diagram above. Types are written as Laravel migration shorthand. The Laravel starter kit also creates `password_reset_tokens`, `sessions`, `cache`, `cache_locks`, `jobs`, `job_batches`, `failed_jobs`, and `migrations`; these framework-support tables are not part of the marketplace ERD.
+## Tables
 
 ### users
 
-tier 1
+All account roles share Laravel's `users` table.
 
-accounts & roles, shared by all 5 roles
-
-- idbigintPK
-- roleenum: buyer, seller, admin, logistics, rider
-- namevarchar(160)
-- emailvarchar(160), unique
-- passwordvarchar, hashed
-- phonevarchar(30), nullable
-- statusenum: active, pending, suspended
-- email_verified_attimestamp, nullable (Laravel authentication)
-- remember_tokenvarchar(100), nullable (Laravel authentication)
-- created_attimestamp, nullable
-- updated_attimestamp, nullable, updated automatically
+- `id` primary key
+- `role`: `buyer`, `seller`, `admin`, `logistics`, or `rider`
+- `name` (160), unique `email` (160), hashed `password`
+- `phone` (30), nullable
+- `status`: `active`, `pending`, or `suspended`
+- Laravel authentication fields: `email_verified_at`, `remember_token`, timestamps
 
 ### stores
 
-tier 2
+One storefront per seller account.
 
-one storefront per approved seller
+- `user_id` is a unique FK to `users`
+- `name` (160), nullable `description`, `status`: `pending`, `approved`, or `rejected`
+- timestamps
 
-- idbigintPK
-- user_id→ users, uniqueFK
-- namevarchar(160)
-- descriptiontext, nullable
-- statusenum: pending, approved, rejected
-- created_attimestamp, nullable
-
-`user_id` is unique, so each user can own at most one store. The foreign key does not enforce that the user has the `seller` role or that the store is approved; the application must enforce those rules.
+The database does not enforce that `user_id` belongs to a user whose role is `seller`; the application must enforce that.
 
 ### categories
 
-tier 2
-
-flat product taxonomy — no subcategories in the MVP
-
-- idbigintPK
-- namevarchar(100), unique
+Flat taxonomy for the MVP: unique `name` (100), timestamps.
 
 ### carts
 
-tier 2
-
-one row per buyer, created on first add-to-cart
-
-- idbigintPK
-- user_id→ users, uniqueFK
-- created_attimestamp, nullable
-
-The foreign key does not enforce that the user has the `buyer` role; the application must enforce that rule.
+One cart per buyer, created as needed. `user_id` is a unique FK to `users`.
 
 ### addresses
 
-tier 2
+Saved buyer delivery addresses:
 
-buyer-saved shipping addresses
+- `user_id` FK, `label`, `recipient_name`, and `phone`
+- `line1`, optional `line2`, `barangay`, `city`, `province`, `region`, and `zip`
+- `is_default` and timestamps
 
-- idbigintPK
-- user_id→ usersFK
-- labelvarchar(40), e.g. "Home"
-- line1varchar(200)
-- cityvarchar(100)
-- provincevarchar(100)
-- zipvarchar(10)
+The database cannot guarantee that `is_default` is true for at most one address per user with a portable simple constraint; address-management logic must maintain that rule.
 
 ### products
 
-tier 3
+Each product belongs to one store and one category.
 
-listings owned by one store, one category
+- FKs: `store_id`, `category_id`
+- `name`, nullable `description`, `price` (`decimal(10,2)`), unsigned `stock`
+- nullable `image_path`, `status`: `active` or `hidden`
+- indexes for category/store product listings by status; timestamps
 
-- idbigintPK
-- store_id→ storesFK
-- category_id→ categoriesFK
-- namevarchar(160)
-- descriptiontext, nullable
-- pricedecimal(10,2)
-- stockint, unsigned
-- image_pathvarchar, nullable
-- statusenum: active, hidden
-- created_attimestamp, nullable
+Hide products rather than hard-delete them once they have been ordered. The order item FK intentionally protects historical references.
 
 ### cart_items
 
-tier 4
-
-one row per product in a cart
-
-- idbigintPK
-- cart_id→ cartsFK
-- product_id→ productsFK
-- quantityint, unsigned
-
-unique(cart_id, product_id) — re-adding a product updates quantity instead of duplicating the row
+- FKs: `cart_id`, `product_id`
+- unsigned `quantity`
+- unique `(cart_id, product_id)`: adding the same product updates quantity instead of creating a duplicate row
 
 ### orders
 
-tier 4
+One row per buyer checkout:
 
-one checkout, with total and item prices snapshotted
+- `buyer_id` FK to `users`
+- nullable `address_id` FK to `addresses` with `nullOnDelete`
+- immutable shipping snapshot: recipient name/phone and address lines, barangay, city, province, region, and zip
+- `payment_method`: `cod` for the MVP
+- `subtotal`, `shipping_total`, and `total` (`decimal(10,2)`)
+- aggregate `status`: `pending`, `processing`, `completed`, or `cancelled`
+- timestamps and an index on `(buyer_id, created_at)`
 
-- idbigintPK
-- buyer_id→ usersFK
-- address_id→ addressesFK
-- payment_methodenum: cod — fixed for MVP
-- totaldecimal(10,2)
-- statusenum: pending, processing, shipped, completed, cancelled
-- created_attimestamp, nullable
+The snapshot is authoritative for fulfillment. Editing or deleting a saved address must not alter an old order. The nullable FK only identifies the source address while it still exists.
 
-`address_id` references the buyer's saved address; it does not snapshot the address values. If orders must retain the shipping address as it was at checkout, add address snapshot columns to `orders`.
+`orders.status` is the buyer-facing summary of its seller orders; application logic must keep it consistent with the child records.
+
+### seller_orders
+
+One row per store participating in a checkout:
+
+- `order_id` FK to `orders`, `store_id` FK to `stores`
+- unique `(order_id, store_id)`
+- snapshotted `subtotal` and `shipping_fee` (`decimal(10,2)`)
+- seller fulfillment `status`: `pending`, `processing`, `shipped`, `completed`, or `cancelled`
+- timestamps and an index on `(store_id, status)`
+
+This is the seller's fulfillment boundary. Different stores in the same checkout can progress independently.
 
 ### order_items
 
-tier 5
+Line items belong to a seller order, not directly to the parent checkout:
 
-one row per product per order, owned by one seller
+- `seller_order_id` FK to `seller_orders`
+- `product_id` FK to `products`
+- `product_name` and `price_each` snapshots
+- unsigned `quantity`
+- unique `(seller_order_id, product_id)`
 
-- idbigintPK
-- order_id→ ordersFK
-- product_id→ productsFK
-- store_id→ stores, denormalizedFK
-- quantityint, unsigned
-- price_eachdecimal(10,2), snapshotted
-- statusenum: pending, processing, shipped
-
-store_id is copied from the product at order time so the seller's order screen never has to join through products
+The application must verify that each product belongs to the store on its seller order. `price_each` is the checkout-time price; later product price changes do not affect completed orders.
 
 ### deliveries
 
-tier 5
+One delivery per seller order for the MVP:
 
-one per order, assigned to a rider by logistics
+- unique `seller_order_id` FK to `seller_orders`
+- nullable `rider_id` FK to `users`
+- `status`: `unassigned`, `assigned`, `picked_up`, `in_transit`, `delivered`, or `failed`
+- nullable `proof_photo_path`, `picked_up_at`, `delivered_at`, and timestamps
 
-- idbigintPK
-- order_id→ orders, uniqueFK
-- rider_id→ users, nullableFK
-- statusenum: unassigned, assigned, picked_up, in_transit, delivered, failed
-- proof_photo_pathvarchar, nullable
-- picked_up_attimestamp, nullable
-- delivered_attimestamp, nullable
+The application must verify that the assigned account has the `rider` role. The delivery status tracks transport; the seller order status tracks seller fulfillment.
 
-## Turning this into migrations today
+### commerce_settings
 
-The migrations for the core marketplace tables have been created and run. This document describes the intended marketplace schema; the Laravel framework-support tables listed above are created separately by the starter kit.
+The singleton row with `id = 1` stores `shipping_fee_per_seller_order`. It is seeded to `50.00` and can be updated by an authorized admin operation; the browser must never supply the amount used by checkout.
 
-Work tier by tier. Within a tier, order doesn't matter — across tiers, it does.
+## Checkout integrity rules
 
-1. **Tier 1** — `php artisan make:migration create_users_table` if you haven't already extended Laravel's default; add the `role`, `phone`, and `status` columns to it.
-2. **Tier 2** — `make:migration create_stores_table`, `create_categories_table`, `create_carts_table`, `create_addresses_table`. All four only need `users` to exist first.
-3. **Tier 3** — `make:migration create_products_table`, referencing both `stores` and `categories`.
-4. **Tier 4** — `make:migration create_cart_items_table` and `create_orders_table`.
-5. **Tier 5** — `make:migration create_order_items_table` and `create_deliveries_table`.
-6. Run `php artisan migrate` once after each tier, not just at the end — if a tier fails, you'll know exactly which table caused it.
+`CreateOrderFromCart` runs checkout in one database transaction. It reloads and locks the buyer account, cart, product rows in ascending product ID order, and participating stores in ascending ID order. It validates that the buyer owns the address and the products are active and from approved stores, checks available stock, and conditionally decrements each stock quantity. A failure rolls back the order, seller orders, order items, deliveries, stock changes, and cart clearing together.
 
-```
-Schema::create('order_items', function (Blueprint $table) {
-    $table->id();
-    $table->foreignId('order_id')->constrained()->cascadeOnDelete();
-    $table->foreignId('product_id')->constrained();
-    $table->foreignId('store_id')->constrained();
-    $table->unsignedInteger('quantity');
-    $table->decimal('price_each', 10, 2);
-    $table->enum('status', ['pending','processing','shipped'])->default('pending');
-    $table->timestamps();
-});
+The parent order subtotal is the sum of all checkout-time item prices times quantities. Each seller order stores its own item subtotal and the current configured flat shipping fee. `orders.shipping_total` is that fee multiplied by the number of stores represented in the cart; `orders.total` is subtotal plus shipping total. All calculations use integer cents to avoid floating-point rounding errors. After a successful checkout, cart items are removed; the cart itself remains available for reuse.
+
+## Migration workflow
+
+The user/support migration creates `users` before any table references it. The marketplace migration then creates tables in foreign-key dependency order.
+
+For an empty, disposable local database, rebuild the schema with:
+
+```sh
+php artisan migrate:fresh
 ```
 
-cut
+This command drops every table in the selected database. Never run it against a database containing data to keep or against production. Use `php artisan migrate` for normal additive changes and production deployments.
 
-**No payments, reviews, promotions, or notifications tables.** Payment is a fixed `cod` value on `orders`, not a separate gateway integration. If any of these come back as stretch goals once the core lifecycle passes UAT, they're additive — none of the ten tables above need to change shape to support them later.
+The initial checkout uses COD only. Payment gateways, reviews, promotions, and notifications remain out of scope for this MVP. The shipping fee setting is persisted now; an admin settings screen and authorization policy still need to be implemented before an admin can change it through the website.
