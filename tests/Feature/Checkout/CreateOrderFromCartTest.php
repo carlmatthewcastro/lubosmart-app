@@ -12,6 +12,7 @@ use App\Models\Product;
 use App\Models\SellerOrder;
 use App\Models\Store;
 use App\Models\User;
+use Database\Seeders\MarketplaceCategorySeeder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 
@@ -213,3 +214,107 @@ it('rejects unavailable cart contents', function (string $productStatus, string 
     'hidden product' => ['hidden', 'approved'],
     'unapproved store' => ['active', 'pending'],
 ]);
+
+it('snapshots commission per store without adding it to the buyer COD amount', function () {
+    $setup = setupCheckoutCart([
+        ['store' => 'A', 'name' => 'Product A', 'price' => '100.05', 'stock' => 2, 'quantity' => 1],
+        ['store' => 'B', 'name' => 'Product B', 'price' => '80.00', 'stock' => 2, 'quantity' => 1],
+    ]);
+
+    $order = app(CreateOrderFromCart::class)->handle($setup['buyer'], $setup['address']->id);
+    CommerceSetting::query()->whereKey(1)->update(['platform_commission_basis_points' => 2000]);
+    $sellerOrder = $order->sellerOrders->firstWhere('store_id', $setup['stores']['A']->id)->fresh();
+
+    expect($order->total)->toBe('280.05');
+    expect($order->payment_method)->toBe('cod');
+    expect($sellerOrder->commission_basis_points)->toBe(1000);
+    expect($sellerOrder->commission_amount)->toBe('10.01');
+    expect($sellerOrder->seller_proceeds)->toBe('90.04');
+    expect($order->sellerOrders->firstWhere('store_id', $setup['stores']['B']->id)->commission_amount)->toBe('8.00');
+});
+
+it('uses the persisted commission rate including its zero and full-rate boundaries', function (int $rate, string $commission, string $proceeds) {
+    $setup = setupCheckoutCart([
+        ['store' => 'A', 'name' => 'Product', 'price' => '10.00', 'stock' => 2, 'quantity' => 1],
+    ]);
+    CommerceSetting::query()->whereKey(1)->update(['platform_commission_basis_points' => $rate]);
+
+    $order = app(CreateOrderFromCart::class)->handle($setup['buyer'], $setup['address']->id);
+
+    expect($order->sellerOrders->first()->commission_amount)->toBe($commission);
+    expect($order->sellerOrders->first()->seller_proceeds)->toBe($proceeds);
+})->with([
+    'zero commission' => [0, '0.00', '10.00'],
+    'configured rate' => [1250, '1.25', '8.75'],
+    'full commission' => [10000, '10.00', '0.00'],
+]);
+
+it('rejects an invalid persisted commission without deducting stock or clearing the cart', function () {
+    $setup = setupCheckoutCart([
+        ['store' => 'A', 'name' => 'Product', 'price' => '10.00', 'stock' => 2, 'quantity' => 1],
+    ]);
+    CommerceSetting::query()->whereKey(1)->update(['platform_commission_basis_points' => 10001]);
+
+    try {
+        app(CreateOrderFromCart::class)->handle($setup['buyer'], $setup['address']->id);
+        $this->fail('Invalid commission should prevent checkout.');
+    } catch (ValidationException $exception) {
+        expect($exception->errors()['commission'])->toBe(['The configured commission rate must be between 0% and 100%.']);
+    }
+
+    expect(Order::query()->count())->toBe(0);
+    expect($setup['products']['Product']->fresh()->stock)->toBe(2);
+    expect($setup['cart']->items()->count())->toBe(1);
+});
+
+it('rejects a disabled product category or department', function (bool $disableParent) {
+    $setup = setupCheckoutCart([
+        ['store' => 'A', 'name' => 'Product', 'price' => '10.00', 'stock' => 2, 'quantity' => 1],
+    ]);
+    $this->seed(MarketplaceCategorySeeder::class);
+    $category = Category::query()->where('slug', 'pet-supplies--dog-food-treats')->firstOrFail();
+    $setup['products']['Product']->update(['category_id' => $category->id]);
+    ($disableParent ? $category->parent : $category)->update(['is_active' => false]);
+
+    expect(fn () => app(CreateOrderFromCart::class)->handle($setup['buyer'], $setup['address']->id))
+        ->toThrow(ValidationException::class);
+
+    expect(Order::query()->count())->toBe(0);
+    expect($setup['products']['Product']->fresh()->stock)->toBe(2);
+})->with(['subcategory' => false, 'department' => true]);
+
+it('rejects products outside the store registered department', function () {
+    $setup = setupCheckoutCart([
+        ['store' => 'A', 'name' => 'Product', 'price' => '10.00', 'stock' => 2, 'quantity' => 1],
+    ]);
+    $this->seed(MarketplaceCategorySeeder::class);
+    $setup['stores']['A']->update([
+        'business_category_id' => Category::query()->where('slug', 'pet-supplies')->value('id'),
+    ]);
+    $setup['products']['Product']->update([
+        'category_id' => Category::query()->where('slug', 'electronics-and-gadgets--smart-home-devices')->value('id'),
+    ]);
+
+    expect(fn () => app(CreateOrderFromCart::class)->handle($setup['buyer'], $setup['address']->id))
+        ->toThrow(ValidationException::class);
+
+    expect(Order::query()->count())->toBe(0);
+    expect($setup['products']['Product']->fresh()->stock)->toBe(2);
+});
+
+it('upgrades pre-existing orders without inventing historical commission snapshots', function () {
+    $setup = setupCheckoutCart([
+        ['store' => 'A', 'name' => 'Product', 'price' => '10.00', 'stock' => 2, 'quantity' => 1],
+    ]);
+    $order = app(CreateOrderFromCart::class)->handle($setup['buyer'], $setup['address']->id);
+    $migration = require database_path('migrations/2026_10_06_135205_add_commission_snapshots_to_commerce.php');
+    $migration->down();
+
+    $migration->up();
+
+    expect($order->fresh()->total)->toBe('60.00');
+    expect($order->sellerOrders->first()->fresh()->commission_basis_points)->toBeNull();
+    expect($order->sellerOrders->first()->fresh()->commission_amount)->toBeNull();
+    expect($order->sellerOrders->first()->fresh()->seller_proceeds)->toBeNull();
+    expect($setup['products']['Product']->fresh()->stock)->toBe(1);
+});

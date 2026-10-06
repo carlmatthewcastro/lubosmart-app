@@ -14,6 +14,9 @@ class SellerOrder extends Model
         'store_id',
         'subtotal',
         'shipping_fee',
+        'commission_basis_points',
+        'commission_amount',
+        'seller_proceeds',
         'status',
     ];
 
@@ -22,6 +25,9 @@ class SellerOrder extends Model
         return [
             'subtotal' => 'decimal:2',
             'shipping_fee' => 'decimal:2',
+            'commission_basis_points' => 'integer',
+            'commission_amount' => 'decimal:2',
+            'seller_proceeds' => 'decimal:2',
         ];
     }
 

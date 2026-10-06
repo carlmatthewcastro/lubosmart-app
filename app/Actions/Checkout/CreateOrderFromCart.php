@@ -72,6 +72,7 @@ class CreateOrderFromCart
             }
 
             $products = Product::query()
+                ->with('category.parent')
                 ->whereIn('id', $cartItems->pluck('product_id'))
                 ->orderBy('id')
                 ->lockForUpdate()
@@ -94,6 +95,21 @@ class CreateOrderFromCart
             foreach ($cartItems as $item) {
                 /** @var Product $product */
                 $product = $products->get($item->product_id);
+                $category = $product->category;
+                $store = $stores->get($product->store_id);
+
+                if (! $category?->is_active || ($category->parent && ! $category->parent->is_active)) {
+                    throw ValidationException::withMessages([
+                        'cart' => "The category for \"{$product->name}\" is no longer available.",
+                    ]);
+                }
+
+                if ($store?->business_category_id !== null
+                    && (int) ($category->parent_id ?? $category->id) !== (int) $store->business_category_id) {
+                    throw ValidationException::withMessages([
+                        'cart' => "The product \"{$product->name}\" is outside its store's registered department.",
+                    ]);
+                }
 
                 if ($product->status !== 'active' || $stores->get($product->store_id)?->status !== 'approved') {
                     throw ValidationException::withMessages([
@@ -123,6 +139,13 @@ class CreateOrderFromCart
             );
 
             $shippingFeeCents = $this->toCents($setting->shipping_fee_per_seller_order);
+            $commissionBasisPoints = $setting->platform_commission_basis_points;
+
+            if ($commissionBasisPoints < 0 || $commissionBasisPoints > 10000) {
+                throw ValidationException::withMessages([
+                    'commission' => 'The configured commission rate must be between 0% and 100%.',
+                ]);
+            }
 
             if ($shippingFeeCents < 0) {
                 throw ValidationException::withMessages([
@@ -158,12 +181,16 @@ class CreateOrderFromCart
                 $storeSubtotalCents = $storeItems->sum(
                     fn (CartItem $item): int => $this->toCents($products->get($item->product_id)->price) * $item->quantity
                 );
+                $commissionCents = intdiv($storeSubtotalCents * $commissionBasisPoints + 5000, 10000);
 
                 $sellerOrder = SellerOrder::query()->create([
                     'order_id' => $order->id,
                     'store_id' => $storeId,
                     'subtotal' => $this->fromCents($storeSubtotalCents),
                     'shipping_fee' => $this->fromCents($shippingFeeCents),
+                    'commission_basis_points' => $commissionBasisPoints,
+                    'commission_amount' => $this->fromCents($commissionCents),
+                    'seller_proceeds' => $this->fromCents($storeSubtotalCents - $commissionCents),
                     'status' => 'pending',
                 ]);
 
@@ -217,6 +244,6 @@ class CreateOrderFromCart
 
     private function fromCents(int $cents): string
     {
-        return intdiv($cents, 100).'.'.str_pad((string) ($cents % 100), 2, '0');
+        return intdiv($cents, 100).'.'.str_pad((string) ($cents % 100), 2, '0', STR_PAD_LEFT);
     }
 }
