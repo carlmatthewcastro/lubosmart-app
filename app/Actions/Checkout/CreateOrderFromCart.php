@@ -139,6 +139,13 @@ class CreateOrderFromCart
             );
 
             $shippingFeeCents = $this->toCents($setting->shipping_fee_per_seller_order);
+            $commissionBasisPoints = $setting->platform_commission_basis_points;
+
+            if ($commissionBasisPoints < 0 || $commissionBasisPoints > 10000) {
+                throw ValidationException::withMessages([
+                    'commission' => 'The configured commission rate must be between 0% and 100%.',
+                ]);
+            }
 
             if ($shippingFeeCents < 0) {
                 throw ValidationException::withMessages([
@@ -174,12 +181,16 @@ class CreateOrderFromCart
                 $storeSubtotalCents = $storeItems->sum(
                     fn (CartItem $item): int => $this->toCents($products->get($item->product_id)->price) * $item->quantity
                 );
+                $commissionCents = intdiv($storeSubtotalCents * $commissionBasisPoints + 5000, 10000);
 
                 $sellerOrder = SellerOrder::query()->create([
                     'order_id' => $order->id,
                     'store_id' => $storeId,
                     'subtotal' => $this->fromCents($storeSubtotalCents),
                     'shipping_fee' => $this->fromCents($shippingFeeCents),
+                    'commission_basis_points' => $commissionBasisPoints,
+                    'commission_amount' => $this->fromCents($commissionCents),
+                    'seller_proceeds' => $this->fromCents($storeSubtotalCents - $commissionCents),
                     'status' => 'pending',
                 ]);
 
@@ -233,6 +244,6 @@ class CreateOrderFromCart
 
     private function fromCents(int $cents): string
     {
-        return intdiv($cents, 100).'.'.str_pad((string) ($cents % 100), 2, '0');
+        return intdiv($cents, 100).'.'.str_pad((string) ($cents % 100), 2, '0', STR_PAD_LEFT);
     }
 }
