@@ -1,0 +1,4 @@
+lubosmart.app, www.lubosmart.app {
+    encode zstd gzip
+    reverse_proxy app:80
+}

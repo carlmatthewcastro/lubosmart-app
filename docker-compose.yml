@@ -11,10 +11,24 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    ports:
-      - "80:80"
+    expose:
+      - "80"
     volumes:
       - app-storage:/var/www/html/storage
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
 
   db:
     image: mysql:8.4
@@ -38,3 +52,5 @@ services:
 volumes:
   app-storage:
   mysql-data:
+  caddy-data:
+  caddy-config:
