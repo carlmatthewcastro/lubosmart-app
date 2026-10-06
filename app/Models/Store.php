@@ -13,6 +13,7 @@ class Store extends Model
         'name',
         'description',
         'status',
+        'business_category_id',
     ];
 
     public function user(): BelongsTo
@@ -23,5 +24,10 @@ class Store extends Model
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);
+    }
+
+    public function businessCategory(): BelongsTo
+    {
+        return $this->belongsTo(Category::class, 'business_category_id');
     }
 }
