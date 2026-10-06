@@ -1,163 +1,282 @@
-# LubosMart Deployment Guide
+# LubosMmart
 
-This guide explains how to make code changes on your Windows computer, publish them to GitHub, and deploy them to the Azure VM.
+### *Lubos na Kaginhawaan, Matalinong Pamimili*
 
-## Production setup
+![Build Status: CI not configured](https://img.shields.io/badge/build-CI%20not%20configured-lightgrey)
+![Tech Stack: Laravel 12, React 19, Inertia 2](https://img.shields.io/badge/stack-Laravel%2012%20%7C%20React%2019%20%7C%20Inertia%202-5B2A86)
+![Version: Unversioned](https://img.shields.io/badge/version-unversioned-F59E0B)
+[![License: MIT declared](https://img.shields.io/badge/license-MIT%20declared-blue)](composer.json)
 
-- **Live website:** <https://lubosmart.app>
-- **Azure VM:** `lubosmart` (Ubuntu; public IP `52.140.199.5`)
-- **Production branch:** `main`
-- **GitHub repository:** `carlmatthewcastro/lubosmart-app`
-- **Application:** Laravel 12, React/Inertia, PHP 8.3, Docker Compose
-- **Web server and HTTPS:** Caddy, with certificates managed automatically
-- **Database:** MySQL in Docker Compose
+> **Project status:** Active development. Enterprise-grade, multi-tenant commerce is the platform vision. The current implementation provides a multi-seller foundation; complete tenant isolation, role workflows and production readiness remain release requirements. Badges describe repository metadata, not live CI results or a published release.
 
-The Azure VM runs the live website. XAMPP is only for local development; it does not need to be running for the Azure site to work.
+## Table of Contents
 
-Deployments are **manual**: merging code into GitHub `main` does not update Azure by itself. The VM gets the new version only after you connect to it and pull `main`.
+- [Project Overview](#project-overview)
+- [Brand Identity](#brand-identity)
+- [Core User Ecosystem](#core-user-ecosystem)
+- [Engineering & Development Team](#engineering--development-team)
+- [Architecture & Technology](#architecture--technology)
+- [Implementation Status](#implementation-status)
+- [Technical Requirements](#technical-requirements)
+- [Installation & Environment Setup](#installation--environment-setup)
+- [Local Development](#local-development)
+- [Quality Assurance](#quality-assurance)
+- [Safety, Compliance & Security](#safety-compliance--security)
+- [Documentation & Deployment](#documentation--deployment)
+- [Versioning & License](#versioning--license)
 
-## Deploying a code change
+## Project Overview
 
-### 1. Make and check the change in VS Code
+**LubosMmart** is designed as an enterprise-grade, multi-tenant e-commerce platform connecting buyers, local merchants, couriers and administrators within a unified digital ecosystem optimized for Filipino communities.
 
-Work in the project folder:
+The platform brings product discovery, merchant operations, delivery coordination and administrative oversight into one marketplace. Its initial payment model is **Cash on Delivery (COD) only**, with a confirmed default platform commission of **10% of each seller order's item subtotal, excluding shipping**.
+
+The repository and existing deployment retain the identifier `lubosmart-app`. This README uses the requested project name **LubosMmart**; repository paths and infrastructure identifiers remain as configured.
+
+## Brand Identity
+
+**Tagline:** *Lubos na Kaginhawaan, Matalinong Pamimili*
+
+| Brand Color | Hex Code | UI Usage |
+| --- | --- | --- |
+| Primary Purple | `#5B2A86` | Brand anchor / innovation; primary brand elements |
+| Deep Purple | `#35145A` | Typography and navigation |
+| Smart Orange | `#F59E0B` | CTA accent and alerts |
+| Soft Canvas | `#F7F4FB` | Surface background |
+
+These colors define the intended design system. Apply them through shared tokens and reusable components. Validate text contrast, keyboard focus and alert meaning; color alone must not communicate status.
+
+## Core User Ecosystem
 
 ```text
-C:\xampp\htdocs\lubosmart-app
+                          LubosMmart
+                              |
+          +-------------------+-------------------+
+          |                   |                   |
+        Buyers          Sellers (MSMEs)         Couriers
+          |                   |                   |
+       Discover          Manage catalog       Accept routes
+       Purchase          Control stock        Deliver parcels
+       Track orders      Process orders       Track earnings
+                              |
+                       Administrators
+                              |
+              Onboarding, compliance, disputes
+                    and commission auditing
 ```
 
-Use a feature branch for a change, and run the relevant local checks before publishing. For example:
+| Core Role | Platform Responsibilities |
+| --- | --- |
+| **Buyers** | Product discovery, real-time tracking and secure COD checkout |
+| **Sellers (MSMEs)** | Catalog management, inventory control and automated order processing |
+| **Couriers** | Dynamic dispatch handling, route acceptance and earnings tracking |
+| **Administrators** | Merchant onboarding, compliance, dispute resolution and commission auditing |
+
+These responsibilities describe the target ecosystem. Real-time tracking, dispatch and earnings dashboards still require operational implementation.
+
+**Operational support:** Logistics / Sorting Center is a separate staff role for parcel receipt, sorting, area assignment and dispatch. The database therefore recognizes five roles: `buyer`, `seller`, `rider`, `admin` and `logistics`. Public registration permits buyer, seller and rider applications; privileged roles require controlled provisioning.
+
+## Engineering & Development Team
+
+| Team Member | Professional Role | Technical Responsibilities |
+| --- | --- | --- |
+| **Carl Matthew Castro** | *Lead Full-Stack Developer & System Architect* | End-to-end system architecture, core API design, relational database modeling, role-based access control (RBAC) and transaction pipelines |
+| **Jayward Villanueva** | *Lead Mobile Application & Frontend Developer* | Client-side mobile architecture, cross-platform UI integration, database consolidation and real-time frontend-to-backend data synchronization |
+| **Allianah Pauline Palconan** | *Technical Documentation Specialist & UI/UX Designer* | System design documentation, software specifications, user experience architecture, visual ergonomics and design system compliance |
+
+These responsibilities define ownership across engineering and design. They do not imply that a mobile client or real-time synchronization service is already included in this repository.
+
+## Architecture & Technology
+
+| Layer | Technology / Responsibility |
+| --- | --- |
+| Backend | Laravel 12 and PHP; server validation, authorization and business actions |
+| Frontend | React 19, TypeScript and Inertia.js v2 |
+| Styling | Tailwind CSS v4, shared UI components and scoped CSS |
+| Server-rendered views | Laravel Blade for the Inertia host and appropriate server-rendered templates |
+| Authentication | Laravel sessions and Google OAuth through Socialite |
+| Database | MySQL for the local project and documented deployment; SQLite for automated tests |
+| Asset pipeline | Vite and npm |
+| Production runtime | Azure VM, Docker Compose, PHP 8.3 / Apache, MySQL and Caddy HTTPS |
+
+A checkout is split into one seller order and one delivery per participating store. Product prices, addresses, shipping fees and commission amounts are snapshotted to preserve transaction history.
+
+Multi-tenant access requires explicit store ownership, buyer ownership, rider assignment and sorting-center boundaries. A shared database or seller foreign key alone does not guarantee isolation.
+
+## Implementation Status
+
+| Capability | Current Status |
+| --- | --- |
+| Email/password and Google authentication | Baseline integration exists; OAuth linking and approval enforcement need further hardening |
+| Product taxonomy | 14 departments and 83 subcategories from the supplied ITEP 308 categories |
+| Checkout | Transactional COD action with stock checks, order splitting and monetary snapshots |
+| Commission | Configurable rate, default 10%; per-seller snapshots, excluding shipping |
+| Category compliance | Checkout rejects disabled categories and products outside a store's declared department |
+| Registration and logistics | Application, document, center, area and parcel-event schema foundations exist |
+| COD accounting | Collection and settlement storage exists; authorized reconciliation and payout actions remain pending |
+| Extended marketplace features | Variants, vouchers, wishlists, reviews, messaging and returns are planned with documented limits |
+
+See [business rules](documentation/business-rules.md) for confirmed policies, proposed limits and feature dependencies. Commission snapshots represent expected amounts; seller settlement requires reconciled COD and a completed authorized workflow.
+
+## Technical Requirements
+
+- PHP **8.2 or later**, with extensions required by Laravel and the selected database driver; the production image uses PHP **8.3**.
+- Composer **2.x**.
+- Node.js **22** and npm to match the repository's frontend build image.
+- MySQL with an existing local database and appropriate credentials; XAMPP may supply the local server.
+- Git; Docker and Docker Compose when using the deployment environment.
+- A Google OAuth web client for Google sign-in, and an email transport for verification and account notifications.
+
+Use the committed dependency lockfiles. The frontend build and test environment should be validated before changing runtime versions.
+
+## Installation & Environment Setup
+
+### 1. Clone the repository
 
 ```powershell
-git status
-git switch -c feat/short-description
+git clone https://github.com/carlmatthewcastro/lubosmart-app.git
+cd lubosmart-app
 ```
 
-If you are already on a feature branch, keep using it rather than creating another one. Do not edit production files directly on the VM.
+For an existing checkout, use its current project directory instead.
 
-### 2. Push the branch to GitHub
-
-Review the files before staging them:
+### 2. Install dependencies
 
 ```powershell
-git status
-git add <files-you-intended-to-change>
-git status
-git commit -m "Describe the change"
-git push -u origin <your-branch>
+composer install
+npm ci
 ```
 
-Create a pull request from your feature branch into `main`. Review it, run any required checks, and merge it when ready. Do not commit `.env`, passwords, API keys, private keys, or other secrets.
+### 3. Create the local environment file
 
-### 3. Deploy the merged `main` to Azure
-
-Connect to the VM from Windows PowerShell. Use the private-key path from your own computer; never copy the key into the repository or send it to anyone.
+For a **new installation only**:
 
 ```powershell
-ssh -i "C:\path\to\your\lubosmart_key.pem" azureuser@52.140.199.5
+Copy-Item .env.example .env
+php artisan key:generate
 ```
 
-In the SSH session, run:
+Do not overwrite an existing `.env` or regenerate an established application key.
 
-```bash
-cd ~/lubosmart-app
-git status --short
-git branch --show-current
-git switch main
-git pull --ff-only origin main
-docker compose config --quiet
-docker compose up -d --build
-docker compose ps
+Edit `.env` using local values. The following is an example configuration with credential placeholders:
+
+```dotenv
+APP_NAME="LubosMmart"
+APP_ENV=local
+APP_DEBUG=true
+APP_URL=http://localhost:8000
+APP_TIMEZONE=Asia/Manila
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=ecommerce_db
+DB_USERNAME=replace_with_local_database_user
+DB_PASSWORD=replace_with_local_database_password
+
+SESSION_DRIVER=database
+CACHE_STORE=database
+QUEUE_CONNECTION=database
+MAIL_MAILER=log
+
+GOOGLE_CLIENT_ID=replace_with_google_client_id
+GOOGLE_CLIENT_SECRET=replace_with_google_client_secret
+GOOGLE_REDIRECT_URI=http://localhost:8000/auth/google/callback
 ```
 
-If `git status --short` shows unexpected changes, stop and investigate before switching branches or pulling. Do not discard production files to force an update.
+Create the MySQL database before migrating and ensure the local server is running. `.env.example` defaults to SQLite; the example above deliberately selects MySQL. Google credentials are optional until sign-in is configured. Register the exact callback URI with Google and follow the [OAuth guide](documentation/google-oauth.md).
 
-Confirm that `app`, `db`, and `caddy` are running and that `db` becomes `healthy`. Then check the public site:
+`MAIL_MAILER=log` supports local development; it does not send email to applicants. Configure a real transport before testing email delivery or approval notifications.
 
-```bash
-curl -I https://lubosmart.app
+### 4. Apply migrations and import categories
+
+```powershell
+php artisan config:clear
+php artisan migrate
+php artisan db:seed --class=MarketplaceCategorySeeder
 ```
 
-A successful response is usually `HTTP/2 200`, `HTTP/1.1 200`, or a redirect such as `301` or `302`.
+The taxonomy seeder is repeatable and preserves existing category IDs and custom rows. Use additive migrations for existing databases. Historical orders retain null commission snapshots rather than receiving retroactive fees.
 
-### 4. Run database migrations when needed
+> **Database safety:** Never run `migrate:fresh` against data you need to keep. The generic `DatabaseSeeder` creates a demo user; use the explicit taxonomy seeder for production category imports. Review [schema and rollback limitations](documentation/core-schema-erd.md) before upgrading.
 
-If the change adds or updates Laravel database migrations, back up the database first, then run:
+## Local Development
 
-```bash
-docker compose exec app php artisan migrate --force
+Start the integrated development processes:
+
+```powershell
+composer run dev
 ```
 
-Do not reverse or delete production data to fix a failed migration. Stop and inspect the error first. A code rollback does not automatically undo a database migration.
+This runs Laravel, the queue listener, log monitoring and Vite through the configured Composer script. Open **http://localhost:8000**.
 
-For code-only changes with no new migrations, this step is not normally needed.
+Alternatively, run these in separate terminals:
 
-## Updating production environment settings
-
-There are two separate environment files:
-
-- The local `.env` on your Windows computer is for local development.
-- The production `.env` at `~/lubosmart-app/.env` on the Azure VM controls the live site.
-
-Never commit either populated `.env` file. On the VM, edit production settings with:
-
-```bash
-cd ~/lubosmart-app
-nano .env
-chmod 600 .env
+```powershell
+php artisan serve
 ```
 
-After changing application environment settings, recreate the app container so it reads the updated values:
-
-```bash
-docker compose up -d --force-recreate app
+```powershell
+npm run dev
 ```
 
-The production app key and database passwords are secrets. Do not regenerate the app key on a live installation; doing so can make existing encrypted data unreadable and invalidate sessions. Do not casually change database passwords: MySQL's existing data volume keeps its initialized credentials.
-
-## Starting and stopping the Azure VM
-
-In the Azure Portal, open **Virtual machines > lubosmart > Overview**:
-
-- Select **Start** to bring the VM online. Docker Compose services are configured to restart after VM startup.
-- Select **Stop** when you intentionally want the site offline. Confirm the VM becomes **Stopped (deallocated)** if you want compute billing to stop.
-
-Managed disks and some other resources may continue to incur charges while the VM is deallocated. Check **Cost Management > Cost analysis** regularly. Starting or stopping the VM does not delete the database volume.
-
-## DNS and HTTPS
-
-Cloudflare DNS should point the domain to the Azure public IP:
-
-- `A` record: `@` → `52.140.199.5`
-- `CNAME` record: `www` → `lubosmart.app`
-
-Caddy obtains and renews HTTPS certificates automatically. Keep inbound **TCP 80** and **TCP 443** allowed in the Azure Network Security Group. MySQL port **3306 must not be opened to the public internet**. The Caddy data volume stores certificate state; do not remove it.
-
-If DNS records are changed, allow time for DNS propagation. Keep Cloudflare records DNS-only while diagnosing certificate issues.
-
-## Health checks and troubleshooting
-
-Run these commands on the Azure VM from `~/lubosmart-app`:
-
-```bash
-docker compose ps
-curl -I https://lubosmart.app
-docker compose logs --tail=100 app
-docker compose logs --tail=100 caddy
-docker compose logs --tail=100 db
+```powershell
+php artisan queue:listen --tries=1
 ```
 
-Share only relevant, redacted error lines when asking for help. Logs and screenshots can contain personal information or session data.
+Build production frontend assets with:
 
-- **Website does not open:** check that the VM is Running, DNS resolves to the VM IP, and TCP 80/443 are allowed.
-- **502/503 response:** check `docker compose ps` and the app logs.
-- **Certificate error:** verify both DNS records, public IP, and TCP 80/443 reachability; allow time for certificate issuance.
-- **Database connection error:** check that `db` is healthy and the production `.env` has `DB_HOST=db`. Do not paste the `.env` into chat.
+```powershell
+npm run build
+```
 
-## Database and storage safety
+## Quality Assurance
 
-Docker Compose stores the MySQL database, uploaded application files, and Caddy certificate data in named persistent volumes. Keep those volumes when updating or restarting containers.
+Run checks appropriate to the changed code:
 
-**Never run `docker compose down -v` on production.** The `-v` option deletes named volumes, including the production database and uploaded files.
+```powershell
+php artisan test
+php vendor/bin/pint --test
+npx tsc --noEmit
+npx eslint resources/js
+npm run format:check
+npm run build
+```
 
-Before risky database or infrastructure changes, create and verify a backup stored somewhere other than the VM's Docker volume. A backup kept only on the VM can be lost with the VM or disk.
+Automated tests cover application behavior; real Google callbacks, email delivery, accessibility and role journeys also require environment-specific acceptance checks. A local passing test suite is not a live CI badge. See [coding guidelines](documentation/coding-guidelines.md) and [release readiness](documentation/release-readiness.md).
+
+## Safety, Compliance & Security
+
+> **Safety:** Back up database and uploaded files before production changes. Preserve persistent Docker volumes. Never run `docker compose down -v` on production. Deploy reviewed changes using the established runbook.
+
+> **Security:** Keep credentials, populated `.env` files and private keys out of Git. Use HTTPS, secure sessions, CSRF protection, rate limits and server-side authorization. Public input must never grant administrative roles, approval status or unrestricted center access. Store identity documents privately and serve them through authorized routes.
+
+> **Compliance:** Define consent, document retention, account review, listing restrictions and dispute procedures before operational launch. Follow the documented Philippine-community requirements and confirm applicable obligations with the responsible project owner. This README does not certify regulatory compliance.
+
+> **Financial integrity:** COD is the only supported payment method. Calculate totals and commission on the server. Separate collection, reconciliation and settlement; unresolved disputes or unreconciled cash must prevent payout when the settlement workflow is implemented.
+
+## Documentation & Deployment
+
+Project Markdown belongs in `documentation/`; the root README serves as the repository entry point. Framework, dependency and agent/skill instruction files remain in their required locations.
+
+| Document | Purpose |
+| --- | --- |
+| [Documentation Index](documentation/README.md) | Project guides and implementation status |
+| [Core Schema ERD](documentation/core-schema-erd.md) | Canonical database reference and relationship diagrams |
+| [ERP Categories](documentation/erp-categories.md) | Course taxonomy and import rules |
+| [Registration & Authentication](documentation/registration-authentication.md) | Five roles, verification, onboarding and approval design |
+| [Google OAuth](documentation/google-oauth.md) | Configuration, account linking and failure handling |
+| [Business Rules](documentation/business-rules.md) | Commission structure, COD policies and operational limits |
+| [Sorting Center](documentation/sorting-center.md) | Parcel custody, area routing and dispatch design |
+| [Coding Guidelines](documentation/coding-guidelines.md) | Maintainable architecture and frontend/backend practices |
+| [Release Readiness](documentation/release-readiness.md) | Acceptance criteria and deployment gates |
+| [Testing Workflow](documentation/testing-workflow.md) | Focused development branches and local testing instructions |
+| [Deployment Runbook](documentation/deployment.md) | Existing Azure / Docker production procedure |
+
+Production deployments follow the documented manual Azure workflow. Merging into `main` does not deploy automatically. Local setup commands are not a production release procedure.
+
+## Versioning & License
+
+**Version:** No project release version is declared yet. Establish release tags and a changelog when the team adopts a release process.
+
+**License:** `composer.json` declares **MIT**. A standalone project `LICENSE` file is not currently present; include the applicable license text and ownership information when formalizing distribution. Dependencies retain their respective licenses.
