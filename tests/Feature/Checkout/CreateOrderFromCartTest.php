@@ -12,6 +12,7 @@ use App\Models\Product;
 use App\Models\SellerOrder;
 use App\Models\Store;
 use App\Models\User;
+use Database\Seeders\MarketplaceCategorySeeder;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 
@@ -213,3 +214,38 @@ it('rejects unavailable cart contents', function (string $productStatus, string 
     'hidden product' => ['hidden', 'approved'],
     'unapproved store' => ['active', 'pending'],
 ]);
+
+it('rejects a disabled product category or department', function (bool $disableParent) {
+    $setup = setupCheckoutCart([
+        ['store' => 'A', 'name' => 'Product', 'price' => '10.00', 'stock' => 2, 'quantity' => 1],
+    ]);
+    $this->seed(MarketplaceCategorySeeder::class);
+    $category = Category::query()->where('slug', 'pet-supplies--dog-food-treats')->firstOrFail();
+    $setup['products']['Product']->update(['category_id' => $category->id]);
+    ($disableParent ? $category->parent : $category)->update(['is_active' => false]);
+
+    expect(fn () => app(CreateOrderFromCart::class)->handle($setup['buyer'], $setup['address']->id))
+        ->toThrow(ValidationException::class);
+
+    expect(Order::query()->count())->toBe(0);
+    expect($setup['products']['Product']->fresh()->stock)->toBe(2);
+})->with(['subcategory' => false, 'department' => true]);
+
+it('rejects products outside the store registered department', function () {
+    $setup = setupCheckoutCart([
+        ['store' => 'A', 'name' => 'Product', 'price' => '10.00', 'stock' => 2, 'quantity' => 1],
+    ]);
+    $this->seed(MarketplaceCategorySeeder::class);
+    $setup['stores']['A']->update([
+        'business_category_id' => Category::query()->where('slug', 'pet-supplies')->value('id'),
+    ]);
+    $setup['products']['Product']->update([
+        'category_id' => Category::query()->where('slug', 'electronics-and-gadgets--smart-home-devices')->value('id'),
+    ]);
+
+    expect(fn () => app(CreateOrderFromCart::class)->handle($setup['buyer'], $setup['address']->id))
+        ->toThrow(ValidationException::class);
+
+    expect(Order::query()->count())->toBe(0);
+    expect($setup['products']['Product']->fresh()->stock)->toBe(2);
+});

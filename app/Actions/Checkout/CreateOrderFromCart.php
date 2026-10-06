@@ -72,6 +72,7 @@ class CreateOrderFromCart
             }
 
             $products = Product::query()
+                ->with('category.parent')
                 ->whereIn('id', $cartItems->pluck('product_id'))
                 ->orderBy('id')
                 ->lockForUpdate()
@@ -94,6 +95,21 @@ class CreateOrderFromCart
             foreach ($cartItems as $item) {
                 /** @var Product $product */
                 $product = $products->get($item->product_id);
+                $category = $product->category;
+                $store = $stores->get($product->store_id);
+
+                if (! $category?->is_active || ($category->parent && ! $category->parent->is_active)) {
+                    throw ValidationException::withMessages([
+                        'cart' => "The category for \"{$product->name}\" is no longer available.",
+                    ]);
+                }
+
+                if ($store?->business_category_id !== null
+                    && (int) ($category->parent_id ?? $category->id) !== (int) $store->business_category_id) {
+                    throw ValidationException::withMessages([
+                        'cart' => "The product \"{$product->name}\" is outside its store's registered department.",
+                    ]);
+                }
 
                 if ($product->status !== 'active' || $stores->get($product->store_id)?->status !== 'approved') {
                     throw ValidationException::withMessages([
