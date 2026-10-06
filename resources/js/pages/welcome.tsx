@@ -23,6 +23,12 @@ interface RegistrationForm {
     password_confirmation: string;
 }
 
+interface GoogleRegistrationForm {
+    role: PublicRole;
+    store_name: string;
+    store_description: string;
+}
+
 function AuthModal({
     initialTab,
     initialRole,
@@ -35,6 +41,7 @@ function AuthModal({
     const [activeTab, setActiveTab] = useState<AuthTab>(initialTab);
     const loginEmailRef = useRef<HTMLInputElement>(null);
     const registerNameRef = useRef<HTMLInputElement>(null);
+    const { errors: sharedErrors } = usePage<SharedData>().props;
     const { data: loginData, setData: setLoginData, post: postLogin, processing: loginProcessing, errors: loginErrors, reset: resetLogin } = useForm<LoginForm>({
         email: '',
         password: '',
@@ -56,6 +63,16 @@ function AuthModal({
         store_description: '',
         password: '',
         password_confirmation: '',
+    });
+    const {
+        setData: setGoogleData,
+        post: postGoogle,
+        processing: googleProcessing,
+        errors: googleErrors,
+    } = useForm<GoogleRegistrationForm>({
+        role: initialRole,
+        store_name: '',
+        store_description: '',
     });
 
     useEffect(() => {
@@ -232,7 +249,11 @@ function AuthModal({
                                     id="auth-register-role"
                                     required
                                     value={registrationData.role}
-                                    onChange={(event) => setRegistrationData('role', event.target.value as PublicRole)}
+                                    onChange={(event) => {
+                                        const role = event.target.value as PublicRole;
+                                        setRegistrationData('role', role);
+                                        setGoogleData('role', role);
+                                    }}
                                 >
                                     <option value="buyer">Buyer</option>
                                     <option value="seller">Seller</option>
@@ -252,7 +273,10 @@ function AuthModal({
                                             maxLength={160}
                                             required
                                             value={registrationData.store_name}
-                                            onChange={(event) => setRegistrationData('store_name', event.target.value)}
+                                            onChange={(event) => {
+                                                setRegistrationData('store_name', event.target.value);
+                                                setGoogleData('store_name', event.target.value);
+                                            }}
                                             placeholder="Your store name"
                                         />
                                         {registrationErrors.store_name && <p className="auth-modal__error">{registrationErrors.store_name}</p>}
@@ -264,7 +288,10 @@ function AuthModal({
                                             id="auth-store-description"
                                             required
                                             value={registrationData.store_description}
-                                            onChange={(event) => setRegistrationData('store_description', event.target.value)}
+                                            onChange={(event) => {
+                                                setRegistrationData('store_description', event.target.value);
+                                                setGoogleData('store_description', event.target.value);
+                                            }}
                                             placeholder="Tell customers what your store offers"
                                         />
                                         {registrationErrors.store_description && <p className="auth-modal__error">{registrationErrors.store_description}</p>}
@@ -309,6 +336,19 @@ function AuthModal({
                             >
                                 {registrationProcessing ? 'Creating account…' : 'Create account'}
                             </button>
+                            <div className="auth-modal__separator" aria-hidden="true"><span>or</span></div>
+                            {(sharedErrors?.google || googleErrors.google) && (
+                                <p className="auth-modal__error" role="alert">{googleErrors.google || sharedErrors?.google}</p>
+                            )}
+                            <button
+                                className="auth-modal__google-button"
+                                type="button"
+                                disabled={googleProcessing}
+                                onClick={() => postGoogle(route('auth.google.redirect'))}
+                            >
+                                <span className="auth-modal__google-mark" aria-hidden="true">G</span>
+                                {googleProcessing ? 'Connecting to Google…' : 'Continue with Google'}
+                            </button>
                             <p className="auth-modal__footer">Seller accounts begin with a pending store review.</p>
                         </form>
                     </div>
@@ -319,8 +359,8 @@ function AuthModal({
 }
 
 export default function Welcome() {
-    const { auth } = usePage<SharedData>().props;
-    const [modalTab, setModalTab] = useState<AuthTab | null>(null);
+    const { auth, errors: sharedErrors } = usePage<SharedData>().props;
+    const [modalTab, setModalTab] = useState<AuthTab | null>(() => (sharedErrors?.google ? 'register' : null));
     const [initialRole, setInitialRole] = useState<PublicRole>('buyer');
 
     const openRegistration = (role: PublicRole = 'buyer') => {
