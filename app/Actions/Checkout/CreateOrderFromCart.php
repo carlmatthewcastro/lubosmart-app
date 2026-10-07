@@ -27,8 +27,8 @@ class CreateOrderFromCart
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if ($buyer->role !== 'buyer' || $buyer->status !== 'active') {
-                throw new AuthorizationException('Only active buyer accounts can check out.');
+            if ($buyer->role !== 'buyer' || $buyer->status !== 'active' || ! $buyer->hasVerifiedEmail()) {
+                throw new AuthorizationException('Only verified, active buyer accounts can check out.');
             }
 
             $cart = Cart::query()
