@@ -1,3 +1,4 @@
+import AdminOverview, { type AdminOverviewData } from '@/components/admin-overview';
 import { Badge, Card, Empty, Page, buttonClass, secondaryClass } from '@/components/marketplace-ui';
 import { type SharedData, type UserRole } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
@@ -68,14 +69,19 @@ export default function Dashboard({
     stats,
     records,
     storeStatus,
+    adminOverview,
 }: {
     role: UserRole;
     stats: Record<string, number>;
     records: { id: number; label: string; status: string; detail: string }[];
     storeStatus?: string;
+    adminOverview?: AdminOverviewData | null;
 }) {
     const { auth } = usePage<SharedData>().props;
     const content = roles[role];
+    if (role === 'admin' && adminOverview) {
+        return <AdminOverview stats={stats} overview={adminOverview} records={records} />;
+    }
     return (
         <Page
             title={content.title}

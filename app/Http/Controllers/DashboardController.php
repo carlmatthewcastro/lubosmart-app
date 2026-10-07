@@ -36,6 +36,7 @@ class DashboardController extends Controller
         abort_unless($user->role === $role, 403);
         $stats = [];
         $records = collect();
+        $adminOverview = null;
         if ($role === 'buyer') {
             $orders = Order::query()->where('buyer_id', $user->id);
             $stats = ['Orders' => (clone $orders)->count(), 'In progress' => (clone $orders)->whereIn('status', ['pending', 'processing'])->count(), 'Completed' => (clone $orders)->where('status', 'completed')->count()];
@@ -55,10 +56,29 @@ class DashboardController extends Controller
             $stats = ['Parcels' => (clone $deliveries)->count(), 'For pickup' => (clone $deliveries)->where('status', 'assigned')->count(), 'Delivered' => (clone $deliveries)->where('status', 'delivered')->count()];
             $records = $deliveries->latest('id')->limit(10)->get(['id', 'status'])->map(fn ($row) => ['id' => $row->id, 'label' => 'Delivery #'.$row->id, 'status' => $row->status, 'detail' => 'Assigned parcel']);
         } else {
-            $stats = ['Accounts' => User::query()->count(), 'Pending review' => RegistrationApplication::query()->where('status', 'submitted')->whereIn('requested_role', ['buyer', 'seller', 'logistics'])->count(), 'Approved stores' => Store::query()->where('status', 'approved')->count()];
-            $records = DB::table('audit_events')->orderByDesc('id')->limit(10)->get(['id', 'action', 'subject_type'])->map(fn ($row) => ['id' => $row->id, 'label' => $row->subject_type, 'status' => $row->action, 'detail' => 'Review activity']);
+            $pending = RegistrationApplication::query()->where('status', 'submitted')->whereIn('requested_role', ['buyer', 'seller', 'logistics']);
+            $stats = ['Accounts' => User::query()->count(), 'Pending review' => (clone $pending)->count(), 'Approved stores' => Store::query()->where('status', 'approved')->count()];
+            $adminOverview = [
+                'applications' => $pending->with('user:id,name')->orderBy('submitted_at')->orderBy('id')->limit(5)->get(['id', 'user_id', 'requested_role', 'submitted_at'])->map(fn ($application) => [
+                    'id' => $application->id, 'name' => $application->user->name, 'role' => $application->requested_role, 'submittedAt' => $application->submitted_at?->toIso8601String(),
+                ]),
+                'activeDeliveries' => Delivery::query()->whereIn('status', ['assigned', 'picked_up', 'in_transit'])->count(),
+                'codAwaitingReconciliation' => DB::table('cod_collections')->where('status', 'handed_over')->count(),
+            ];
+            $records = DB::table('audit_events')->orderByDesc('id')->limit(10)->get(['id', 'action', 'subject_type', 'subject_id', 'occurred_at'])->map(fn ($row) => [
+                'id' => $row->id,
+                'label' => match ($row->subject_type) {
+                    'registration_application' => 'Application #'.$row->subject_id,
+                    'user' => 'Account #'.$row->subject_id,
+                    'commerce_settings' => 'Commerce settings',
+                    default => ucfirst(str_replace('_', ' ', $row->subject_type)),
+                },
+                'status' => $row->action,
+                'detail' => ucfirst(str_replace('_', ' ', $row->action)),
+                'occurredAt' => $row->occurred_at,
+            ]);
         }
 
-        return Inertia::render('dashboard', ['role' => $role, 'stats' => $stats, 'records' => $records, 'storeStatus' => $user->store?->status]);
+        return Inertia::render('dashboard', ['role' => $role, 'stats' => $stats, 'records' => $records, 'storeStatus' => $user->store?->status, 'adminOverview' => $adminOverview]);
     }
 }
