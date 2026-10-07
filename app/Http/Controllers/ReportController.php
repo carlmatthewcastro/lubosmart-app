@@ -1,0 +1,49 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\CommerceSetting;
+use App\Models\SellerOrder;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
+
+class ReportController extends Controller
+{
+    public function index(Request $request)
+    {
+        $user = $request->user();
+        abort_unless(in_array($user->role, ['admin', 'seller', 'logistics', 'rider']), 403);
+        $orders = SellerOrder::query()->where('status', 'completed');
+        if ($user->role === 'seller') {
+            $orders->where('store_id', $user->store?->id);
+        } elseif (in_array($user->role, ['logistics', 'rider'])) {
+            $orders->whereHas('delivery', fn ($q) => $user->role === 'rider' ? $q->where('rider_id', $user->id) : $q->whereIn('sorting_center_id', $user->sortingCenters()->where('is_active', true)->pluck('sorting_centers.id')));
+        }
+        $financial = in_array($user->role, ['admin', 'seller']);
+        $columns = $financial ? ['*'] : ['id', 'order_id', 'store_id', 'subtotal', 'shipping_fee'];
+        $records = (clone $orders)->with('store:id,name')->latest('id')->paginate(15, $columns);
+        $totals = ['Completed parcels' => (clone $orders)->count()];
+        if ($financial) {
+            $totals += ['Product sales' => (clone $orders)->sum('subtotal'), 'Commission' => (clone $orders)->sum('commission_amount'), 'Seller proceeds' => (clone $orders)->sum('seller_proceeds')];
+        } else {
+            $totals += ['Parcel COD value' => (float) (clone $orders)->sum('subtotal') + (float) (clone $orders)->sum('shipping_fee')];
+        }
+
+        return Inertia::render('marketplace/reports', ['role' => $user->role, 'records' => $records, 'totals' => $totals, 'settings' => $user->role === 'admin' ? CommerceSetting::query()->findOrFail(1) : null]);
+    }
+
+    public function update(Request $request)
+    {
+        abort_unless($request->user()->role === 'admin', 403);
+        $data = $request->validate(['shipping_fee_per_seller_order' => 'required|numeric|decimal:0,2|min:0|max:9999.99', 'platform_commission_basis_points' => 'required|integer|min:0|max:10000']);
+        DB::transaction(function () use ($request, $data) {
+            $settings = CommerceSetting::query()->whereKey(1)->lockForUpdate()->firstOrFail();
+            $before = $settings->only(array_keys($data));
+            $settings->update($data);
+            DB::table('audit_events')->insert(['actor_id' => $request->user()->id, 'subject_type' => 'commerce_settings', 'subject_id' => 1, 'action' => 'updated', 'changes' => json_encode(['before' => $before, 'after' => $data]), 'occurred_at' => now()]);
+        });
+
+        return back()->with('status', 'Rates saved. Existing orders retain their original rates.');
+    }
+}

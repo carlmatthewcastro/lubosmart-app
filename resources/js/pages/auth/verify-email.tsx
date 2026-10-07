@@ -1,5 +1,6 @@
 // Components
-import { Head, useForm } from '@inertiajs/react';
+import { type SharedData } from '@/types';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import { FormEventHandler } from 'react';
 
@@ -8,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import AuthLayout from '@/layouts/auth-layout';
 
 export default function VerifyEmail({ status }: { status?: string }) {
+    const { auth } = usePage<SharedData>().props;
     const { post, processing } = useForm({});
 
     const submit: FormEventHandler = (e) => {
@@ -31,6 +33,15 @@ export default function VerifyEmail({ status }: { status?: string }) {
                     {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
                     Resend verification email
                 </Button>
+
+                <p className="text-muted-foreground text-sm">
+                    {auth.user.role === 'buyer' && auth.user.status === 'active'
+                        ? 'After verification, you can start shopping. Add a delivery address at checkout or in Settings.'
+                        : 'After verification, complete your application for review. You can save a draft and return later.'}
+                </p>
+                <TextLink href={route('profile.edit')} className="mx-auto block text-sm">
+                    Manage profile and addresses
+                </TextLink>
 
                 <TextLink href={route('logout')} method="post" className="mx-auto block text-sm">
                     Log out

@@ -1,6 +1,5 @@
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
@@ -16,6 +15,7 @@ const sidebarNavItems: NavItem[] = [
         url: '/settings/password',
         icon: null,
     },
+    { title: 'Addresses', url: '/settings/addresses', icon: null },
     {
         title: 'Appearance',
         url: '/settings/appearance',
@@ -30,20 +30,20 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
         <div className="px-4 py-6">
             <Heading title="Settings" description="Manage your profile and account settings" />
 
-            <div className="flex flex-col space-y-8 lg:flex-row lg:space-y-0 lg:space-x-12">
+            <div className="flex flex-col gap-6 lg:flex-row lg:gap-12">
                 <aside className="w-full max-w-xl lg:w-48">
-                    <nav className="flex flex-col space-y-1 space-x-0">
+                    <nav className="grid grid-cols-2 gap-1 lg:flex lg:flex-col" aria-label="Account settings">
                         {sidebarNavItems.map((item) => (
                             <Button
                                 key={item.url}
                                 size="sm"
                                 variant="ghost"
                                 asChild
-                                className={cn('w-full justify-start', {
+                                className={cn('min-h-11 w-full justify-start', {
                                     'bg-muted': currentPath === item.url,
                                 })}
                             >
-                                <Link href={item.url} prefetch>
+                                <Link href={item.url} prefetch aria-current={currentPath === item.url ? 'page' : undefined}>
                                     {item.title}
                                 </Link>
                             </Button>
@@ -51,10 +51,8 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
                     </nav>
                 </aside>
 
-                <Separator className="my-6 md:hidden" />
-
-                <div className="flex-1 md:max-w-2xl">
-                    <section className="max-w-xl space-y-12">{children}</section>
+                <div className="min-w-0 flex-1">
+                    <section className="max-w-3xl space-y-8">{children}</section>
                 </div>
             </div>
         </div>

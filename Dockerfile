@@ -20,7 +20,7 @@ RUN apt-get update \
         libpng-dev \
         libzip-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j"$(nproc)" bcmath curl gd intl mbstring pdo_mysql zip \
+    && docker-php-ext-install -j"$(nproc)" bcmath curl gd intl mbstring pcntl pdo_mysql zip \
     && a2enmod headers rewrite \
     && rm -rf /var/lib/apt/lists/*
 
@@ -57,3 +57,6 @@ RUN composer install \
     && chown -R www-data:www-data storage bootstrap/cache
 
 EXPOSE 80
+
+# Registration accepts three private documents of up to 5 MB each.
+RUN printf '%s\n' 'upload_max_filesize=5M' 'post_max_size=20M' > /usr/local/etc/php/conf.d/uploads.ini

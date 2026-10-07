@@ -1,80 +1,53 @@
 # Registration and authentication
 
-**Target design; gaps below are not implemented by these documents.** Use one `users` table and Laravel's session-based `web` guard. Server-owned role grants authorize operations. Google establishes identity, independently of business approval.
+Implemented on 2026-10-07 using the ERP reference and **Marketplace_Registration_and_Verification_System_Design.docx**. The newer design guides progressive onboarding: ordinary buyers do not need an ID application or administrator approval. References inform the implementation; they do not authorize deployments or external account changes.
 
-## Role boundaries
+## Role and review boundaries
 
-| Role | Entry and approval | Operational scope |
-| --- | --- | --- |
-| Buyer (`buyer`) | Public local/Google application; admin review per PDF | Own addresses, cart, COD orders and complaints |
-| Seller (`seller`) | Public application, pending store; admin account/store review | Own approved store, products, seller orders and reports |
-| Rider (`rider`) | Public application plus vehicle/documents; admin review | Eligible pickups, assigned deliveries, own cash handovers/history |
-| Logistics/Sorting Center (`logistics`) | Admin invite/provisioning and center assignment | Parcels, dispatch, area assignments and reports for assigned center |
-| Admin (`admin`) | Trusted bootstrap; later admin invitations | Account/store decisions, settings/categories, disputes and audits |
+| Role | Entry | Reviewer | Dashboard |
+| --- | --- | --- | --- |
+| Buyer | Short public password/Google registration; email verification | No review for new ordinary buyers | /dashboard/buyer |
+| Seller | Short account setup, then business/category/document application | Admin | /dashboard/seller |
+| Courier (rider) | Public registration, vehicle details, selected center | Logistics member of that active center | /dashboard/rider |
+| Logistics / Sorting Center | Public application with business details and permit | Admin | /dashboard/logistics |
+| Admin | Interactive trusted provisioning | No public registration | /dashboard/admin |
 
-Hide Admin/Logistics from public choices and reject direct submissions of these values. Public handlers cannot accept `status`, approval timestamps, reviewer, center membership or permissions. Existing public role allowlists already reject privileged roles; preserve them.
+This updated PDF supersedes the earlier plan for admin-only rider review and invitation-only logistics registration. Public logistics registration grants **pending application access only**. Approved logistics applicants receive a center and membership atomically. Admin cannot use the rider-review endpoint; logistics cannot review buyers, sellers, other centers' riders, or its own application.
 
-Retain one role per account initially. If sellers/riders need to buy, decide that explicitly: current checkout expects a buyer. Never overwrite an existing role during login, Google linking or UI tab switching.
+## Working account journey
 
-## Separate identity, access and review state
+1. Register with email, password and role, or use Google signup. Set the display name later in Profile. Business, legal-name and vehicle details are collected after account creation. Existing clients may still send names and an optional store name with a valid category at signup.
+2. Password registrants verify email. New ordinary buyers are active accounts with unverified email until they follow the link; protected shopping actions require verified email. Google signup activates new buyers with a provider-verified email. Buyers collect delivery addresses at checkout or in Settings. Sellers, couriers, and logistics remain pending and receive a draft application. Existing account decisions and historical buyer applications are preserved.
+3. Complete first/last name, optional middle initial, sex, birthday, phone, address and private ID. Age is calculated for display. Seller applications require a root business category and business permit. Logistics requires business name and business/DTI permit. Riders choose an active center and vehicle; motor vehicles require plate and OR/CR. Bicycle registration excludes motor-vehicle documents, an implementation assumption to confirm with the owner.
+4. Complete the personal, business/vehicle, address, document, and final review steps. Save partial drafts, including private documents, and resume from the saved step after signing in again. Drafts do not create a business, issue approval, or grant privileges. Final submission requires complete fields and explicit consent. PSGC selections are resolved on the server against the selected parent hierarchy; browser labels and privileged fields are not trusted. Submitted applications cannot be edited until rejected. A seller store is created at final submission if not already present.
+5. The authorized reviewer downloads private documents and approves or rejects with a reason. Review and submission lock user then application; decisions update access, application, store/center and audit records in one transaction. Only a submitted, verified, pending account can be approved.
+6. Decision mail is queued after commit, with retries. Rejected applications remain pending, display the reason, and permit correction/resubmission.
+7. /dashboard resolves verification, pending application or the correct role dashboard. Operational pages require verified, active accounts and enforce the role or record policy. Existing suspended sessions are denied on requests; logout stays available.
 
-1. Identity: `email_verified_at` records verification.
-2. Access: existing `users.status` = `pending`, `active`, `suspended`.
-3. Review: proposed `registration_applications.status` = `draft`, `submitted`, `approved`, `rejected`.
+Review lists filter awaiting-review, approved, and changes-requested applications within the existing role/center boundaries. Detail pages show the reviewer, submission/review dates, and rejection reason. New review audit records retain the reason even after a later resubmission.
 
-```mermaid
-flowchart LR
-    A[Register identity] --> B[Verify email / Google]
-    B --> C[Complete application]
-    C --> D[Submit for review]
-    D --> E[Approved: active operations]
-    D --> F[Rejected: reason and resubmission]
-    F --> C
-    E --> G[Suspended: operations denied]
-```
+Email verification, contact information, application state, and operational account status remain separate. A saved phone is not OTP verified; Google proves control of the provider account/email, not government ID, an address, or a business. The displayed form step describes progress through the form, not approval or completed document verification. See [onboarding implementation decisions](onboarding-design-decisions.md).
 
-New public users are pending with a draft application. Submission requires verified email and completed role fields. Admin approval activates the account and application atomically; sellers also require approved store status. Rejection leaves access pending and allows correction/resubmission. Suspension denies operations even after verification/store approval; reinstatement is audited.
+Pending users can verify, complete their application, see status and access account settings. No operational dashboard or review access is granted until approval. Accounts with retained registration records receive a clear account-closure message rather than failing a restricted foreign-key delete.
 
-Pending users can authenticate, verify, complete onboarding, see decisions, recover credentials and log out. They cannot check out, publish, accept deliveries or dispatch. Check status on every protected request, including existing sessions.
+## Identity and security behavior
 
-## Additive schema foundations and remaining work
+Homepage and dedicated auth pages share the React auth dialog, including role choices, remember-me, errors and Google buttons. Password login normalizes email, regenerates the session, and preserves existing login rate limits. Registration regenerates sessions; logout invalidates them. Registration, Google initiation, password recovery/reset and verification resend are throttled.
 
-The new foundation migration now creates `user_profiles`, `registration_applications`, `registration_documents`, `rider_profiles` and `audit_events`, plus logistics/COD storage described in [Core Schema ERD](core-schema-erd.md). Controllers do not yet populate or review these records; this remains a target workflow, not an enabled approval feature. Preserve deployed migrations and use additive changes.
+Google login and registration have separate intents that expire after 15 minutes and are consumed once. Unknown identities cannot register from login intent. Existing Google identities retain their role. Email equality alone never links an existing password account; that user must use their existing sign-in method. Explicit linking is not implemented. Provider failures, cancellation, invalid state and unverified email produce a form error. Suspension also denies Google sign-in.
 
-| Addition | Fields/constraints |
-| --- | --- |
-| Profile (`user_profiles`) | Unique user FK, name parts, birthday, sex; phone remains on `users`; define display-name derivation |
-| Registration application (`registration_applications`) | Unique user FK, requested public role, review status, submission/review timestamps, reviewer FK, rejection reason, policy acceptance |
-| Application documents (`registration_documents`) | Application FK, kind, private disk/path, MIME/size and timestamps |
-| Rider profile | Unique user FK, vehicle type, plate number, document references and eligibility |
-| Center membership | User/center FKs and grant metadata; see sorting guide |
-| Audit events | Actor, subject, action, previous/new state and timestamp; exclude credentials/raw documents |
+IDs and permits are stored on the private local disk, with generated names, content-based file validation, and a 5 MB limit. Only the applicant or authorized reviewer can download them; responses disable caching. Real document retention and support-assisted account closure still need an operational policy.
 
-Use one current application per user initially; audit resubmissions. If storing application history as rows, prevent multiple open applications transactionally. Plan existing-account backfill before changing defaults; do not blanket-activate/demote them. Existing `google_id` is nullable/unique; Google-only accounts currently receive a random hashed password, never a shared default.
+## Address dependency
 
-Use a cached/imported geographic dataset with stable codes and validated province/city/barangay hierarchy. Do not trust labels alone. Store birthday as a date, calculate age for display, and preserve checkout's immutable shipping snapshots.
+The app uses the PSGC API at https://psgc.gitlab.io/api/ with a one-day server cache, dependent province/city/barangay selects, and an NCR option. Failed lookups display a retry error and leave the application unchanged. It is a third-party dataset: verify its current coverage and real connectivity before release. There is no unvalidated manual location fallback. Nationwide serviceability and scheduled dataset synchronization remain separate work.
 
-## Step-by-step implementation
+## Provisioning and testing
 
-1. Centralize role/status enums and the server's public role options. Update comparisons, factories and tests together when introducing enum casts.
-2. Apply the existing foundation migrations. Wire profiles/applications/documents/audits into registration; explicitly set new accounts pending and review existing account migration. Validate `stores.business_category_id` against a root from the [course taxonomy](erp-categories.md).
-3. Extract shared validation into Form Requests and a registration/onboarding action. Existing controllers validate inline; refactor both related registration paths together.
-4. Implement `MustVerifyEmail` on User, configure mail, retain verification endpoints and protect operations with `verified`. Keep onboarding/status/recovery reachable.
-5. Regenerate sessions after local registration; password login and Google callback already do. Preserve CSRF, logout invalidation and reset flows.
-6. Add active-account middleware and role gates; use policies for buyer ownership, store ownership, rider assignment and center membership. Authentication alone does not authorize record access.
-7. Build admin review actions with transactions and expected-state checks. Competing decisions cannot both succeed. Audit changes and send notifications after commit, with retryable delivery.
-8. Provision the first admin with a dedicated console command and interactive credentials. No default password seed or public bootstrap route. Invitations expire, are single-use and bind email/role/center.
-9. Add onboarding/status pages and a shared authorized dashboard destination resolver. Check intended URLs against role permissions to prevent loops/wrong-role destinations.
-10. Share React form components between homepage modal and dedicated login/register pages. Render errors, submission progress, review state and Google cancellation consistently.
+Run php artisan lubosmart:create-admin to enter a name, unique email and a password interactively. It does not use a shared default password. Never provision administrators through public forms.
 
-Suggested future route names: `onboarding.edit`, `applications.store`, `applications.show`, `admin.applications.index`, `admin.applications.approve`, `admin.applications.reject`. They do not exist yet.
+For local dashboard demonstrations, php artisan lubosmart:test-accounts creates missing verified active synthetic accounts, an approved test store and a sorting center. Repeat runs reuse existing accounts and preserve their credentials/state. It prints a random password for newly created accounts and refuses production environments. The explicit --reset-passwords option resets only reserved local test credentials when needed. See [testing workflow](testing-workflow.md).
 
-## Security and current gaps
+## Remaining release verification
 
-Normalize email consistently without casually rewriting existing identities. Use Laravel hashing/password defaults. Rate-limit registration, OAuth initiation, password recovery and verification resend; password login already has a limiter. Recovery responses should not enumerate accounts. Do not allow privileged fields in ordinary profile updates.
-
-Keep IDs, permits and proof images private; validate file content/type/size, generate filenames and serve through authorized routes. Define retention and audit access. `storage/app/public` is unsuitable for identity documents.
-
-Current User lacks the verification contract; dashboard requires only `auth`. Password login and Google callback do not enforce suspension. Store approval checks in checkout do not protect all seller operations. Close these before operational release.
-
-Laravel's [verification guide](https://laravel.com/docs/12.x/verification) explains the model contract and middleware. Use [authorization policies](https://laravel.com/docs/12.x/authorization) for resource permissions.
+Real Google credentials, SMTP delivery, queue processing, address-service connectivity, mobile/keyboard behavior and MySQL concurrency require environment acceptance checks. The later UI update connects catalog/checkout, dispatch, private delivery proof, COD reconciliation, order conversations, and scoped reports; see [UI workflow](ui-workflow.md). Courier earnings, payouts, and disputes remain future work.

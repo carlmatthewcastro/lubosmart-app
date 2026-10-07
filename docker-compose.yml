@@ -1,5 +1,6 @@
 services:
   app:
+    image: lubosmart-app:latest
     build:
       context: .
       dockerfile: Dockerfile
@@ -7,12 +8,29 @@ services:
     env_file:
       - .env
     environment:
-      DB_ROOT_PASSWORD: ""
+      DB_ROOT_PASSWORD: ''
     depends_on:
       db:
         condition: service_healthy
     expose:
-      - "80"
+      - '80'
+    volumes:
+      - app-storage:/var/www/html/storage
+
+  queue:
+    image: lubosmart-app:latest
+    restart: unless-stopped
+    user: www-data
+    command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+    env_file:
+      - .env
+    environment:
+      DB_ROOT_PASSWORD: ''
+    depends_on:
+      app:
+        condition: service_started
+      db:
+        condition: service_healthy
     volumes:
       - app-storage:/var/www/html/storage
 
@@ -22,9 +40,9 @@ services:
     depends_on:
       - app
     ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy-data:/data

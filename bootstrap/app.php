@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Middleware\EnsureAccountIsActive;
+use App\Http\Middleware\EnsureAccountIsNotSuspended;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -14,8 +16,10 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->trustProxies(at: '*');
+        $middleware->alias(['active' => EnsureAccountIsActive::class]);
         $middleware->web(append: [
             HandleInertiaRequests::class,
+            EnsureAccountIsNotSuspended::class,
             AddLinkHeadersForPreloadedAssets::class,
         ]);
     })

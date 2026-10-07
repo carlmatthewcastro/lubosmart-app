@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
+use App\Models\RegistrationApplication;
 use App\Models\Store;
 use App\Models\User;
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -13,30 +16,33 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
-use Symfony\Component\HttpFoundation\Response;
 use Inertia\Inertia;
 use Laravel\Socialite\Facades\Socialite;
+use Symfony\Component\HttpFoundation\Response;
 
 class GoogleAuthController extends Controller
 {
     public function redirect(Request $request): Response
     {
         $validated = $request->validate([
-            'role' => ['required', Rule::in(['buyer', 'seller', 'rider'])],
-            'store_name' => ['required_if:role,seller', 'nullable', 'string', 'max:160'],
-            'store_description' => ['required_if:role,seller', 'nullable', 'string'],
+            'intent' => ['nullable', Rule::in(['login', 'register'])],
+            'role' => ['required_unless:intent,login', 'nullable', Rule::in(['buyer', 'seller', 'rider', 'logistics'])],
+            'store_name' => ['nullable', 'string', 'max:160'],
+            'business_category_id' => ['nullable', 'integer', Rule::exists(Category::class, 'id')->whereNull('parent_id')->where('is_active', true)],
         ]);
 
         if (! config('services.google.client_id') || ! config('services.google.client_secret')) {
             return back()->withErrors([
-                'google' => 'Google sign-in is not configured yet. Add the Google OAuth credentials to your local environment.',
+                'google' => 'Google sign-in is currently unavailable. Please use email and password to continue.',
             ]);
         }
 
         $request->session()->put('google_registration', [
-            'role' => $validated['role'],
+            'intent' => $validated['intent'] ?? 'register',
+            'started_at' => now()->timestamp,
+            'role' => $validated['role'] ?? null,
             'store_name' => $validated['store_name'] ?? null,
-            'store_description' => $validated['store_description'] ?? null,
+            'business_category_id' => $validated['business_category_id'] ?? null,
         ]);
 
         return Inertia::location(Socialite::driver('google')->redirect()->getTargetUrl());
@@ -52,27 +58,33 @@ class GoogleAuthController extends Controller
             ]);
         }
 
-        if (! is_array($registration) || ! in_array($registration['role'] ?? null, ['buyer', 'seller', 'rider'], true)) {
+        if (! is_array($registration) || ! isset($registration['started_at']) || $registration['started_at'] < now()->subMinutes(15)->timestamp || $registration['started_at'] > now()->timestamp || ! in_array($registration['intent'] ?? null, ['login', 'register'], true) || ($registration['intent'] === 'register' && ! in_array($registration['role'] ?? null, ['buyer', 'seller', 'rider', 'logistics'], true))) {
             return to_route('home')->withErrors([
                 'google' => 'Please choose an account type before continuing with Google.',
             ]);
         }
 
-        $googleUser = Socialite::driver('google')->user();
+        try {
+            $googleUser = Socialite::driver('google')->user();
+        } catch (\Exception $exception) {
+            report($exception);
+
+            return to_route('home')->withErrors(['google' => 'Google sign-in could not be completed. Please try again.']);
+        }
         $googleEmail = Str::lower(trim((string) $googleUser->getEmail()));
         $googleId = trim((string) $googleUser->getId());
         $googleProfile = $googleUser->getRaw();
         $isEmailVerified = ($googleProfile['email_verified'] ?? $googleProfile['verified_email'] ?? false) === true;
 
-        if ($googleEmail === '' || strlen($googleEmail) > 160 || $googleId === '' || ! $isEmailVerified) {
+        if (! filter_var($googleEmail, FILTER_VALIDATE_EMAIL) || strlen($googleEmail) > 160 || $googleId === '' || strlen($googleId) > 255 || ! $isEmailVerified) {
             return to_route('home')->withErrors([
                 'google' => 'Google did not provide a verified email address. Please use email and password registration instead.',
             ]);
         }
 
-        if (($registration['role'] ?? null) === 'seller' && (blank($registration['store_name'] ?? null) || blank($registration['store_description'] ?? null))) {
+        if ($registration['intent'] === 'register' && ($registration['role'] ?? null) === 'seller' && filled($registration['business_category_id'] ?? null) && ! Category::query()->whereKey($registration['business_category_id'])->whereNull('parent_id')->where('is_active', true)->exists()) {
             return to_route('home')->withErrors([
-                'google' => 'Seller registration requires a store name and description. Please enter both and try again.',
+                'google' => 'Seller registration requires a store name and an available product category. Please select both and try again.',
             ]);
         }
 
@@ -83,35 +95,34 @@ class GoogleAuthController extends Controller
                 return $user;
             }
 
-            $user = User::query()->where('email', $googleEmail)->lockForUpdate()->first();
-
-            if ($user && $user->google_id !== null) {
+            if ($registration['intent'] === 'login') {
                 return null;
             }
 
-            if ($user) {
-                $user->forceFill([
-                    'google_id' => $googleId,
-                    'email_verified_at' => $user->email_verified_at ?? now(),
-                ])->save();
+            $user = User::query()->where('email', $googleEmail)->lockForUpdate()->first();
 
-                return $user;
+            // Email equality alone must never link a provider to an existing identity.
+            if ($user) {
+                return null;
             }
 
             $user = User::query()->create([
-                'name' => $googleUser->getName() ?: $googleEmail,
+                'name' => Str::substr($googleUser->getName() ?: $googleEmail, 0, 160),
                 'email' => $googleEmail,
                 'google_id' => $googleId,
                 'password' => Hash::make(Str::random(64)),
                 'role' => $registration['role'],
             ]);
-            $user->forceFill(['email_verified_at' => now()])->save();
+            $user->forceFill(['email_verified_at' => now(), 'status' => $user->role === 'buyer' ? 'active' : 'pending'])->save();
+            if ($user->role !== 'buyer') {
+                RegistrationApplication::query()->create(['user_id' => $user->id, 'requested_role' => $user->role]);
+            }
 
-            if ($registration['role'] === 'seller') {
+            if ($registration['role'] === 'seller' && filled($registration['store_name'] ?? null) && filled($registration['business_category_id'] ?? null)) {
                 Store::query()->create([
                     'user_id' => $user->id,
                     'name' => $registration['store_name'],
-                    'description' => $registration['store_description'],
+                    'business_category_id' => $registration['business_category_id'],
                     'status' => 'pending',
                 ]);
             }
@@ -121,17 +132,23 @@ class GoogleAuthController extends Controller
 
         if (! $user) {
             return to_route('home')->withErrors([
-                'google' => 'This email is already linked to another Google account. Please log in with your existing sign-in method.',
+                'google' => 'Use your existing sign-in method, or create a new account from the registration form.',
             ]);
         }
 
+        if ($user->status === 'suspended') {
+            return to_route('home')->withErrors(['google' => 'Your account is suspended. Contact LubosMart support.']);
+        }
+
         if ($user->wasRecentlyCreated) {
-            event(new \Illuminate\Auth\Events\Registered($user));
+            event(new Registered($user));
         }
 
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->intended(URL::route('dashboard', absolute: false));
+        $request->session()->forget('url.intended');
+
+        return redirect(URL::route('dashboard', absolute: false));
     }
 }

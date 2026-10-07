@@ -1,6 +1,6 @@
 # Project documentation
 
-Reviewed: **2026-10-06 (Asia/Manila)**. The latest update includes additive migrations, the full course product taxonomy and commission/category enforcement in checkout. Approval, dispatch and COD settlement workflows have schema foundations but still need authorized actions/screens. Production has not been changed or inspected remotely.
+Reviewed: **2026-10-07 (Asia/Manila)**. Authentication now includes verified/pending applications, private documents, admin/logistics review, queued decisions, suspension and five role dashboards. See [registration](registration-authentication.md) and [testing](testing-workflow.md). The latest update includes additive migrations, the full course product taxonomy and commission/category enforcement in checkout. Approval actions/screens are implemented; dispatch and COD settlement still need authorized workflows. Production has not been changed or inspected remotely.
 
 ## Reading order
 
@@ -9,6 +9,7 @@ Reviewed: **2026-10-06 (Asia/Manila)**. The latest update includes additive migr
 | [Source requirements](source-requirements.md) | PDF findings, conflicts, assumptions, missing requirements |
 | [ERP product categories](erp-categories.md) | Complete updated ITEP 308 taxonomy: 14 departments, 83 subcategories |
 | [Registration and authentication](registration-authentication.md) | Five roles, approval states, permissions, implementation steps |
+| [Progressive onboarding decisions](onboarding-design-decisions.md) | Applied DOCX recommendations, buyer signup, saved application progress, and acceptance steps |
 | [Google OAuth](google-oauth.md) | Configure and harden the existing Socialite integration |
 | [Core functions and business rules](business-rules.md) | System categories, COD checkout, fulfillment and settlement |
 | [Sorting center](sorting-center.md) | Area-based sorting, rider assignment and custody |
@@ -23,16 +24,16 @@ Reviewed: **2026-10-06 (Asia/Manila)**. The latest update includes additive migr
 | Concern | Repository now | Target |
 | --- | --- | --- |
 | Roles | Users enum includes buyer, seller, admin, logistics, rider | Five roles with explicit authorization |
-| Public registration | Buyer/seller/rider accepted; buyer default | Applications for these roles; no public admin/logistics grants |
-| Approval | Users default active; seller stores start pending | Approval before operational access |
+| Public registration | New buyers shop after email verification; partners receive saved draft applications | Admin provisioned interactively; no public admin grants |
+| Approval | Partners remain pending; step-based submission, admin/logistics review/history and audit | Real mail delivery and concurrency acceptance |
 | Google | Dependency, config, routes, controller, tests, homepage button | Separate login/onboarding, safe linking, graceful errors |
-| Verification | Routes exist; User lacks `MustVerifyEmail`; dashboard uses only `auth` | Verified identity and approval checks |
-| Dashboard | One authenticated dashboard | Authorized role destinations and application status pages |
-| Catalog | Hierarchical category migration and idempotent 97-row taxonomy seeder; store department FK | Category management, seller classification and catalog UI |
-| Checkout/commission | Transactional COD checkout with commission snapshots, active taxonomy and declared-department checks | Authorized endpoints/screens; refunds and reconciled settlement |
-| Logistics | Centers, service areas, memberships, parcel events, collection and settlement tables in migrations | Authorized scan/dispatch/reconciliation workflows |
-| Registration review | Profile, application, document and rider-profile tables in migrations | Pending-account creation, onboarding and admin review actions |
-| UI | Homepage modal and dedicated auth pages differ; legacy Blade/public assets exist | Shared React auth components and validation |
+| Verification | MustVerifyEmail, verified/active boundaries and session suspension checks | Real verification/recovery delivery |
+| Dashboard | Five responsive role destinations, navigation, scoped counts and activity | Further UX acceptance and future modules |
+| Catalog | Search/filter UI, seller inventory/photo editing, taxonomy and store department checks | Variations and advanced merchandising |
+| Checkout/commission | Shopping bag/address UI, transactional COD checkout, retry protection, cancellation, and snapshots | Refunds and seller settlement |
+| Logistics | Authorized center receipt, rider assignment, status/proof, COD receipt/reconciliation, event history | Service-area automation, scans, and seller payouts |
+| Registration review | Validated applications/private uploads; admin reviews buyers/sellers/logistics, assigned center reviews riders | Real document/notification acceptance |
+| UI | Consistent dashboard shell, custom logo, connected role screens; see [workflow](ui-workflow.md) | Remaining module UI and environment acceptance |
 
 ## Maintenance
 

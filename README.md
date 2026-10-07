@@ -1,4 +1,4 @@
-# LubosMmart
+# LubosMart
 
 ### *Lubos na Kaginhawaan, Matalinong Pamimili*
 
@@ -27,11 +27,11 @@
 
 ## Project Overview
 
-**LubosMmart** is designed as an enterprise-grade, multi-tenant e-commerce platform connecting buyers, local merchants, couriers and administrators within a unified digital ecosystem optimized for Filipino communities.
+**LubosMart** is designed as an enterprise-grade, multi-tenant e-commerce platform connecting buyers, local merchants, couriers and administrators within a unified digital ecosystem optimized for Filipino communities.
 
 The platform brings product discovery, merchant operations, delivery coordination and administrative oversight into one marketplace. Its initial payment model is **Cash on Delivery (COD) only**, with a confirmed default platform commission of **10% of each seller order's item subtotal, excluding shipping**.
 
-The repository and existing deployment retain the identifier `lubosmart-app`. This README uses the requested project name **LubosMmart**; repository paths and infrastructure identifiers remain as configured.
+The project name is **LubosMart**, and the repository and existing deployment use the identifier `lubosmart-app`.
 
 ## Brand Identity
 
@@ -39,9 +39,9 @@ The repository and existing deployment retain the identifier `lubosmart-app`. Th
 
 | Brand Color | Hex Code | UI Usage |
 | --- | --- | --- |
-| Primary Purple | `#5B2A86` | Brand anchor / innovation; primary brand elements |
-| Deep Purple | `#35145A` | Typography and navigation |
-| Smart Orange | `#F59E0B` | CTA accent and alerts |
+| Primary Purple | `#6D47B1` | Primary actions and the LubosMart shopping bag logo |
+| Deep Purple | `#312344` | Dashboard welcome panels and brand depth |
+| Warm Accent | `#ECAA68` | Small logo and illustration accents |
 | Soft Canvas | `#F7F4FB` | Surface background |
 
 These colors define the intended design system. Apply them through shared tokens and reusable components. Validate text contrast, keyboard focus and alert meaning; color alone must not communicate status.
@@ -49,7 +49,7 @@ These colors define the intended design system. Apply them through shared tokens
 ## Core User Ecosystem
 
 ```text
-                          LubosMmart
+                          LubosMart
                               |
           +-------------------+-------------------+
           |                   |                   |
@@ -72,9 +72,9 @@ These colors define the intended design system. Apply them through shared tokens
 | **Couriers** | Dynamic dispatch handling, route acceptance and earnings tracking |
 | **Administrators** | Merchant onboarding, compliance, dispute resolution and commission auditing |
 
-These responsibilities describe the target ecosystem. Real-time tracking, dispatch and earnings dashboards still require operational implementation.
+Five responsive role dashboards now connect catalog, shopping bag, COD checkout, inventory, fulfillment, dispatch, proof of delivery, cash receipt/reconciliation, order conversations, and reports. Real-time GPS tracking, courier earnings, and seller payouts remain future work. See [UI workflow and persistent test logins](documentation/ui-workflow.md), [registration](documentation/registration-authentication.md), and [testing](documentation/testing-workflow.md).
 
-**Operational support:** Logistics / Sorting Center is a separate staff role for parcel receipt, sorting, area assignment and dispatch. The database therefore recognizes five roles: `buyer`, `seller`, `rider`, `admin` and `logistics`. Public registration permits buyer, seller and rider applications; privileged roles require controlled provisioning.
+**Operational support:** Logistics / Sorting Center is a separate staff role for parcel receipt, sorting, area assignment and dispatch. The database recognizes five roles: `buyer`, `seller`, `rider`, `admin` and `logistics`. New buyers can shop after email verification without an ID application. Sellers, riders and logistics users complete saved, step-based applications with pending operational access. Admin approves sellers and logistics; logistics approves riders for its center. Historical buyer applications remain reviewable. Administrators require trusted provisioning. See [registration design decisions](documentation/onboarding-design-decisions.md).
 
 ## Engineering & Development Team
 
@@ -107,14 +107,15 @@ Multi-tenant access requires explicit store ownership, buyer ownership, rider as
 
 | Capability | Current Status |
 | --- | --- |
-| Email/password and Google authentication | Baseline integration exists; OAuth linking and approval enforcement need further hardening |
+| Email/password and Google authentication | Shared auth forms, verified identity, pending onboarding, role dashboards, suspension checks and explicit Google intents; actual provider/mail acceptance still required |
 | Product taxonomy | 14 departments and 83 subcategories from the supplied ITEP 308 categories |
-| Checkout | Transactional COD action with stock checks, order splitting and monetary snapshots |
+| Checkout | Shopping bag/address UI, transactional COD checkout, retry protection, split orders, stock checks, and cancellation before preparation |
 | Commission | Configurable rate, default 10%; per-seller snapshots, excluding shipping |
 | Category compliance | Checkout rejects disabled categories and products outside a store's declared department |
-| Registration and logistics | Application, document, center, area and parcel-event schema foundations exist |
-| COD accounting | Collection and settlement storage exists; authorized reconciliation and payout actions remain pending |
-| Extended marketplace features | Variants, vouchers, wishlists, reviews, messaging and returns are planned with documented limits |
+| Registration and logistics | Personal/role details, private documents, review/resubmission, center receipt, rider dispatch, delivery status and private proof UI |
+| COD accounting | Courier collection, center receipt, and admin reconciliation implemented; seller payout/settlement remains pending |
+| Inventory and reports | Seller product/photo creation, editing, visibility, pricing/stock; scoped completed sales reports and audited admin rates |
+| Extended marketplace features | Order conversations and printable waybills implemented; variants, vouchers, wishlists, ratings, live chat, and returns remain planned |
 
 See [business rules](documentation/business-rules.md) for confirmed policies, proposed limits and feature dependencies. Commission snapshots represent expected amounts; seller settlement requires reconciled COD and a completed authorized workflow.
 
@@ -161,7 +162,7 @@ Do not overwrite an existing `.env` or regenerate an established application key
 Edit `.env` using local values. The following is an example configuration with credential placeholders:
 
 ```dotenv
-APP_NAME="LubosMmart"
+APP_NAME="LubosMart"
 APP_ENV=local
 APP_DEBUG=true
 APP_URL=http://localhost:8000
@@ -271,6 +272,7 @@ Project Markdown belongs in `documentation/`; the root README serves as the repo
 | [Coding Guidelines](documentation/coding-guidelines.md) | Maintainable architecture and frontend/backend practices |
 | [Release Readiness](documentation/release-readiness.md) | Acceptance criteria and deployment gates |
 | [Testing Workflow](documentation/testing-workflow.md) | Focused development branches and local testing instructions |
+| [UI Workflow](documentation/ui-workflow.md) | Connected role screens, persistent logins, and complete local COD test journey |
 | [Deployment Runbook](documentation/deployment.md) | Existing Azure / Docker production procedure |
 
 Production deployments follow the documented manual Azure workflow. Merging into `main` does not deploy automatically. Local setup commands are not a production release procedure.

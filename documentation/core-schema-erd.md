@@ -33,7 +33,7 @@ All account roles share Laravel's `users` table.
 - Laravel authentication fields: `email_verified_at`, `remember_token`, timestamps
 - unique nullable `google_id` for the existing Socialite integration
 
-The existing public registration still defaults users to active; the new application table does not automatically change this behavior. Pending onboarding, approval and suspension enforcement remain implementation work.
+The existing public registration still defaults users to active; the new application table does not automatically change this behavior. Pending onboarding, private-document review, approval and suspension enforcement are implemented. New public accounts explicitly receive pending status; existing active accounts are preserved.
 
 ### stores
 
@@ -156,7 +156,7 @@ The new tables below provide storage. No approval, scan/dispatch, collection or 
 | Table | Fields and relationship rules |
 | --- | --- |
 | `user_profiles` | Unique user FK; first/last name, optional middle initial, sex/birthday, timestamps; age derived at runtime; contact remains `users.phone`, addresses remain `addresses` |
-| `registration_applications` | Unique user FK (one current application); requested buyer/seller/rider role; draft/submitted/approved/rejected status; reviewer, reason, policy acceptance and decision timestamps |
+| `registration_applications` | Unique user FK (one current application); requested buyer/seller/rider/logistics role; draft/submitted/approved/rejected status; reviewer, reason, business name, center/address FKs, policy acceptance and decision timestamps |
 | `registration_documents` | Application FK; kind, private disk/path, MIME, byte size, timestamps; default `local` disk; upload authorization and retention required |
 | `rider_profiles` | Unique user FK; vehicle type, optional plate, availability default false; license/OR/CR use application documents |
 | `sorting_centers` | Unique code, name, address, phone, active flag |
@@ -246,4 +246,12 @@ Production uses the equivalent Docker commands with `--force` after backup and r
 
 The hierarchy migration refuses rollback when repeated category names would violate the old global-name constraint. Resolve/review duplicates before any rollback; the migration does not silently delete categories. Rolling back populated foundation or commission changes discards operational records/snapshots; use forward fixes in production.
 
-COD remains the only payment method. Reviews, variants, wishlists, vouchers, messaging, returns and accounting adjustments are scoped in [business rules](business-rules.md), with required future schema/actions clearly listed. Admin settings screens and authorization policies remain pending.
+COD remains the only payment method. Ratings, variants, wishlists, vouchers, returns and accounting adjustments are scoped in [business rules](business-rules.md), with required future schema/actions clearly listed. Order conversations and authorized admin rate settings now have connected screens.
+
+## 2026-10-07 registration schema extension
+
+An additive migration extends registration_applications.requested_role to include logistics and adds nullable business_name, sorting_center_id and address_id. user_profiles adds province_code, city_code and barangay_code. Parent selections are resolved server-side. Applications reference their registration address; original order shipping snapshots are preserved. Rider applications use sorting_center_id for review isolation. Logistics approval creates a center and sorting_center_user grant. Down migration refuses narrowing the role enum while logistics applications exist; rollback otherwise removes the new profile/address metadata. Prefer forward fixes after real applications exist.
+
+## 2026-10-07 marketplace UI extension
+
+`orders.checkout_key` is a nullable UUID with a unique buyer/key pair. HTTP checkout locks the buyer and reuses an existing order for the same key, preventing retry duplication. `order_messages` stores a seller-order FK, sender user FK, body, and timestamps; only that parcel’s buyer/seller can write messages. Both FKs restrict deletion so conversation context is retained. Proof photos remain on the private disk; product photos use public storage. Approved riders receive sorting-center membership for dispatch authorization. See [UI workflow](ui-workflow.md) for the connected screens and current limits.

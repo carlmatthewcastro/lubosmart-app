@@ -1,10 +1,12 @@
 <?php
 
+use App\Models\Category;
 use App\Models\User;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\User as GoogleUser;
 
 test('verified Google users register with their selected role and pending seller store', function () {
+    $category = Category::query()->create(['name' => 'Home', 'slug' => 'home']);
     config([
         'services.google.client_id' => 'test-client-id',
         'services.google.client_secret' => 'test-client-secret',
@@ -19,7 +21,7 @@ test('verified Google users register with their selected role and pending seller
     $this->post(route('auth.google.redirect'), [
         'role' => 'seller',
         'store_name' => 'Google Store',
-        'store_description' => 'A store from Google registration.',
+        'business_category_id' => $category->id,
     ])->assertRedirect('https://socialite.fake/google/authorize');
 
     $this->get(route('auth.google.callback'))
@@ -32,12 +34,12 @@ test('verified Google users register with their selected role and pending seller
     $this->assertDatabaseHas('stores', [
         'user_id' => $user->id,
         'name' => 'Google Store',
-        'description' => 'A store from Google registration.',
+        'business_category_id' => $category->id,
         'status' => 'pending',
     ]);
 });
 
-test('verified Google users link to an existing account with the same email', function () {
+test('Google does not link existing accounts based only on email equality', function () {
     $user = User::factory()->create([
         'email' => 'existing@example.com',
         'google_id' => null,
@@ -49,18 +51,20 @@ test('verified Google users link to an existing account with the same email', fu
         'verified_email' => true,
     ]));
     session(['google_registration' => [
+        'intent' => 'register',
+        'started_at' => now()->timestamp,
         'role' => 'buyer',
         'store_name' => null,
-        'store_description' => null,
+        'business_category_id' => null,
     ]]);
 
     $this->get(route('auth.google.callback'))
-        ->assertRedirect(route('dashboard', absolute: false));
+        ->assertRedirect(route('home'))->assertSessionHasErrors('google');
 
-    $this->assertAuthenticatedAs($user);
+    $this->assertGuest();
     $this->assertDatabaseHas('users', [
         'id' => $user->id,
-        'google_id' => 'google-existing-456',
+        'google_id' => null,
         'role' => 'rider',
     ]);
     $this->assertDatabaseCount('users', 1);
@@ -78,9 +82,11 @@ test('Google users can sign in to an account already linked to Google', function
         'verified_email' => true,
     ]));
     session(['google_registration' => [
+        'intent' => 'register',
+        'started_at' => now()->timestamp,
         'role' => 'rider',
         'store_name' => null,
-        'store_description' => null,
+        'business_category_id' => null,
     ]]);
 
     $this->get(route('auth.google.callback'))
@@ -102,9 +108,11 @@ test('Google registration rejects unverified email addresses', function () {
         'verified_email' => false,
     ]));
     session(['google_registration' => [
+        'intent' => 'register',
+        'started_at' => now()->timestamp,
         'role' => 'buyer',
         'store_name' => null,
-        'store_description' => null,
+        'business_category_id' => null,
     ]]);
 
     $this->get(route('auth.google.callback'))
@@ -116,7 +124,7 @@ test('Google registration rejects unverified email addresses', function () {
     $this->assertDatabaseCount('stores', 0);
 });
 
-test('Google registration requires a role and seller store details before redirecting', function () {
+test('Google seller signup defers store details but requires a public role', function () {
     config([
         'services.google.client_id' => 'test-client-id',
         'services.google.client_secret' => 'test-client-secret',
@@ -127,15 +135,37 @@ test('Google registration requires a role and seller store details before redire
         ->post(route('auth.google.redirect'), [
             'role' => 'seller',
             'store_name' => '',
-            'store_description' => '',
+            'business_category_id' => '',
         ])
-        ->assertRedirect('/')
-        ->assertSessionHasErrors(['store_name', 'store_description']);
+        ->assertRedirect('https://socialite.fake/google/authorize')
+        ->assertSessionHasNoErrors();
 
     $this->from('/')
         ->post(route('auth.google.redirect'), [])
         ->assertRedirect('/')
         ->assertSessionHasErrors('role');
+});
+
+test('verified Google buyers can shop without an approval application', function () {
+    Socialite::fake('google', GoogleUser::fake(['id' => 'new-buyer', 'name' => 'Google Buyer', 'email' => 'buyer@example.com', 'verified_email' => true]));
+    session(['google_registration' => ['intent' => 'register', 'started_at' => now()->timestamp, 'role' => 'buyer']]);
+    $this->get(route('auth.google.callback'))->assertRedirect(route('dashboard', absolute: false));
+    $user = User::query()->where('email', 'buyer@example.com')->firstOrFail();
+    expect($user->status)->toBe('active');
+    expect($user->email_verified_at)->not->toBeNull();
+    $this->assertDatabaseCount('registration_applications', 0);
+    $this->get('/dashboard')->assertRedirect('/dashboard/buyer');
+});
+
+test('Google sellers begin a draft application without needing a store at signup', function () {
+    Socialite::fake('google', GoogleUser::fake(['id' => 'new-seller', 'name' => 'Google Seller', 'email' => 'seller@example.com', 'verified_email' => true]));
+    session(['google_registration' => ['intent' => 'register', 'started_at' => now()->timestamp, 'role' => 'seller']]);
+    $this->get(route('auth.google.callback'))->assertSessionHasNoErrors();
+    $user = User::query()->where('email', 'seller@example.com')->firstOrFail();
+    expect($user->status)->toBe('pending');
+    expect($user->application->status)->toBe('draft');
+    expect($user->store)->toBeNull();
+    $this->get('/dashboard')->assertRedirect('/application');
 });
 
 test('Google sign-in reports missing OAuth credentials', function () {
@@ -152,9 +182,11 @@ test('Google sign-in reports missing OAuth credentials', function () {
 
 test('Google registration rejects cancelled consent', function () {
     session(['google_registration' => [
+        'intent' => 'register',
+        'started_at' => now()->timestamp,
         'role' => 'buyer',
         'store_name' => null,
-        'store_description' => null,
+        'business_category_id' => null,
     ]]);
 
     $this->get(route('auth.google.callback', ['error' => 'access_denied']))
@@ -162,4 +194,15 @@ test('Google registration rejects cancelled consent', function () {
         ->assertSessionHasErrors('google');
 
     $this->assertGuest();
+});
+
+test('Google seller signup rechecks category availability after consent', function () {
+    config(['services.google.client_id' => 'client', 'services.google.client_secret' => 'secret']);
+    $category = Category::query()->create(['name' => 'Home', 'slug' => 'home']);
+    Socialite::fake('google', GoogleUser::fake(['id' => 'seller', 'email' => 'seller@example.com', 'verified_email' => true]));
+    $this->post(route('auth.google.redirect'), ['intent' => 'register', 'role' => 'seller', 'store_name' => 'Store', 'business_category_id' => $category->id])->assertRedirect();
+    $category->update(['is_active' => false]);
+    $this->get(route('auth.google.callback'))->assertSessionHasErrors('google');
+    $this->assertGuest();
+    $this->assertDatabaseMissing('users', ['email' => 'seller@example.com']);
 });

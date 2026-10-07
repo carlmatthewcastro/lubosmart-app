@@ -183,6 +183,16 @@ it('rejects inactive or non-buyer accounts', function (string $role, string $sta
     'suspended buyer' => ['buyer', 'suspended'],
 ]);
 
+it('rejects an unverified buyer without creating an order', function () {
+    $setup = setupCheckoutCart([
+        ['store' => 'A', 'name' => 'Product', 'price' => '40.00', 'stock' => 5, 'quantity' => 1],
+    ]);
+    $setup['buyer']->forceFill(['email_verified_at' => null])->save();
+    expect(fn () => app(CreateOrderFromCart::class)->handle($setup['buyer'], $setup['address']->id))->toThrow(AuthorizationException::class);
+    expect(Order::query()->count())->toBe(0);
+    expect($setup['products']['Product']->fresh()->stock)->toBe(5);
+});
+
 it('rejects a negative shipping fee setting without creating an order', function () {
     $setup = setupCheckoutCart([
         ['store' => 'A', 'name' => 'Product', 'price' => '40.00', 'stock' => 5, 'quantity' => 1],

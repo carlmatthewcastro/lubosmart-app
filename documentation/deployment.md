@@ -74,7 +74,7 @@ docker compose ps
 
 If `git status --short` shows unexpected changes, stop and investigate before switching branches or pulling. Do not discard production files to force an update.
 
-Confirm that `app`, `db`, and `caddy` are running and that `db` becomes `healthy`. Then check the public site:
+Confirm that `app`, `queue`, `db`, and `caddy` are running and that `db` becomes `healthy`. Then check the public site:
 
 ```bash
 curl -I https://lubosmart.app
@@ -171,3 +171,7 @@ Docker Compose stores the MySQL database, uploaded application files, and Caddy 
 **Never run `docker compose down -v` on production.** The `-v` option deletes named volumes, including the production database and uploaded files.
 
 Before risky database or infrastructure changes, create and verify a backup stored somewhere other than the VM's Docker volume. A backup kept only on the VM can be lost with the VM or disk.
+
+## Authentication release (2026-10-07)
+
+The additive registration migration adds logistics applications and location/address fields. Apply it before exposing the updated application code; use the maintenance/compatible-release plan in release-readiness.md. Existing active users are preserved; newly registered public accounts become pending. Docker Compose now builds a shared app image and runs a queue service for review mail, with persistent storage and the same environment. Verify the queue process and actual mail delivery after release. Docker enables pcntl and registration upload limits. Never run lubosmart:test-accounts in production; use interactive lubosmart:create-admin only when an administrator must be provisioned. Private registration documents use the existing app-storage volume and must be included in backups. No live deployment was performed by this update.

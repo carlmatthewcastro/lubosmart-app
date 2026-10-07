@@ -1,6 +1,6 @@
 # Implementation order and release readiness
 
-The latest update adds category/commission behavior and registration/logistics/COD schema foundations. It has not deployed production code or configured Google credentials. Schema availability is not evidence that registration review, dispatch or settlement is operational.
+The 2026-10-07 updates implement authentication/onboarding, private applications, role-scoped review, account suspension, five responsive dashboards, and the connected COD marketplace workflow described in [UI workflow](ui-workflow.md). They also add the Compose queue worker for decision emails. Production code has not been deployed and Google credentials have not been configured. Dispatch and cash reconciliation are implemented; seller settlement remains unfinished. Real mail/Google/address/browser and MySQL concurrency acceptance still need verification.
 
 ## Ordered implementation plan
 
@@ -21,7 +21,7 @@ Use existing Pest feature-test conventions; extend tests when implementation cha
 
 | Boundary | Required examples |
 | --- | --- |
-| Registration | Buyer/seller/rider submitted as pending; seller pending store; incomplete fields fail atomically; public admin/logistics or status injection rejected/ignored safely |
+| Registration | New buyers need verified email but no ID application; partners start pending drafts without business/vehicle details; drafts resume without granting privileges; final submission validates required details/documents; public admin or status injection rejected/ignored |
 | Verification/review | Unverified or pending users cannot operate; approval/rejection audited; resubmission permitted; two reviewers cannot decide inconsistently |
 | Session access | Suspended password/Google users denied operations; existing session denied after suspension; logout invalidates session |
 | Authorization | Buyer cannot access another address/order; seller cannot edit another store; rider cannot complete another assignment; logistics cannot read another center/export |
@@ -30,15 +30,15 @@ Use existing Pest feature-test conventions; extend tests when implementation cha
 | Dispatch | Two accept/assign requests produce one winner; inactive/out-of-area rider denied; duplicate scan harmless; reassignment revokes old access |
 | COD | Package-specific due amount; short collection not delivered; repeated collection/handover/settlement not duplicated; reports match reconciled ledger |
 
-Existing auth and checkout tests are a baseline, not proof of the proposed workflow. In particular, the current Google same-email-link test describes behavior this plan changes. Provider fakes do not exercise a real browser's cookies or Google configuration.
+Existing auth and checkout tests are a baseline, not proof of the proposed workflow. Google tests now reject linking based solely on matching email. Provider fakes do not exercise a real browser's cookies or Google configuration.
 
-Manual journeys: verified buyer awaiting approval then COD checkout; seller registration/store approval then fulfillment; rider application then assigned parcel and collection; logistics center receipt/dispatch/reconciliation; admin review/suspension/settings. Also test mobile layout, keyboard-only form/dialog use, cancellation and provider outage. Use synthetic records and designated test accounts.
+Manual journeys: short buyer signup and email verification then COD checkout; seller account setup, saved/resumed application, private documents, final review/store approval then fulfillment; rider application then assigned parcel and collection; logistics center receipt/dispatch/reconciliation; admin review history/suspension/settings. Historical buyer applications retain their review decisions. Also test mobile layout, keyboard-only form/dialog use, cancellation and provider outage. Use synthetic records and designated test accounts.
 
 ## Production environment checklist
 
 - Confirm the actual Azure VM, branch, domain and deployment path from [deployment](deployment.md). This project already uses Azure; no Laravel Cloud migration is required by this guide.
 - Use production Google client/callback, real mail transport, `APP_ENV=production`, `APP_DEBUG=false`, canonical HTTPS `APP_URL`, stable `APP_KEY`, persistent sessions, secure/HTTP-only/Lax cookies.
-- Check that pending/approval notifications and recovery/verification messages actually arrive. The Compose file currently declares app/db/caddy only. If notifications are queued, add and supervise a worker; declaring `QUEUE_CONNECTION=database` alone does not process jobs. Add scheduler execution if scheduled tasks are introduced.
+- Check that pending/approval notifications and recovery/verification messages actually arrive. The Compose file now includes a queue worker. Verify it is running and uses the correct mail transport; declaring `QUEUE_CONNECTION=database` alone does not process jobs. Add scheduler execution if scheduled tasks are introduced.
 - Back up MySQL and uploaded storage off-VM and test restoration. Keep Docker volumes, database credentials and app key. Plan migration compatibility and code rollback separately from data rollback.
 - Keep database/app ports private; public traffic reaches Caddy. Protect identity uploads separately from public product images. Verify proxy/cookie behavior through Google round trips.
 
@@ -78,4 +78,4 @@ If release checks fail, record the failing behavior, inspect logs and halt opera
 
 Validation recorded for the 2026-10-06 update: 61 PHP tests passed (220 assertions), Pint passed, and all local Markdown links/code fences passed inspection. The three additive migrations and taxonomy seeder were also applied successfully to the local MySQL `ecommerce_db`: 14 canonical departments, 83 canonical subcategories, default commission 1000 basis points. Production was not modified.
 
-For this update, run the taxonomy and checkout/commission suites, the full PHP suite, formatting and link checks. The upgrade must preserve legacy category/order IDs and leave historical commission snapshots null. The taxonomy migration refuses rollback while names repeat across departments; dropping populated foundation/commission tables or columns loses data. Prefer reviewed forward fixes in production.
+For this update, run the auth/application/role/command suites, the checkout suite, full PHP suite, formatting, TypeScript, ESLint, build and Markdown link checks. The upgrade must preserve legacy category/order IDs and leave historical commission snapshots null. The taxonomy migration refuses rollback while names repeat across departments; dropping populated foundation/commission tables or columns loses data. Prefer reviewed forward fixes in production.
