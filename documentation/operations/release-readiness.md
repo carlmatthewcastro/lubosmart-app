@@ -1,6 +1,6 @@
 # Implementation order and release readiness
 
-The 2026-10-07 updates implement authentication/onboarding, private applications, role-scoped review, account suspension, five responsive dashboards, and the connected COD marketplace workflow described in [UI workflow](ui-workflow.md). They also add the Compose queue worker for decision emails. Production code has not been deployed and Google credentials have not been configured. Dispatch and cash reconciliation are implemented; seller settlement remains unfinished. Real mail/Google/address/browser and MySQL concurrency acceptance still need verification.
+The 2026-10-07 updates implement authentication/onboarding, private applications, role-scoped review, account suspension, five responsive dashboards, and the connected COD marketplace workflow described in [UI workflow](../design/ui-workflow.md). They also add the Compose queue worker for decision emails. The project owner reported a successful Azure deployment and working Google sign-in on 2026-10-07. The newer admin dashboard and homepage navigation edits remain local. Dispatch and cash reconciliation are implemented; seller settlement remains unfinished. Production mail delivery, complete role journeys, and MySQL concurrency acceptance still need verification.
 
 ## Ordered implementation plan
 

@@ -12,7 +12,7 @@ Implemented on 2026-10-07 using the ERP reference and **Marketplace_Registration
 | Logistics / Sorting Center | Public application with business details and permit | Admin | /dashboard/logistics |
 | Admin | Interactive trusted provisioning | No public registration | /dashboard/admin |
 
-This updated PDF supersedes the earlier plan for admin-only rider review and invitation-only logistics registration. Public logistics registration grants **pending application access only**. Approved logistics applicants receive a center and membership atomically. Admin cannot use the rider-review endpoint; logistics cannot review buyers, sellers, other centers' riders, or its own application.
+This updated PDF supersedes the earlier plan for admin-only rider review and invitation-only logistics registration. Public logistics registration grants **pending application access only**. Approved logistics applicants receive a center and membership atomically. The newer admin workspace also permits admin to review couriers across centers; logistics cannot review buyers, sellers, other centers' riders, or its own application.
 
 ## Working account journey
 
@@ -46,8 +46,8 @@ The app uses the PSGC API at https://psgc.gitlab.io/api/ with a one-day server c
 
 Run php artisan lubosmart:create-admin to enter a name, unique email and a password interactively. It does not use a shared default password. Never provision administrators through public forms.
 
-For local dashboard demonstrations, php artisan lubosmart:test-accounts creates missing verified active synthetic accounts, an approved test store and a sorting center. Repeat runs reuse existing accounts and preserve their credentials/state. It prints a random password for newly created accounts and refuses production environments. The explicit --reset-passwords option resets only reserved local test credentials when needed. See [testing workflow](testing-workflow.md).
+For local dashboard demonstrations, php artisan lubosmart:test-accounts creates missing verified active synthetic accounts, an approved test store and a sorting center. Repeat runs reuse existing accounts and preserve their credentials/state. It prints a random password for newly created accounts and refuses production environments. The explicit --reset-passwords option resets only reserved local test credentials when needed. See [testing workflow](../development/testing-workflow.md).
 
 ## Remaining release verification
 
-Real Google credentials, SMTP delivery, queue processing, address-service connectivity, mobile/keyboard behavior and MySQL concurrency require environment acceptance checks. The later UI update connects catalog/checkout, dispatch, private delivery proof, COD reconciliation, order conversations, and scoped reports; see [UI workflow](ui-workflow.md). Courier earnings, payouts, and disputes remain future work.
+Real Google credentials, SMTP delivery, queue processing, address-service connectivity, mobile/keyboard behavior and MySQL concurrency require environment acceptance checks. The later UI update connects catalog/checkout, dispatch, private delivery proof, COD reconciliation, order conversations, and scoped reports; see [UI workflow](../design/ui-workflow.md). Courier earnings, payouts, and disputes remain future work.

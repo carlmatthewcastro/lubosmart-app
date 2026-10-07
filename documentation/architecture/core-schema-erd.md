@@ -1,6 +1,6 @@
 # Core Schema ERD: Marketplace Database
 
-Canonical filename: **`core-schema-erd.md`**. Reviewed on 2026-10-06 against repository migrations, including the updated ITEP product taxonomy and commission/registration/logistics additions. This document describes the schema after migrations, not a promise that every operational screen/action exists. See [business rules](business-rules.md) for implementation status and limits.
+Canonical filename: **`core-schema-erd.md`**. Reviewed on 2026-10-06 against repository migrations, including the updated ITEP product taxonomy and commission/registration/logistics additions. This document describes the schema after migrations, not a promise that every operational screen/action exists. See [business rules](../product/business-rules.md) for implementation status and limits.
 
 This schema supports a multi-seller ecommerce MVP. A buyer can check out a cart containing products from multiple stores. The checkout is one parent order, split into one seller order and one delivery per store.
 
@@ -50,7 +50,7 @@ The database does not enforce that `user_id` belongs to a user whose role is `se
 
 ### categories
 
-Hierarchical taxonomy sourced from `ITEP 308 CATEGORIES.pdf`: **14 departments and 83 subcategories**. See the complete [ERP taxonomy](erp-categories.md).
+Hierarchical taxonomy sourced from `ITEP 308 CATEGORIES.pdf`: **14 departments and 83 subcategories**. See the complete [ERP taxonomy](../product/erp-categories.md).
 
 - `name` (100), nullable `parent_id` self-FK with restricted deletion
 - nullable unique `slug` (220); canonical child slugs include the department
@@ -246,7 +246,7 @@ Production uses the equivalent Docker commands with `--force` after backup and r
 
 The hierarchy migration refuses rollback when repeated category names would violate the old global-name constraint. Resolve/review duplicates before any rollback; the migration does not silently delete categories. Rolling back populated foundation or commission changes discards operational records/snapshots; use forward fixes in production.
 
-COD remains the only payment method. Ratings, variants, wishlists, vouchers, returns and accounting adjustments are scoped in [business rules](business-rules.md), with required future schema/actions clearly listed. Order conversations and authorized admin rate settings now have connected screens.
+COD remains the only payment method. Ratings, variants, wishlists, vouchers, returns and accounting adjustments are scoped in [business rules](../product/business-rules.md), with required future schema/actions clearly listed. Order conversations and authorized admin rate settings now have connected screens.
 
 ## 2026-10-07 registration schema extension
 
@@ -254,4 +254,4 @@ An additive migration extends registration_applications.requested_role to includ
 
 ## 2026-10-07 marketplace UI extension
 
-`orders.checkout_key` is a nullable UUID with a unique buyer/key pair. HTTP checkout locks the buyer and reuses an existing order for the same key, preventing retry duplication. `order_messages` stores a seller-order FK, sender user FK, body, and timestamps; only that parcel’s buyer/seller can write messages. Both FKs restrict deletion so conversation context is retained. Proof photos remain on the private disk; product photos use public storage. Approved riders receive sorting-center membership for dispatch authorization. See [UI workflow](ui-workflow.md) for the connected screens and current limits.
+`orders.checkout_key` is a nullable UUID with a unique buyer/key pair. HTTP checkout locks the buyer and reuses an existing order for the same key, preventing retry duplication. `order_messages` stores a seller-order FK, sender user FK, body, and timestamps; only that parcel’s buyer/seller can write messages. Both FKs restrict deletion so conversation context is retained. Proof photos remain on the private disk; product photos use public storage. Approved riders receive sorting-center membership for dispatch authorization. See [UI workflow](../design/ui-workflow.md) for the connected screens and current limits.

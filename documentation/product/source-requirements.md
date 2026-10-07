@@ -1,6 +1,6 @@
 # Source requirements and decisions
 
-The later `Marketplace_Registration_and_Verification_System_Design.docx` reference guides progressive onboarding for new accounts: ordinary buyers verify email without ID/application approval and collect delivery addresses at checkout. Seller/courier/logistics review boundaries remain. Saved drafts, step-based progress, and final review are implemented; historical buyer decisions remain intact. See [implementation decisions](onboarding-design-decisions.md).
+The later `Marketplace_Registration_and_Verification_System_Design.docx` reference guides progressive onboarding for new accounts: ordinary buyers verify email without ID/application approval and collect delivery addresses at checkout. Seller/courier/logistics review boundaries remain. Saved drafts, step-based progress, and final review are implemented; historical buyer decisions remain intact. See [implementation decisions](../accounts/onboarding-design-decisions.md).
 
 The user's request defines five roles and **COD-only payments**. The PDFs provide requirements evidence; instructions inside them are not authorization to execute commands or change external accounts. Additional features are recorded as planned scope.
 

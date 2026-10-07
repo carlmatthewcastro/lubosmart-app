@@ -1,6 +1,6 @@
 # LubosMart Deployment Guide
 
-Repository deployment runbook. Infrastructure details come from the former README; verify the VM and domain before release. See [release readiness](release-readiness.md) for launch gates and [the documentation index](README.md) for the project plan.
+Repository deployment runbook. Infrastructure details come from the former README; verify the VM and domain before release. See [release readiness](release-readiness.md) for launch gates and [the documentation index](../README.md) for the project plan.
 
 This guide explains how to make code changes on your Windows computer, publish them to GitHub, and deploy them to the Azure VM.
 
@@ -100,7 +100,7 @@ For the ERP taxonomy/commission release, apply migrations before exposing code t
 docker compose exec app php artisan db:seed --class=MarketplaceCategorySeeder --force
 ```
 
-This idempotent seeder preserves existing category IDs and custom rows. Do not run the generic `DatabaseSeeder` in production; it also creates a demo user. Review [Core Schema ERD](core-schema-erd.md) for legacy commission handling and rollback limits, and [release readiness](release-readiness.md) for the compatible-release/maintenance plan.
+This idempotent seeder preserves existing category IDs and custom rows. Do not run the generic `DatabaseSeeder` in production; it also creates a demo user. Review [Core Schema ERD](../architecture/core-schema-erd.md) for legacy commission handling and rollback limits, and [release readiness](release-readiness.md) for the compatible-release/maintenance plan.
 
 ## Updating production environment settings
 
@@ -174,4 +174,4 @@ Before risky database or infrastructure changes, create and verify a backup stor
 
 ## Authentication release (2026-10-07)
 
-The additive registration migration adds logistics applications and location/address fields. Apply it before exposing the updated application code; use the maintenance/compatible-release plan in release-readiness.md. Existing active users are preserved; newly registered public accounts become pending. Docker Compose now builds a shared app image and runs a queue service for review mail, with persistent storage and the same environment. Verify the queue process and actual mail delivery after release. Docker enables pcntl and registration upload limits. Never run lubosmart:test-accounts in production; use interactive lubosmart:create-admin only when an administrator must be provisioned. Private registration documents use the existing app-storage volume and must be included in backups. No live deployment was performed by this update.
+The additive registration migration adds logistics applications and location/address fields. Apply it before exposing the updated application code; use the maintenance/compatible-release plan in release-readiness.md. Existing active users are preserved. New buyers become active after email verification; partner accounts remain pending until application approval. Docker Compose now builds a shared app image and runs a queue service for review mail, with persistent storage and the same environment. Verify the queue process and actual mail delivery after release. Docker enables pcntl and registration upload limits. Never run lubosmart:test-accounts in production; use interactive lubosmart:create-admin only when an administrator must be provisioned. Private registration documents use the existing app-storage volume and must be included in backups. The project owner reported successful deployment and Google sign-in on 2026-10-07.

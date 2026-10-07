@@ -33,7 +33,7 @@ Avoid speculative repositories/service layers. Extract an action when it defines
 
 Use TypeScript for new frontend code, typed page props, typed `useForm` data and typed server options. Use existing `@/` aliases and UI primitives. Pages orchestrate components; components receive props and emit events rather than fetching or inventing business policy.
 
-Use Inertia `Link` for internal navigation and `useForm` for mutations, including POST logout. Version-check newer Inertia APIs against `package-lock.json`; dependency ranges alone do not prove an API is installed. OAuth uses a full external redirect from the server, described in [Google OAuth](google-oauth.md).
+Use Inertia `Link` for internal navigation and `useForm` for mutations, including POST logout. Version-check newer Inertia APIs against `package-lock.json`; dependency ranges alone do not prove an API is installed. OAuth uses a full external redirect from the server, described in [Google OAuth](../accounts/google-oauth.md).
 
 Keep state local unless it genuinely needs sharing; derive filtered labels/counts rather than synchronizing duplicate state with effects. Use stable database IDs as list keys. Clean up effects/listeners and avoid global DOM mutation for React-owned components. Prefer a shared accessible dialog component to repeated manual focus logic.
 

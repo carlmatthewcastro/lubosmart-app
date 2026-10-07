@@ -1,6 +1,6 @@
 # Logistics and sorting center operations
 
-The `logistics` role represents staff; a center is an organizational entity. Tables include `sorting_centers`, `service_areas`, `sorting_center_user`, `rider_service_area`, `parcel_events`, `cod_collections` and `seller_settlements`. Registration, center-scoped rider review/membership, parcel receipt, rider assignment, delivery proof, COD receipt, and admin reconciliation now have connected screens. Service-area automation, barcode scanning, and seller payouts remain proposed. See [UI workflow](ui-workflow.md).
+The `logistics` role represents staff; a center is an organizational entity. Tables include `sorting_centers`, `service_areas`, `sorting_center_user`, `rider_service_area`, `parcel_events`, `cod_collections` and `seller_settlements`. Registration, center-scoped rider review/membership, parcel receipt, rider assignment, delivery proof, COD receipt, and admin reconciliation now have connected screens. Service-area automation, barcode scanning, and seller payouts remain proposed. See [UI workflow](../design/ui-workflow.md).
 
 ## Registration and ownership
 
@@ -21,7 +21,7 @@ ERP-Components-updated-1.pdf page 5 supersedes the earlier invitation-only plan.
 
 Keep the current one-delivery-per-seller-order constraint for MVP. Extend it only when split packages/multiple delivery legs are deliberately designed. Use append-only events for sorting/custody detail rather than treating the existing six delivery statuses as a complete event history.
 
-See [Core Schema ERD](core-schema-erd.md) for actual table names/constraints. Parcel-event references, collection delivery/reference fields and settlement source/reference fields are unique; authorized actions still need to enforce matching parcel/area, state, full collected amount and reconciliation before settlement.
+See [Core Schema ERD](../architecture/core-schema-erd.md) for actual table names/constraints. Parcel-event references, collection delivery/reference fields and settlement source/reference fields are unique; authorized actions still need to enforce matching parcel/area, state, full collected amount and reconciliation before settlement.
 
 ## Parcel lifecycle
 
@@ -46,7 +46,7 @@ flowchart TD
 6. Lock the task/current assignment in a transaction, verify expected state and allocate once. For eligible pickup acceptance, the first successful transaction wins; later requests receive an unavailable result.
 7. Notify the rider after commit. Assignment is operational only when the correct rider can see and acknowledge it; retry notification independently.
 8. Confirm handover and custody, then transport. Reassignments require authorization/reason and cancellation of the old assignment; the old rider loses write access immediately.
-9. Record evidence and COD collection; handle refusal, unavailable recipient or damage without marking delivered. Cash reconciliation follows [business rules](business-rules.md).
+9. Record evidence and COD collection; handle refusal, unavailable recipient or damage without marking delivered. Cash reconciliation follows [business rules](../product/business-rules.md).
 
 ## Boundaries and reporting
 
