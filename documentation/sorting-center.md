@@ -1,10 +1,10 @@
 # Logistics and sorting center operations
 
-**Operational workflow still proposed; storage foundations now exist in migrations.** The `logistics` role represents staff; a center is an organizational entity. New tables include `sorting_centers`, `service_areas`, `sorting_center_user`, `rider_service_area`, `parcel_events`, `cod_collections` and `seller_settlements`. Approval, dispatch, scans and cash-handling actions/screens are not enabled by those tables.
+The `logistics` role represents staff; a center is an organizational entity. Tables include `sorting_centers`, `service_areas`, `sorting_center_user`, `rider_service_area`, `parcel_events`, `cod_collections` and `seller_settlements`. Registration, center-scoped rider review/membership, parcel receipt, rider assignment, delivery proof, COD receipt, and admin reconciliation now have connected screens. Service-area automation, barcode scanning, and seller payouts remain proposed. See [UI workflow](ui-workflow.md).
 
 ## Registration and ownership
 
-Admin creates centers, service areas and invitations. Invite a logistics user to a specific center, verify identity, complete operational profile and grant active membership. Do not let a public form select an arbitrary center or become logistics. Center supervisors may review riders only after a separately approved delegated permission; initial final registration approval remains with Admin.
+ERP-Components-updated-1.pdf page 5 supersedes the earlier invitation-only plan. Logistics submits a public pending application with business details, identity and business/DTI permit. Admin approval creates its center and membership. Pending logistics cannot perform operations. Riders select an active center during application; only active, verified logistics staff assigned to that center can approve/reject them or manage approved riders. Admin reviews buyer/seller/logistics applications; rider review belongs to logistics. Service areas and parcel workflows remain separate work.
 
 ## Schema mapping and future extensions
 
