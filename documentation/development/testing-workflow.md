@@ -12,7 +12,7 @@ php artisan db:seed --class=MarketplaceCategorySeeder
 php artisan lubosmart:test-accounts
 ```
 
-The last command creates missing buyer, seller, rider, logistics and admin test accounts at `lubosmart-ROLE@testing.app` and is restricted to local/testing environments. Credentials are saved in the private, Git-ignored [login document](../storage/app/private/local-test-accounts.md). Restarting `artisan serve` preserves accounts and passwords. Repeat setup reuses accounts, preserves status/credentials, and avoids duplicate stores/centers. Legacy test email addresses are adopted without duplicating user records. Add `--demo` to create three sample products, a synthetic buyer address, and rider membership for local workflow testing; no sample transactions are generated. Separately register fresh applicants to exercise approval.
+The last command creates missing buyer, seller, rider, logistics and admin test accounts at `lubosmart-ROLE@testing.app` and is restricted to local/testing environments. Credentials are saved in the private, Git-ignored [login document](../../storage/app/private/local-test-accounts.md). Restarting `artisan serve` preserves accounts and passwords. Repeat setup reuses accounts, preserves status/credentials, and avoids duplicate stores/centers. Legacy test email addresses are adopted without duplicating user records. Add `--demo` to create three sample products, a synthetic buyer address, and rider membership for local workflow testing; no sample transactions are generated. Separately register fresh applicants to exercise approval.
 
 If you forgot the local test password, explicitly reset the five reserved accounts:
 
@@ -49,7 +49,7 @@ Open http://localhost:8000. Use npm.cmd/npx.cmd on Windows if PowerShell blocks 
 7. Check Google login/register, cancellation and provider failure with actual configured OAuth credentials. Existing password accounts cannot be auto-linked by matching email.
 8. Check password recovery, remember-me, validation errors, logout, keyboard focus and mobile layouts. Test documents must not be accessible to other applicants.
 
-For catalog → shopping bag → COD checkout → seller preparation → center receipt/assignment → rider proof/collection → cash receipt/reconciliation, follow the complete [UI workflow](ui-workflow.md). Order conversations, cancellation before preparation, printable waybills, inventory/photo editing, and reports are connected. Courier earnings, seller settlement, returns, variants, vouchers, and live chat remain future work.
+For catalog → shopping bag → COD checkout → seller preparation → center receipt/assignment → rider proof/collection → cash receipt/reconciliation, follow the complete [UI workflow](../design/ui-workflow.md). Order conversations, cancellation before preparation, printable waybills, inventory/photo editing, and reports are connected. Courier earnings, seller settlement, returns, variants, vouchers, and live chat remain future work.
 
 ## Checks
 
@@ -63,4 +63,4 @@ npx.cmd eslint resources/js
 npm.cmd run build
 ```
 
-Do not overwrite .env, regenerate an established key, use migrate:fresh, or roll back populated foundation tables. Use [deployment](deployment.md) and [release readiness](release-readiness.md) before updating the live Azure site. Apply the new additive registration migration before activating code that needs its columns. Production uses the Compose queue service for review emails. For local uploads larger than XAMPP's defaults, set upload_max_filesize=5M and post_max_size=20M in the PHP configuration used by the server and restart it; production Docker sets these limits.
+Do not overwrite .env, regenerate an established key, use migrate:fresh, or roll back populated foundation tables. Use [deployment](../operations/deployment.md) and [release readiness](../operations/release-readiness.md) before updating the live Azure site. Apply the new additive registration migration before activating code that needs its columns. Production uses the Compose queue service for review emails. For local uploads larger than XAMPP's defaults, set upload_max_filesize=5M and post_max_size=20M in the PHP configuration used by the server and restart it; production Docker sets these limits.

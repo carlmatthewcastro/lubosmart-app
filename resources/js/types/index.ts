@@ -35,7 +35,7 @@ export interface User {
     name: string;
     email: string;
     role: UserRole;
-    status: 'pending' | 'active' | 'suspended';
+    status: 'pending' | 'active' | 'suspended' | 'deactivated';
     phone: string | null;
     avatar?: string;
     email_verified_at: string | null;

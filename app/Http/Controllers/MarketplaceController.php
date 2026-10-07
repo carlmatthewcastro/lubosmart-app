@@ -22,7 +22,7 @@ class MarketplaceController extends Controller
     {
         $filters = $request->validate(['search' => 'nullable|string|max:100', 'category' => 'nullable|integer']);
         $products = Product::query()->with(['store:id,name', 'category:id,name'])
-            ->where('status', 'active')->whereHas('store', fn ($q) => $q->where('status', 'approved'))
+            ->where('status', 'active')->whereHas('store', fn ($q) => $q->where('status', 'approved')->whereHas('user', fn ($user) => $user->where('status', 'active')))
             ->whereHas('category', fn ($q) => $q->where('is_active', true)->where(fn ($q) => $q->whereNull('parent_id')->orWhereHas('parent', fn ($q) => $q->where('is_active', true))))
             ->when($filters['search'] ?? null, fn ($q, $search) => $q->where('name', 'like', '%'.$search.'%'))
             ->when($filters['category'] ?? null, fn ($q, $id) => $q->where(fn ($q) => $q->where('category_id', $id)->orWhereHas('category', fn ($q) => $q->where('parent_id', $id))))

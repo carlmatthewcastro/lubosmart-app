@@ -86,6 +86,7 @@ class CreateOrderFromCart
             }
 
             $stores = Store::query()
+                ->with('user:id,status')
                 ->whereIn('id', $products->pluck('store_id'))
                 ->orderBy('id')
                 ->lockForUpdate()
@@ -111,7 +112,7 @@ class CreateOrderFromCart
                     ]);
                 }
 
-                if ($product->status !== 'active' || $stores->get($product->store_id)?->status !== 'approved') {
+                if ($product->status !== 'active' || $product->blocked_at || $stores->get($product->store_id)?->status !== 'approved' || $store?->user?->status !== 'active') {
                     throw ValidationException::withMessages([
                         'cart' => "The product \"{$product->name}\" is no longer available.",
                     ]);

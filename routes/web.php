@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\AdminComplianceController;
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\ApplicationReviewController;
 use App\Http\Controllers\DashboardController;
@@ -9,16 +10,22 @@ use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\MarketplaceController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PlatformContentController;
 use App\Http\Controllers\RegistrationDocumentController;
 use App\Http\Controllers\ReportController;
+use App\Http\Controllers\SupportCaseController;
 use App\Models\Category;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
-    return Inertia::render('welcome', ['departments' => Category::query()->whereNull('parent_id')->where('is_active', true)->pluck('id', 'slug')]);
+    return Inertia::render('welcome', ['departments' => Category::query()->whereNull('parent_id')->where('is_active', true)->pluck('id', 'slug'),
+        'announcements' => DB::table('platform_contents')->where('kind', 'announcement')->where('published', true)->latest('updated_at')->limit(3)->get(['id', 'title', 'body']),
+    ]);
 })->name('home');
 Route::get('shop', [MarketplaceController::class, 'index'])->name('shop');
+Route::get('platform-information', [PlatformContentController::class, 'published'])->name('platform-information');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -45,9 +52,23 @@ Route::middleware(['auth'])->group(function () {
             Route::post('deliveries/{delivery}', [DeliveryController::class, 'update'])->name('deliveries.update');
             Route::get('deliveries/{delivery}/proof', [DeliveryController::class, 'proof'])->name('deliveries.proof');
             Route::get('reports', [ReportController::class, 'index'])->name('reports');
+            Route::get('reports/export', [ReportController::class, 'export'])->name('reports.export');
+            Route::get('admin/commission', [ReportController::class, 'commission'])->name('admin.commission');
             Route::patch('reports/settings', [ReportController::class, 'update'])->name('reports.settings');
             Route::get('accounts', [AccountController::class, 'index'])->name('accounts.index');
+            Route::get('accounts/{user}', [AccountController::class, 'show'])->name('accounts.show');
             Route::patch('accounts/{user}', [AccountController::class, 'update'])->name('accounts.update');
+            Route::get('admin/compliance', [AdminComplianceController::class, 'index'])->name('admin.compliance');
+            Route::patch('admin/compliance/{product}', [AdminComplianceController::class, 'update'])->middleware('throttle:30,1')->name('admin.compliance.update');
+            Route::get('admin/platform', [PlatformContentController::class, 'index'])->name('admin.platform');
+            Route::post('admin/platform', [PlatformContentController::class, 'save'])->name('admin.platform.store');
+            Route::put('admin/platform/{content}', [PlatformContentController::class, 'save'])->whereNumber('content')->name('admin.platform.update');
+            Route::get('support', [SupportCaseController::class, 'index'])->name('support.index');
+            Route::post('support', [SupportCaseController::class, 'store'])->middleware('throttle:10,1')->name('support.store');
+            Route::get('support/{case}', [SupportCaseController::class, 'show'])->name('support.show');
+            Route::post('support/{case}/messages', [SupportCaseController::class, 'message'])->middleware('throttle:30,1')->name('support.message');
+            Route::patch('support/{case}', [SupportCaseController::class, 'update'])->name('support.update');
+            Route::get('support/{case}/evidence/{message}', [SupportCaseController::class, 'evidence'])->name('support.evidence');
             Route::get('dashboard/{role}', [DashboardController::class, 'show'])->whereIn('role', ['buyer', 'seller', 'rider', 'admin', 'logistics'])->name('dashboard.role');
             Route::get('reviews', [ApplicationReviewController::class, 'index'])->name('reviews.index');
             Route::get('reviews/{application}', [ApplicationReviewController::class, 'show'])->name('reviews.show');

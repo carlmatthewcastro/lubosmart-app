@@ -68,11 +68,12 @@ class LoginRequest extends FormRequest
 
         RateLimiter::clear($this->throttleKey());
 
-        if (Auth::user()->status === 'suspended') {
+        if (in_array(Auth::user()->status, ['suspended', 'deactivated'], true)) {
+            $status = Auth::user()->status;
             Auth::logout();
             $this->session()->invalidate();
             $this->session()->regenerateToken();
-            throw ValidationException::withMessages(['email' => 'Your account is suspended. Contact LubosMart support.']);
+            throw ValidationException::withMessages(['email' => 'Your account is '.$status.'. Contact LubosMart support.']);
         }
     }
 

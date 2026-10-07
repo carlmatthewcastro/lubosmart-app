@@ -45,7 +45,7 @@ test('review status filters preserve role and sorting center authorization', fun
     $otherRider = applicationApplicant('rider', 'approved');
     $otherRider->application->update(['sorting_center_id' => $otherCenter->id]);
     $admin = User::factory()->create(['role' => 'admin']);
-    $this->actingAs($admin)->get('/reviews?status=approved')->assertInertia(fn (Assert $page) => $page->has('applications.data', 1)->where('applications.data.0.id', $seller->application->id)->where('filters.status', 'approved'));
+    $this->actingAs($admin)->get('/reviews?status=approved')->assertInertia(fn (Assert $page) => $page->has('applications.data', 3)->where('applications.data.0.id', $seller->application->id)->where('filters.status', 'approved'));
     $logistics = User::factory()->create(['role' => 'logistics']);
     $logistics->sortingCenters()->attach($center->id, ['granted_by' => $admin->id]);
     $this->actingAs($logistics)->get('/reviews?status=approved')->assertInertia(fn (Assert $page) => $page->has('applications.data', 1)->where('applications.data.0.id', $rider->application->id));
@@ -138,9 +138,15 @@ test('buyer and seller cannot review applications', function (string $role) {
     expect($user->fresh()->status)->toBe('pending');
 })->with(['buyer', 'seller', 'rider']);
 
-test('admin cannot approve riders assigned for logistics review', function () {
+test('admin can approve a courier assigned to a sorting center', function () {
+    Notification::fake();
     $user = applicationApplicant('rider', 'submitted');
-    $this->actingAs(User::factory()->create(['role' => 'admin']))->patch(route('reviews.update', $user->application->id), ['decision' => 'approved'])->assertForbidden();
+    $center = SortingCenter::query()->create(['code' => 'ADMIN-REVIEW', 'name' => 'Review center', 'address' => 'Synthetic address']);
+    $user->application->update(['sorting_center_id' => $center->id]);
+    $this->actingAs(User::factory()->create(['role' => 'admin']))->patch(route('reviews.update', $user->application->id), ['decision' => 'approved'])->assertRedirect();
+    expect($user->fresh()->status)->toBe('active');
+    expect($user->sortingCenters()->where('sorting_centers.id', $center->id)->exists())->toBeTrue();
+    Notification::assertSentTo($user, ApplicationReviewed::class);
 });
 
 test('logistics approves only riders in its assigned center', function (bool $sameCenter) {

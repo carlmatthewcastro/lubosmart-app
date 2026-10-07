@@ -10,7 +10,7 @@ class EnsureAccountIsNotSuspended
 {
     public function handle(Request $request, Closure $next): Response
     {
-        abort_if($request->user()?->status === 'suspended' && ! $request->routeIs('logout'), 403, 'Your account is suspended. Contact LubosMart support.');
+        abort_if(in_array($request->user()?->status, ['suspended', 'deactivated'], true) && ! $request->routeIs('logout'), 403, 'Your account is '.$request->user()?->status.'. Contact LubosMart support.');
 
         return $next($request);
     }

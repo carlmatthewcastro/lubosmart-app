@@ -1,4 +1,4 @@
-> **2026-10-07 implementation:** shared password/Google auth forms now distinguish login/register intent, expire callback context after 15 minutes, reject email-only linking, preserve roles, handle provider failures and deny suspension. New Google accounts are verified but pending, then complete the same PDF application/review flow. Real OAuth credentials and browser round trips still need acceptance. Explicit account linking is not implemented.
+> **2026-10-07 status:** Google sign-in on `https://lubosmart.app` was confirmed working by the project owner. New buyers receive active, email-verified accounts; sellers, couriers, and sorting-center users complete pending applications. Login and registration use separate intents. Explicit account linking is not implemented.
 
 # Google OAuth integration and polish
 
@@ -139,7 +139,7 @@ php artisan test tests/Feature/Auth/GoogleAuthTest.php
 
 Add coverage when behavior changes for pending creation, no privileged role grants, explicit linking proof, suspension, expired/missing intent, conflicting Google IDs, duplicate callback/race handling, provider failure and existing-role preservation. Fakes establish application behavior; they do not prove real Google credentials, cookies or proxy settings. Manually exercise a real test account through localhost and staging.
 
-After reviewed code is released, update the production environment using [deployment](deployment.md), recreate the app container, clear/rebuild config cache as appropriate, and confirm callback route/migration presence. Use a real designated account on the canonical HTTPS domain and check that cancellation, pending landing, approved access and logout work. Configuration alone does not resolve the release gaps listed above.
+After reviewed code is released, update the production environment using [deployment](../operations/deployment.md), recreate the app container, clear/rebuild config cache as appropriate, and confirm callback route/migration presence. Use a real designated account on the canonical HTTPS domain and check that cancellation, pending landing, approved access and logout work. Configuration alone does not resolve the release gaps listed above.
 
 ## Troubleshooting
 

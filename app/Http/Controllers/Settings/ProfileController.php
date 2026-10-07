@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
 use App\Models\Order;
+use App\Models\SupportCase;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -57,8 +58,9 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
-        if ($user->application()->exists() || Order::query()->where('buyer_id', $user->id)->exists()) {
-            throw ValidationException::withMessages(['password' => 'Your account has registration or order records. Contact support to request account closure.']);
+        if ($user->role !== 'buyer' || $user->application()->exists() || Order::query()->where('buyer_id', $user->id)->exists()
+            || SupportCase::query()->whereHas('participants', fn ($q) => $q->where('users.id', $user->id))->exists()) {
+            throw ValidationException::withMessages(['password' => 'This account has records to keep. Contact support to request account closure.']);
         }
 
         Auth::logout();

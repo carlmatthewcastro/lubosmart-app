@@ -12,7 +12,7 @@ class RegistrationApplicationPolicy
         if ($user->status !== 'active' || ! $user->hasVerifiedEmail() || $user->id === $application->user_id) {
             return false;
         }
-        if ($application->requested_role !== 'rider') {
+        if ($user->role === 'admin' || $application->requested_role !== 'rider') {
             return $user->role === 'admin';
         }
 

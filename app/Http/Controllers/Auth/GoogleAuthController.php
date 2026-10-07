@@ -136,8 +136,8 @@ class GoogleAuthController extends Controller
             ]);
         }
 
-        if ($user->status === 'suspended') {
-            return to_route('home')->withErrors(['google' => 'Your account is suspended. Contact LubosMart support.']);
+        if (in_array($user->status, ['suspended', 'deactivated'], true)) {
+            return to_route('home')->withErrors(['google' => 'Your account is '.$user->status.'. Contact LubosMart support.']);
         }
 
         if ($user->wasRecentlyCreated) {

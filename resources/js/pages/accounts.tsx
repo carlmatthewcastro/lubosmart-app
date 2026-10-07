@@ -1,9 +1,10 @@
-import { Badge, buttonClass, Card, Empty, Field, Page, Pager, type Pagination } from '@/components/marketplace-ui';
-import { type User } from '@/types';
-import { useForm } from '@inertiajs/react';
+import { Badge, buttonClass, Card, Empty, Field, Page, Pager, secondaryClass, Select, type Pagination } from '@/components/marketplace-ui';
+import { type SharedData, type User } from '@/types';
+import { Link, useForm, usePage } from '@inertiajs/react';
 import { ShieldCheck } from 'lucide-react';
 
 function AccountRow({ account }: { account: User }) {
+    const { auth } = usePage<SharedData>().props;
     const form = useForm({ status: account.status === 'active' ? 'suspended' : 'active', reason: '' });
     return (
         <Card>
@@ -21,6 +22,9 @@ function AccountRow({ account }: { account: User }) {
                 </div>
                 <Badge status={account.status} />
             </div>
+            <Link className={`${secondaryClass} mt-4`} href={`/accounts/${account.id}`}>
+                View profile
+            </Link>
             <form
                 className="mt-5 flex flex-wrap items-end gap-3"
                 onSubmit={(e) => {
@@ -39,14 +43,26 @@ function AccountRow({ account }: { account: User }) {
                         error={form.errors.reason ?? form.errors.status}
                     />
                 </div>
-                <button className={`${buttonClass} ${account.status === 'active' ? '!bg-destructive' : ''}`} disabled={form.processing}>
-                    {account.status === 'active' ? 'Suspend account' : 'Reactivate account'}
+                <Select label="New status" value={form.data.status} onChange={(e) => form.setData('status', e.target.value)}>
+                    <option value="active">Active</option>
+                    <option value="suspended">Suspended</option>
+                    {auth.user.role === 'admin' && <option value="deactivated">Deactivated</option>}
+                </Select>
+                <button className={buttonClass} disabled={form.processing || form.data.status === account.status}>
+                    {form.processing ? 'Saving…' : 'Save status'}
                 </button>
             </form>
         </Card>
     );
 }
-export default function Accounts({ accounts }: { accounts: Pagination<User> }) {
+export default function Accounts({
+    accounts,
+    filters,
+}: {
+    accounts: Pagination<User>;
+    filters: { search?: string; role?: string; status?: string };
+}) {
+    const search = useForm({ search: filters.search ?? '', role: filters.role ?? '', status: filters.status ?? '' });
     return (
         <Page title="Account management" description="Manage account access and status.">
             <Card className="flex gap-3">
@@ -55,6 +71,33 @@ export default function Accounts({ accounts }: { accounts: Pagination<User> }) {
                     Suspension blocks access immediately, including existing sessions. Pending accounts must complete application review before
                     activation.
                 </p>
+            </Card>
+            <Card>
+                <form
+                    className="grid items-end gap-4 sm:grid-cols-2 xl:grid-cols-[1fr_160px_160px_auto]"
+                    onSubmit={(e) => {
+                        e.preventDefault();
+                        search.get('/accounts');
+                    }}
+                >
+                    <Field label="Search accounts" value={search.data.search} onChange={(e) => search.setData('search', e.target.value)} />
+                    <Select label="Role" value={search.data.role} onChange={(e) => search.setData('role', e.target.value)}>
+                        <option value="">All roles</option>
+                        <option value="buyer">Buyer</option>
+                        <option value="seller">Seller</option>
+                        <option value="rider">Courier</option>
+                        <option value="logistics">Sorting center</option>
+                    </Select>
+                    <Select label="Status" value={search.data.status} onChange={(e) => search.setData('status', e.target.value)}>
+                        <option value="">All statuses</option>
+                        <option value="active">Active</option>
+                        <option value="suspended">Suspended</option>
+                        <option value="deactivated">Deactivated</option>
+                    </Select>
+                    <button className={buttonClass} disabled={search.processing}>
+                        Apply filters
+                    </button>
+                </form>
             </Card>
             {accounts.data.length ? (
                 <div className="grid items-start gap-4 xl:grid-cols-2">

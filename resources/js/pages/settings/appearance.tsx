@@ -21,7 +21,7 @@ export default function Appearance() {
 
             <SettingsLayout>
                 <div className="space-y-6">
-                    <HeadingSmall title="Appearance settings" description="Update your account's appearance settings" />
+                    <HeadingSmall title="Website appearance" description="LubosMart uses a consistent light theme on every device." />
                     <AppearanceTabs />
                 </div>
             </SettingsLayout>

@@ -38,4 +38,4 @@ New category management must permit exactly two levels, reject cycles/self-paren
 
 Checkout now rejects a disabled product category/parent and a product outside its store's declared department. Product creation/editing policies and taxonomy management screens remain pending. Product-category presence does not waive moderation or logistics eligibility; see [business rules](business-rules.md).
 
-`core-schema-erd.md` remains the canonical [schema reference](core-schema-erd.md). Product departments are distinct from five user roles and functional ERP modules.
+`core-schema-erd.md` remains the canonical [schema reference](../architecture/core-schema-erd.md). Product departments are distinct from five user roles and functional ERP modules.

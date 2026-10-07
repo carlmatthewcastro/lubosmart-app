@@ -1,6 +1,6 @@
 import { Head, router, usePage } from '@inertiajs/react';
 import { PackageCheck, Search, Store, Wallet } from 'lucide-react';
-import { useState } from 'react';
+import { type MouseEvent, useState } from 'react';
 
 import AuthModal from '@/components/storefront-auth-modal';
 import type { SharedData } from '@/types';
@@ -9,7 +9,26 @@ import '../../css/auth-preview.css';
 type AuthTab = 'login' | 'register';
 type PublicRole = 'buyer' | 'seller' | 'rider' | 'logistics';
 
-export default function Welcome({ departments }: { departments: Record<string, number> }) {
+function scrollToSection(event: MouseEvent<HTMLAnchorElement>, id: string) {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    const section = document.getElementById(id);
+    if (!section) return;
+
+    event.preventDefault();
+    if (window.location.hash) {
+        window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search);
+    }
+    section.focus({ preventScroll: true });
+    section.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start' });
+}
+
+export default function Welcome({
+    departments,
+    announcements = [],
+}: {
+    departments: Record<string, number>;
+    announcements?: { id: number; title: string; body: string }[];
+}) {
     const { auth, errors: sharedErrors } = usePage<SharedData>().props;
     const [modalTab, setModalTab] = useState<AuthTab | null>(() => (sharedErrors?.google ? 'register' : null));
     const [initialRole, setInitialRole] = useState<PublicRole>('buyer');
@@ -36,10 +55,10 @@ export default function Welcome({ departments }: { departments: Record<string, n
                         <span>LubosMart</span>
                     </a>
                     <nav className="storefront__nav" aria-label="Main navigation">
-                        <a className="storefront__nav-link" href="#shop-categories">
+                        <a className="storefront__nav-link" href="#shop-categories" onClick={(event) => scrollToSection(event, 'shop-categories')}>
                             Discover
                         </a>
-                        <a className="storefront__nav-link" href="#how-it-works">
+                        <a className="storefront__nav-link" href="#how-it-works" onClick={(event) => scrollToSection(event, 'how-it-works')}>
                             How it works
                         </a>
                         {auth.user ? (
@@ -101,7 +120,27 @@ export default function Welcome({ departments }: { departments: Record<string, n
                     </figure>
                 </section>
 
-                <section className="storefront__categories" id="shop-categories">
+                {!!announcements.length && (
+                    <section aria-label="Latest announcements" className="mx-auto max-w-[1180px] px-6 py-6 sm:px-8">
+                        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                            <h2 className="text-lg font-semibold">Latest updates</h2>
+                            <a href="/platform-information" className="text-primary text-sm font-medium hover:underline">
+                                View all updates
+                            </a>
+                        </div>
+                        <div className="grid gap-4 md:grid-cols-3">
+                            {announcements.map((item) => (
+                                <article key={item.id} className="bg-accent/40 rounded-2xl border p-5">
+                                    <h3 className="font-semibold break-words">{item.title}</h3>
+                                    <p className="text-muted-foreground mt-2 line-clamp-3 text-sm leading-relaxed break-words whitespace-pre-wrap">
+                                        {item.body}
+                                    </p>
+                                </article>
+                            ))}
+                        </div>
+                    </section>
+                )}
+                <section className="storefront__categories" id="shop-categories" tabIndex={-1}>
                     <div className="storefront__section-heading">
                         <span className="storefront__eyebrow storefront__eyebrow--center">EXPLORE</span>
                         <h2>Shop by category.</h2>
@@ -146,7 +185,7 @@ export default function Welcome({ departments }: { departments: Record<string, n
                     </div>
                 </section>
 
-                <section className="storefront__benefits" id="how-it-works">
+                <section className="storefront__benefits" id="how-it-works" tabIndex={-1}>
                     <div className="storefront__section-heading">
                         <span className="storefront__eyebrow storefront__eyebrow--center">SIMPLE FROM THE START</span>
                         <h2>Browse. Order. Enjoy.</h2>
@@ -198,8 +237,13 @@ export default function Welcome({ departments }: { departments: Record<string, n
                         </div>
                         <div className="storefront__footer-column">
                             <h3>Explore</h3>
-                            <a href="#shop-categories">Discover local</a>
-                            <a href="#how-it-works">How it works</a>
+                            <a href="/platform-information">Announcements & policies</a>
+                            <a href="#shop-categories" onClick={(event) => scrollToSection(event, 'shop-categories')}>
+                                Discover local
+                            </a>
+                            <a href="#how-it-works" onClick={(event) => scrollToSection(event, 'how-it-works')}>
+                                How it works
+                            </a>
                             <button type="button" onClick={() => openRegistration('buyer')}>
                                 Create an account
                             </button>
