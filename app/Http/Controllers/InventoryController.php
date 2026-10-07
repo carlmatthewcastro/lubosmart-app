@@ -18,7 +18,9 @@ class InventoryController extends Controller
         abort_unless($request->user()->role === 'seller', 403);
         $store = $request->user()->store;
 
-        return Inertia::render('marketplace/inventory', ['products' => Product::query()->where('store_id', $store?->id)->with('category:id,name')->latest('id')->paginate(12), 'categories' => $this->categories($store?->business_category_id)->get(['id', 'name']), 'store' => $store]);
+        return Inertia::render('marketplace/inventory', ['products' => Product::query()->where('store_id', $store?->id)->with('category:id,name')->latest('id')->paginate(12), 'categories' => $this->categories($store?->business_category_id)->get(['id', 'name']), 'store' => $store,
+            'complianceNotices' => DB::table('product_moderations')->join('products', 'products.id', '=', 'product_moderations.product_id')->where('products.store_id', $store?->id)->orderByDesc('product_moderations.id')->limit(10)->get(['product_moderations.id', 'products.name', 'product_moderations.action', 'product_moderations.reason']),
+        ]);
     }
 
     public function save(Request $request, ?Product $product = null)
@@ -38,7 +40,11 @@ class InventoryController extends Controller
         try {
             DB::transaction(function () use ($product, $store, $data) {
                 if ($product) {
-                    Product::query()->whereKey($product->id)->lockForUpdate()->firstOrFail()->update($data);
+                    $lockedProduct = Product::query()->whereKey($product->id)->lockForUpdate()->firstOrFail();
+                    if ($lockedProduct->blocked_at && $data['status'] === 'active') {
+                        throw ValidationException::withMessages(['status' => 'This listing needs admin clearance before publishing.']);
+                    }
+                    $lockedProduct->update($data);
                 } else {
                     Product::query()->create([...$data, 'store_id' => $store->id]);
                 }

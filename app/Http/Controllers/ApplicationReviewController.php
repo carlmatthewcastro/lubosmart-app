@@ -25,9 +25,7 @@ class ApplicationReviewController extends Controller
         $filters = $request->validate(['status' => ['nullable', Rule::in(['submitted', 'approved', 'rejected'])]]);
         $status = $filters['status'] ?? 'submitted';
         $query = RegistrationApplication::query()->where('status', $status);
-        if ($user->role === 'admin') {
-            $query->whereIn('requested_role', ['buyer', 'seller', 'logistics']);
-        } else {
+        if ($user->role !== 'admin') {
             $query->where('requested_role', 'rider')->whereIn('sorting_center_id', $user->sortingCenters()->where('is_active', true)->pluck('sorting_centers.id'));
         }
 
@@ -65,6 +63,9 @@ class ApplicationReviewController extends Controller
                 throw ValidationException::withMessages(['decision' => 'This application is no longer eligible for review. Refresh the page.']);
             }
             $approved = $data['decision'] === 'approved';
+            if ($approved && $user->role === 'rider' && ! SortingCenter::query()->whereKey($application->sorting_center_id)->where('is_active', true)->exists()) {
+                throw ValidationException::withMessages(['decision' => 'The courier needs an active sorting center before approval.']);
+            }
             $application->update(['status' => $data['decision'], 'reviewer_id' => $request->user()->id, 'reviewed_at' => now(), 'rejection_reason' => $approved ? null : $data['reason']]);
             $user->forceFill(['status' => $approved ? 'active' : 'pending'])->save();
             if ($user->role === 'seller') {

@@ -1,8 +1,8 @@
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
+import { type NavItem, type SharedData } from '@/types';
+import { Link, usePage } from '@inertiajs/react';
 
 const sidebarNavItems: NavItem[] = [
     {
@@ -16,14 +16,10 @@ const sidebarNavItems: NavItem[] = [
         icon: null,
     },
     { title: 'Addresses', url: '/settings/addresses', icon: null },
-    {
-        title: 'Appearance',
-        url: '/settings/appearance',
-        icon: null,
-    },
 ];
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
+    const { auth } = usePage<SharedData>().props;
     const currentPath = window.location.pathname;
 
     return (
@@ -33,21 +29,23 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
             <div className="flex flex-col gap-6 lg:flex-row lg:gap-12">
                 <aside className="w-full max-w-xl lg:w-48">
                     <nav className="grid grid-cols-2 gap-1 lg:flex lg:flex-col" aria-label="Account settings">
-                        {sidebarNavItems.map((item) => (
-                            <Button
-                                key={item.url}
-                                size="sm"
-                                variant="ghost"
-                                asChild
-                                className={cn('min-h-11 w-full justify-start', {
-                                    'bg-muted': currentPath === item.url,
-                                })}
-                            >
-                                <Link href={item.url} prefetch aria-current={currentPath === item.url ? 'page' : undefined}>
-                                    {item.title}
-                                </Link>
-                            </Button>
-                        ))}
+                        {sidebarNavItems
+                            .filter((item) => auth.user.role !== 'admin' || item.url !== '/settings/addresses')
+                            .map((item) => (
+                                <Button
+                                    key={item.url}
+                                    size="sm"
+                                    variant="ghost"
+                                    asChild
+                                    className={cn('min-h-11 w-full justify-start', {
+                                        'bg-muted': currentPath === item.url,
+                                    })}
+                                >
+                                    <Link href={item.url} prefetch aria-current={currentPath === item.url ? 'page' : undefined}>
+                                        {item.title}
+                                    </Link>
+                                </Button>
+                            ))}
                     </nav>
                 </aside>
 

@@ -199,10 +199,12 @@ export default function Profile({
                 <Card>
                     <HeadingSmall title="Make it yours" description="Finish account setup whenever you need to." />
                     <div className="mt-4 flex flex-wrap gap-3">
-                        <Link href="/settings/addresses" className={secondaryClass}>
-                            <MapPin className="size-4" />
-                            Manage addresses
-                        </Link>
+                        {auth.user.role !== 'admin' && (
+                            <Link href="/settings/addresses" className={secondaryClass}>
+                                <MapPin className="size-4" />
+                                Manage addresses
+                            </Link>
+                        )}
                         <Link href="/settings/password" className={secondaryClass}>
                             <ShieldCheck className="size-4" />
                             Change password
@@ -210,7 +212,7 @@ export default function Profile({
                     </div>
                 </Card>
 
-                <DeleteUser />
+                {auth.user.role !== 'admin' && <DeleteUser />}
             </SettingsLayout>
         </AppLayout>
     );

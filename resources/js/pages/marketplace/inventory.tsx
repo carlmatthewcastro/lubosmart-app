@@ -125,10 +125,12 @@ export default function Inventory({
     products,
     categories,
     store,
+    complianceNotices,
 }: {
     products: Pagination<Product>;
     categories: { id: number; name: string }[];
     store: { name: string; status: string } | null;
+    complianceNotices: { id: number; name: string; action: string; reason: string }[];
 }) {
     const [editing, setEditing] = useState<Product | null | undefined>(undefined);
     return (
@@ -142,6 +144,21 @@ export default function Inventory({
                 </button>
             }
         >
+            {!!complianceNotices.length && (
+                <Card className="border-primary/15 !bg-accent/40">
+                    <h2 className="font-semibold">Listing review updates</h2>
+                    <ul className="mt-4 space-y-3">
+                        {complianceNotices.map((notice) => (
+                            <li key={notice.id} className="text-sm">
+                                <p className="font-medium">
+                                    {notice.name} · <span className="capitalize">{notice.action}</span>
+                                </p>
+                                <p className="text-muted-foreground mt-1 break-words whitespace-pre-wrap">{notice.reason}</p>
+                            </li>
+                        ))}
+                    </ul>
+                </Card>
+            )}
             <div className="grid gap-4 sm:grid-cols-3">
                 <Card>
                     <p className="text-muted-foreground text-sm">Catalog products</p>

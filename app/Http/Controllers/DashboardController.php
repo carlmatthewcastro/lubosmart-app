@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\RegistrationApplication;
 use App\Models\SellerOrder;
 use App\Models\Store;
+use App\Models\SupportCase;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -56,7 +57,7 @@ class DashboardController extends Controller
             $stats = ['Parcels' => (clone $deliveries)->count(), 'For pickup' => (clone $deliveries)->where('status', 'assigned')->count(), 'Delivered' => (clone $deliveries)->where('status', 'delivered')->count()];
             $records = $deliveries->latest('id')->limit(10)->get(['id', 'status'])->map(fn ($row) => ['id' => $row->id, 'label' => 'Delivery #'.$row->id, 'status' => $row->status, 'detail' => 'Assigned parcel']);
         } else {
-            $pending = RegistrationApplication::query()->where('status', 'submitted')->whereIn('requested_role', ['buyer', 'seller', 'logistics']);
+            $pending = RegistrationApplication::query()->where('status', 'submitted');
             $stats = ['Accounts' => User::query()->count(), 'Pending review' => (clone $pending)->count(), 'Approved stores' => Store::query()->where('status', 'approved')->count()];
             $adminOverview = [
                 'applications' => $pending->with('user:id,name')->orderBy('submitted_at')->orderBy('id')->limit(5)->get(['id', 'user_id', 'requested_role', 'submitted_at'])->map(fn ($application) => [
@@ -64,6 +65,10 @@ class DashboardController extends Controller
                 ]),
                 'activeDeliveries' => Delivery::query()->whereIn('status', ['assigned', 'picked_up', 'in_transit'])->count(),
                 'codAwaitingReconciliation' => DB::table('cod_collections')->where('status', 'handed_over')->count(),
+                'openComplaints' => SupportCase::query()->where('kind', 'complaint')->where('status', '!=', 'resolved')->count(),
+                'unreadConversations' => SupportCase::query()->whereHas('messages', fn ($q) => $q->whereHas('author', fn ($author) => $author->where('role', '!=', 'admin'))
+                    ->where(fn ($messages) => $messages->whereNull('support_cases.last_admin_seen_message_id')->orWhereColumn('support_case_messages.id', '>', 'support_cases.last_admin_seen_message_id')))->count(),
+                'blockedListings' => Product::query()->whereNotNull('blocked_at')->count(),
             ];
             $records = DB::table('audit_events')->orderByDesc('id')->limit(10)->get(['id', 'action', 'subject_type', 'subject_id', 'occurred_at'])->map(fn ($row) => [
                 'id' => $row->id,

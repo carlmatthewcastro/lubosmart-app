@@ -6,6 +6,9 @@ export type AdminOverviewData = {
     applications: { id: number; name: string; role: string; submittedAt: string | null }[];
     activeDeliveries: number;
     codAwaitingReconciliation: number;
+    openComplaints: number;
+    unreadConversations: number;
+    blockedListings: number;
 };
 
 type Activity = { id: number; label: string; status: string; detail: string; occurredAt?: string };
@@ -35,7 +38,7 @@ export default function AdminOverview({
             icon: ClipboardCheck,
         },
         { label: 'Registered accounts', value: stats.Accounts, detail: 'Manage account access', href: '/accounts', icon: Users },
-        { label: 'Approved stores', value: stats['Approved stores'], detail: 'Explore the marketplace', href: '/shop', icon: Store },
+        { label: 'Approved stores', value: stats['Approved stores'], detail: 'Review seller listings', href: '/admin/compliance', icon: Store },
         {
             label: 'COD to reconcile',
             value: overview.codAwaitingReconciliation,
@@ -72,6 +75,27 @@ export default function AdminOverview({
                 ))}
             </section>
 
+            <Card className="border-primary/15 !bg-accent/40">
+                <h2 className="font-semibold">Needs your attention</h2>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                    {[
+                        { label: 'Applications to review', count: stats['Pending review'], href: '/reviews?status=submitted' },
+                        { label: 'Open complaints', count: overview.openComplaints, href: '/support?kind=complaint' },
+                        { label: 'Unread conversations', count: overview.unreadConversations, href: '/support' },
+                        { label: 'Blocked listings', count: overview.blockedListings, href: '/admin/compliance?status=blocked' },
+                    ].map((item) => (
+                        <Link
+                            key={item.label}
+                            href={item.href}
+                            className="bg-card hover:border-primary/40 flex items-center justify-between gap-3 rounded-xl border p-4 text-sm focus-visible:ring-2 focus-visible:outline-none"
+                        >
+                            <span>{item.label}</span>
+                            <span className="text-primary font-semibold">{item.count.toLocaleString()}</span>
+                        </Link>
+                    ))}
+                </div>
+            </Card>
+
             <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
                 <Card className="overflow-hidden !p-0">
                     <div className="flex flex-wrap items-center justify-between gap-3 border-b p-5 sm:p-6">
@@ -93,7 +117,13 @@ export default function AdminOverview({
                                     <div className="min-w-0">
                                         <p className="text-sm font-medium break-words">{application.name}</p>
                                         <p className="text-muted-foreground mt-1 text-xs">
-                                            {application.role === 'logistics' ? 'Sorting center' : application.role === 'seller' ? 'Seller' : 'Buyer'}{' '}
+                                            {application.role === 'logistics'
+                                                ? 'Sorting center'
+                                                : application.role === 'rider'
+                                                  ? 'Courier'
+                                                  : application.role === 'seller'
+                                                    ? 'Seller'
+                                                    : 'Buyer'}{' '}
                                             · #{application.id}
                                             {application.submittedAt && ` · ${dateLabel(application.submittedAt)}`}
                                         </p>

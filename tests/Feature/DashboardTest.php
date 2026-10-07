@@ -14,7 +14,7 @@ test('authenticated users can visit the dashboard', function () {
     $this->get('/dashboard')->assertRedirect(route('dashboard.role', ['role' => 'buyer']));
 });
 
-test('admin overview shows the oldest eligible applications and excludes drafts and courier reviews', function () {
+test('admin overview shows the oldest eligible applications including couriers and excludes drafts', function () {
     $admin = User::factory()->create(['role' => 'admin']);
     $first = null;
     for ($index = 0; $index < 6; $index++) {
@@ -37,9 +37,10 @@ test('admin overview shows the oldest eligible applications and excludes drafts 
 
     $this->actingAs($admin)->get('/dashboard/admin')->assertInertia(fn (Assert $page) => $page
         ->component('dashboard')
-        ->where('stats.Pending review', 6)
+        ->where('stats.Pending review', 7)
         ->has('adminOverview.applications', 5)
-        ->where('adminOverview.applications.0.id', $first->id)
+        ->where('adminOverview.applications.0.role', 'rider')
+        ->where('adminOverview.applications.1.id', $first->id)
         ->where('adminOverview.activeDeliveries', 0)
         ->where('adminOverview.codAwaitingReconciliation', 0));
 });

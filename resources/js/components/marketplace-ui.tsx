@@ -84,7 +84,7 @@ export function Badge({ status }: { status: string }) {
     const good = ['completed', 'delivered', 'approved', 'active', 'reconciled'].includes(status);
     return (
         <span
-            className={`inline-flex rounded-full px-3 py-1 text-xs font-medium capitalize ${good ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : ['cancelled', 'rejected', 'suspended', 'failed', 'hidden'].includes(status) ? 'bg-destructive/10 text-destructive' : 'bg-accent text-primary'}`}
+            className={`inline-flex rounded-full px-3 py-1 text-xs font-medium capitalize ${good ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : ['cancelled', 'rejected', 'suspended', 'deactivated', 'blocked', 'failed', 'hidden'].includes(status) ? 'bg-destructive/10 text-destructive' : 'bg-accent text-primary'}`}
         >
             {status.replaceAll('_', ' ')}
         </span>
