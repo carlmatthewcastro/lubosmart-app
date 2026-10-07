@@ -2,9 +2,9 @@ import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
-import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-react';
+import { type NavItem, type SharedData } from '@/types';
+import { Link, usePage } from '@inertiajs/react';
+import { ChartNoAxesCombined, ClipboardCheck, LayoutGrid, Package, Settings, ShoppingBag, ShoppingCart, Store, Truck, Users } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -17,18 +17,27 @@ const mainNavItems: NavItem[] = [
 
 const footerNavItems: NavItem[] = [
     {
-        title: 'Repository',
-        url: 'https://github.com/laravel/react-starter-kit',
-        icon: Folder,
-    },
-    {
-        title: 'Documentation',
-        url: 'https://laravel.com/docs/starter-kits',
-        icon: BookOpen,
+        title: 'LubosMart home',
+        url: '/',
+        icon: Store,
     },
 ];
 
 export function AppSidebar() {
+    const { auth } = usePage<SharedData>().props;
+    const role = auth.user.role;
+    const items: NavItem[] = [...mainNavItems];
+    if (role === 'buyer')
+        items.push({ title: 'Discover', url: '/shop', icon: ShoppingBag }, { title: 'Shopping bag', url: '/cart', icon: ShoppingCart });
+    if (role === 'seller') items.push({ title: 'Inventory', url: '/inventory', icon: Package });
+    if (['buyer', 'seller', 'admin'].includes(role))
+        items.push({ title: role === 'seller' ? 'Fulfillment' : 'Orders', url: '/orders', icon: Package });
+    if (['rider', 'logistics', 'admin'].includes(role))
+        items.push({ title: role === 'rider' ? 'My deliveries' : 'Parcel operations', url: '/deliveries', icon: Truck });
+    if (['admin', 'logistics'].includes(role))
+        items.push({ title: 'Applications', url: '/reviews', icon: ClipboardCheck }, { title: 'Accounts', url: '/accounts', icon: Users });
+    if (role !== 'buyer') items.push({ title: 'Reports', url: '/reports', icon: ChartNoAxesCombined });
+    items.push({ title: 'Settings', url: '/settings/profile', icon: Settings });
     return (
         <Sidebar collapsible="icon" variant="inset">
             <SidebarHeader>
@@ -44,7 +53,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain items={items} />
             </SidebarContent>
 
             <SidebarFooter>

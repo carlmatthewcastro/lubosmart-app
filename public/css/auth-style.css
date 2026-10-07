@@ -46,9 +46,11 @@
 .auth-modal__dialog {
     position: relative;
     z-index: 1;
-    width: min(100%, 480px);
-    max-height: min(860px, calc(100vh - 48px));
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    width: min(100%, 520px);
+    max-height: min(860px, calc(100dvh - 48px));
+    overflow: hidden;
     border: 1px solid rgb(255 255 255 / 75%);
     border-radius: 24px;
     background: #fff;
@@ -63,18 +65,18 @@
 
 .auth-modal__header {
     position: relative;
-    padding: 32px 32px 0;
+    flex-shrink: 0;
+    padding: 24px 28px 0;
     color: #fff;
     background:
-        radial-gradient(circle at 90% 0, rgb(245 158 11 / 27%), transparent 34%),
-        linear-gradient(135deg, var(--auth-deep-purple), var(--auth-purple));
+        radial-gradient(circle at 90% 0, rgb(245 158 11 / 27%), transparent 34%), linear-gradient(135deg, var(--auth-deep-purple), var(--auth-purple));
 }
 
 .auth-modal__brand {
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    margin: 0 0 19px;
+    margin: 0 0 12px;
     color: #fff;
     font-size: 0.9rem;
     font-weight: 750;
@@ -94,7 +96,7 @@
 }
 
 .auth-modal__heading {
-    margin: 0;
+    margin: 0 0 20px;
     color: #fff;
     font-size: clamp(1.45rem, 4vw, 1.8rem);
     font-weight: 750;
@@ -103,7 +105,7 @@
 }
 
 .auth-modal__intro {
-    margin: 8px 0 22px;
+    margin: 8px 0 16px;
     color: rgb(255 255 255 / 78%);
     font-size: 0.94rem;
     line-height: 1.5;
@@ -148,35 +150,53 @@
 .auth-modal__tabs {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    padding: 5px;
-    border-radius: 13px 13px 0 0;
+    gap: 4px;
+    margin-bottom: 20px;
+    padding: 4px;
+    border: 1px solid rgb(255 255 255 / 12%);
+    border-radius: 14px;
     background: rgb(255 255 255 / 10%);
 }
 
 .auth-modal__tab {
     position: relative;
-    padding: 12px 10px;
+    min-height: 44px;
+    padding: 10px 12px;
     border: 0;
-    border-radius: 9px 9px 0 0;
-    color: rgb(255 255 255 / 75%);
+    border-radius: 10px;
+    color: rgb(255 255 255 / 88%);
     background: transparent;
     cursor: pointer;
     font: inherit;
-    font-size: 0.94rem;
+    font-size: 0.88rem;
     font-weight: 650;
     transition:
         color 160ms ease,
         background-color 160ms ease;
 }
 
-.auth-modal__tab[aria-selected="true"] {
+.auth-modal__tab[aria-selected='false']:hover {
+    color: #fff;
+    background: rgb(255 255 255 / 8%);
+}
+
+.auth-modal__tab:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+}
+
+.auth-modal__tab[aria-selected='true'] {
     color: var(--auth-deep-purple);
     background: #fff;
+    box-shadow: 0 2px 8px rgb(24 12 37 / 12%);
 }
 
 .auth-modal__content {
-    padding: 28px 32px 32px;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    padding: 24px 28px 28px;
     background: #fff;
 }
 
@@ -232,9 +252,9 @@
     box-shadow: 0 0 0 3px rgb(91 42 134 / 13%);
 }
 
-.auth-modal__field[aria-invalid="true"],
-.auth-modal__select[aria-invalid="true"],
-.auth-modal__textarea[aria-invalid="true"] {
+.auth-modal__field[aria-invalid='true'],
+.auth-modal__select[aria-invalid='true'],
+.auth-modal__textarea[aria-invalid='true'] {
     border-color: var(--auth-danger);
 }
 
@@ -402,17 +422,17 @@ body.auth-modal-open {
 
     .auth-modal__dialog {
         width: 100%;
-        max-height: min(92vh, 860px);
+        max-height: min(96dvh, 860px);
         border-radius: 22px 22px 0 0;
         transform: translateY(28px);
     }
 
     .auth-modal__header {
-        padding: 26px 22px 0;
+        padding: 20px 20px 0;
     }
 
     .auth-modal__content {
-        padding: 24px 22px 28px;
+        padding: 20px 20px max(24px, env(safe-area-inset-bottom));
     }
 
     .auth-modal__close {
