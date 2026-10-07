@@ -1,30 +1,47 @@
-# LubosMart
+<p align="center">
+  <a href="https://lubosmart.app">
+    <img src="public/logo.png" alt="LubosMart shopping bag logo" width="112">
+  </a>
+</p>
 
-*Lubos na Kaginhawaan, Matalinong Pamimili.*
+<h1 align="center">LubosMart</h1>
 
-LubosMart is a marketplace for Filipino communities, connecting buyers, local sellers, couriers, and sorting centers in one place.
+<p align="center"><em>Lubos na Kaginhawaan, Matalinong Pamimili.</em></p>
 
-**[Visit LubosMart →](https://lubosmart.app)**
+<p align="center">Local finds. Everyday essentials. A connected community.</p>
 
-## What you can do
+<p align="center">
+  <a href="https://lubosmart.app"><strong>Visit the website</strong></a>
+  &nbsp; · &nbsp;
+  <a href="documentation/design/ui-workflow.md">Explore the experience</a>
+  &nbsp; · &nbsp;
+  <a href="documentation/README.md">Documentation</a>
+</p>
 
-- Discover products and shop with cash on delivery.
-- Manage your store's products, stock, and customer orders.
-- Coordinate parcels and follow delivery updates.
-- Sign in with email or Google and manage your account.
+---
 
-## Built for every role
+## Made for Filipino communities
 
-| Role | Workspace |
-| --- | --- |
-| Buyer | Shopping bag, orders, and delivery addresses |
-| Seller | Inventory and order fulfillment |
-| Courier | Assigned deliveries and proof of delivery |
-| Sorting center | Courier review, dispatch, and cash handovers |
-| Admin | Applications, accounts, reports, and COD reconciliation |
+LubosMart brings buyers, local sellers, couriers, and sorting centers together in one marketplace—from discovering a product to receiving it at your doorstep.
 
-## Project guides
+| Discover and shop | Build your store |
+| :--- | :--- |
+| Browse by category, manage your shopping bag, and place cash-on-delivery orders. | Organize products, manage stock, and fulfill customer orders. |
+| **Follow your delivery** | **Manage your account** |
+| Track order updates while couriers and sorting centers coordinate parcels. | Sign in with email or Google, edit your profile, and manage delivery addresses. |
 
-See the **[documentation index](documentation/README.md)** for guides organized by topic.
+## A workspace for every role
 
-[Local setup](documentation/development/local-setup.md) · [User flows](documentation/design/ui-workflow.md) · [Deployment](documentation/operations/deployment.md)
+| Workspace | What it brings together |
+| :--- | :--- |
+| **Buyer** | Shopping, orders, delivery addresses, and support |
+| **Seller** | Product inventory, fulfillment, and sales reports |
+| **Courier** | Assigned parcels, delivery updates, and proof of delivery |
+| **Sorting center** | Courier applications, dispatch, and cash handovers |
+| **Admin** | Account reviews, seller compliance, disputes, commissions, and platform policies |
+
+## Explore the project
+
+The [documentation hub](documentation/README.md) organizes guides by product, accounts, design, development, and operations.
+
+[Local setup](documentation/development/local-setup.md) · [User flows](documentation/design/ui-workflow.md) · [Admin workspace](documentation/operations/admin-workspace.md) · [Deployment](documentation/operations/deployment.md)
