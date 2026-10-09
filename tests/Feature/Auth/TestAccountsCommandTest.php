@@ -29,6 +29,66 @@ test('admin provisioning uses explicit interactive credentials', function () {
     expect(User::query()->first()->email_verified_at)->not->toBeNull();
 });
 
+test('local admin replacement keeps the existing account and uses explicit credentials', function () {
+    $admin = User::factory()->create(['role' => 'admin', 'email' => 'old-admin@example.com']);
+    Storage::disk('local')->put('local-test-accounts.md', 'Old credentials');
+    Storage::disk('local')->put('test-account-passwords.json', '{}');
+
+    $this->artisan('lubosmart:create-admin', ['--replace-local' => true])
+        ->expectsQuestion('Full name', 'My Admin')
+        ->expectsQuestion('Email address', 'my-admin@example.com')
+        ->expectsQuestion('Password (at least 12 characters)', 'MyLivePassword123')
+        ->expectsQuestion('Confirm password', 'MyLivePassword123')
+        ->assertSuccessful();
+
+    $this->assertDatabaseCount('users', 1);
+    expect($admin->fresh()->email)->toBe('my-admin@example.com')
+        ->and($admin->fresh()->canOperate())->toBeTrue()
+        ->and(Hash::check('MyLivePassword123', $admin->fresh()->password))->toBeTrue();
+    Storage::disk('local')->assertMissing('local-test-accounts.md');
+    Storage::disk('local')->assertMissing('test-account-passwords.json');
+});
+
+test('local admin replacement refuses production and does not change the existing password', function () {
+    $admin = User::factory()->create(['role' => 'admin']);
+    $password = $admin->password;
+    app()->detectEnvironment(fn () => 'production');
+    $this->artisan('lubosmart:create-admin', ['--replace-local' => true])->assertFailed();
+    expect($admin->fresh()->password)->toBe($password);
+});
+
+test('local admin replacement rejects email conflicts without converting another user', function () {
+    $admin = User::factory()->create(['role' => 'admin']);
+    $buyer = User::factory()->create(['email' => 'buyer@example.com']);
+    $password = $admin->password;
+    $this->artisan('lubosmart:create-admin', ['--replace-local' => true])
+        ->expectsQuestion('Full name', 'My Admin')
+        ->expectsQuestion('Email address', $buyer->email)
+        ->expectsQuestion('Password (at least 12 characters)', 'MyLivePassword123')
+        ->expectsQuestion('Confirm password', 'MyLivePassword123')
+        ->assertFailed();
+    expect($admin->fresh()->password)->toBe($password)->and($buyer->fresh()->role)->toBe('buyer');
+});
+
+test('local admin replacement refuses ambiguous administrator selection', function () {
+    User::factory()->count(2)->create(['role' => 'admin']);
+    $this->artisan('lubosmart:create-admin', ['--replace-local' => true])->assertFailed();
+    $this->assertDatabaseCount('users', 2);
+});
+
+test('test account generation reuses a personal admin and never resets its password', function () {
+    $admin = User::factory()->create(['role' => 'admin', 'email' => 'personal-admin@example.com']);
+    $password = $admin->password;
+    $this->artisan('lubosmart:test-accounts', ['--reset-passwords' => true])->assertSuccessful();
+    expect(User::query()->where('role', 'admin')->count())->toBe(1)
+        ->and($admin->fresh()->email)->toBe('personal-admin@example.com')
+        ->and($admin->fresh()->password)->toBe($password);
+    $this->assertDatabaseMissing('users', ['email' => 'lubosmart-admin@testing.app']);
+    $this->assertDatabaseCount('users', 5);
+    expect(json_decode(Storage::disk('local')->get('test-account-passwords.json'), true))->not->toHaveKey($admin->email);
+    expect(Storage::disk('local')->get('local-test-accounts.md'))->toContain('Use your personal admin password');
+});
+
 test('repeating test account creation preserves credentials and creates no duplicate records', function () {
     Artisan::call('lubosmart:test-accounts');
     $passwords = User::query()->orderBy('id')->pluck('password', 'email')->all();

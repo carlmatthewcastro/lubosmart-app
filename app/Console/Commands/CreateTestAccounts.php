@@ -53,6 +53,18 @@ class CreateTestAccounts extends Command
                     if ($user && $user->role !== $role) {
                         throw new \DomainException('The reserved test email '.$email.' belongs to a different role. No accounts were changed.');
                     }
+                    if (! $user && $role === 'admin') {
+                        $admins = User::query()->where('role', 'admin')->lockForUpdate()->get();
+                        if ($admins->count() > 1) {
+                            throw new \DomainException('Multiple local administrators exist. Select your personal admin before creating test accounts. No accounts were changed.');
+                        }
+                        if ($admins->count() === 1) {
+                            $accounts[$role] = $admins->first();
+                            $accountStates[$role] = 'Existing personal administrator preserved';
+
+                            continue;
+                        }
+                    }
                     if (! $user) {
                         $user = User::query()->create(['name' => ucfirst($role).' Test', 'email' => $email, 'role' => $role, 'password' => Hash::make($password)]);
                         $user->forceFill(['status' => 'approved', 'email_verified_at' => now()])->save();
@@ -97,7 +109,7 @@ class CreateTestAccounts extends Command
         }
 
         foreach ($accounts as $user) {
-            if ($accountStates[$user->role] !== 'Existing') {
+            if (in_array($accountStates[$user->role], ['Created', 'Password reset'], true)) {
                 $savedPasswords[$user->email] = $password;
             }
         }
@@ -110,7 +122,9 @@ class CreateTestAccounts extends Command
         $guide = "# LubosMart local test logins\n\nThese accounts are saved in your local database. Restarting `php artisan serve` does not change them.\n\nOpen http://127.0.0.1:8000/login. Log out before switching roles, or use separate browser profiles.\n\n| Role | Email | Password |\n| --- | --- | --- |\n";
         foreach ($accounts as $user) {
             $known = $savedPasswords[$user->email] ?? '';
-            $display = $known && Hash::check($known, $user->password) ? '`'.$known.'`' : 'Existing password unknown; run the reset command below';
+            $display = $accountStates[$user->role] === 'Existing personal administrator preserved'
+                ? 'Use your personal admin password (preserved; never reset by this command)'
+                : ($known && Hash::check($known, $user->password) ? '`'.$known.'`' : 'Existing password unknown; run the reset command below');
             $guide .= '| '.$user->role.' | '.$user->email.' | '.$display." |\n";
         }
         $guide .= "\n## Testing the complete flow\n\n1. Buyer: Discover → add to bag → choose an address → Place COD order.\n2. Seller: Fulfillment → Start preparing → Mark ready for pickup.\n3. Logistics: Parcel operations → Receive parcel → configure Rider Test coverage → select the destination area → Assign Rider Test.\n4. Rider: My deliveries → Confirm pickup → Start delivery → Mark out for delivery → upload a photo → confirm delivery and COD collection.\n5. Logistics: Confirm cash received. Admin: Reconcile COD.\n6. Buyer/seller: open Order conversation to send messages. Reports show completed sales.\n\nUse only synthetic personal information and photos for local testing.\n\n## Start again\n\nStart MySQL, then run `php artisan serve`. In another terminal use `npm run dev`, or build once with `npm run build`. Accounts need no regeneration.\n\nTo intentionally change test passwords: `php artisan lubosmart:test-accounts --reset-passwords`. This guide updates automatically. To add sample products: `php artisan lubosmart:test-accounts --demo`.\n\nThis private file and password metadata are ignored by Git. Do not publish or deploy them. These inboxes are synthetic test identities; do not send real email to them.\n";

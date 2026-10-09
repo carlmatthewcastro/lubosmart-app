@@ -2,6 +2,18 @@
 
 Use this guide to run LubosMart on your computer. For the live website, use the [deployment guide](../operations/deployment.md).
 
+## Use your personal administrator locally
+
+To replace the sole existing local test admin with the email and password you use on the live site, run this from your local project terminal:
+
+```powershell
+php artisan lubosmart:create-admin --replace-local
+```
+
+Enter your live display name, email, and password at the prompts. Password input is hidden and is not saved in a plaintext guide. The existing local admin ID is preserved; its old credentials and sessions are replaced. This command refuses production environments and does not connect to or modify the live database. It requires exactly one existing local admin. The databases remain separate, so future password changes are not automatically synchronized.
+
+Do not rerun `lubosmart:test-accounts` unless you want sample users again. When you do need sample users, the command reuses your existing personal admin without creating another administrator or changing its password, including when `--reset-passwords` is supplied.
+
 ## Technical Requirements
 
 - PHP **8.2 or later**, with extensions required by Laravel and the selected database driver; the production image uses PHP **8.3**.
