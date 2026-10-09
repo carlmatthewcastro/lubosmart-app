@@ -15,7 +15,7 @@ test('each verified active role receives its own dashboard', function (string $r
         linkRiderToApprovedCenter($user);
     }
     $this->actingAs($user)->get(route('dashboard.role', $role))->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->component('dashboard')->where('role', $role)->has('stats', 3)->has('records', 0));
+        ->assertInertia(fn (Assert $page) => $page->component($role === 'admin' ? 'admin/dashboard' : 'workspace/dashboard')->where('role', $role)->has('stats', 3)->has('records', 0));
 })->with(['buyer', 'seller', 'courier', 'sorting_center', 'admin']);
 
 test('a role cannot open another role dashboard', function (string $role) {

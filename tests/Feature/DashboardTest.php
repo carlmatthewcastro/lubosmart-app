@@ -36,7 +36,7 @@ test('admin overview shows the oldest eligible applications including couriers a
     }
 
     $this->actingAs($admin)->get('/dashboard/admin')->assertInertia(fn (Assert $page) => $page
-        ->component('dashboard')
+        ->component('admin/dashboard')
         ->where('stats.Pending review', 7)
         ->has('adminOverview.applications', 5)
         ->where('adminOverview.applications.0.role', 'courier')
@@ -47,5 +47,5 @@ test('admin overview shows the oldest eligible applications including couriers a
 
 test('non admin dashboards do not expose the admin review queue', function () {
     $this->actingAs(User::factory()->create())->get('/dashboard/buyer')
-        ->assertInertia(fn (Assert $page) => $page->component('dashboard')->where('adminOverview', null));
+        ->assertInertia(fn (Assert $page) => $page->component('workspace/dashboard')->where('adminOverview', null));
 });

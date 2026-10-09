@@ -1,4 +1,4 @@
-import { AdminToolbar } from '@/components/admin-toolbar';
+import { AdminToolbar } from '@/components/admin/toolbar';
 import { Breadcrumbs } from '@/components/breadcrumbs';
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { type BreadcrumbItem as BreadcrumbItemType, type SharedData } from '@/types';
@@ -25,7 +25,7 @@ export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: Breadcrum
                 )}
                 <div className="min-w-0 truncate [&_li]:truncate [&_nav]:overflow-hidden [&_ol]:flex-nowrap">
                     <p className="text-muted-foreground hidden text-[10px] font-medium tracking-widest uppercase sm:block">
-                        {auth.user.role === 'admin' ? 'Admin workspace' : 'LubosMart'}
+                        {auth.user.role === 'admin' ? 'Administration' : 'LubosMart'}
                     </p>
                     <Breadcrumbs breadcrumbs={breadcrumbs} />
                 </div>

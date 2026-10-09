@@ -31,7 +31,7 @@ class AccountController extends Controller
             $query->where('role', 'courier')->whereIn('sorting_center_id', $actor->sortingCenters()->operational()->pluck('sorting_centers.id'))->whereHas('application', fn ($query) => $query->where('status', 'approved'));
         }
 
-        return Inertia::render('accounts', [
+        return Inertia::render('management/accounts', [
             'accounts' => $query->orderBy('name')->orderBy('id')->paginate(20, ['id', 'name', 'email', 'role', 'status'])->withQueryString(), 'filters' => $filters,
             'allowedStatuses' => $actor->role === 'admin' ? ['approved', 'suspended', 'deactivated'] : ['deactivated'],
         ]);

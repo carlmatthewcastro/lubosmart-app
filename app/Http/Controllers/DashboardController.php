@@ -94,6 +94,6 @@ class DashboardController extends Controller
             ]);
         }
 
-        return Inertia::render('dashboard', ['role' => $role, 'stats' => $stats, 'records' => $records, 'storeStatus' => $user->store?->status, 'adminOverview' => $adminOverview]);
+        return Inertia::render($role === 'admin' ? 'admin/dashboard' : 'workspace/dashboard', ['role' => $role, 'stats' => $stats, 'records' => $records, 'storeStatus' => $user->store?->status, 'adminOverview' => $adminOverview]);
     }
 }

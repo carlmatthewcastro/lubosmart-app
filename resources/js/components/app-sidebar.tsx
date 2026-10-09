@@ -62,7 +62,7 @@ export function AppSidebar() {
         { title: 'User Accounts', url: '/accounts', icon: Users },
         { title: 'Seller Compliance', url: '/admin/compliance', icon: ShieldCheck, badge: badges.compliance },
         { title: 'Complaints & Disputes', url: '/support?kind=complaint', icon: MessageSquareWarning, badge: badges.disputes },
-        { title: 'Commission & Fees', url: '/admin/commission', icon: Percent },
+        { title: 'Commission', url: '/admin/commission', icon: Percent },
         { title: 'Reports', url: '/reports', icon: ChartNoAxesCombined },
         { title: 'Platform Settings', url: '/admin/platform', icon: Megaphone },
         { title: 'Messages', url: '/support?kind=message', icon: MessageCircle, badge: badges.messages },
@@ -109,12 +109,6 @@ export function AppSidebar() {
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
-                {role === 'admin' && (
-                    <div className="text-primary mt-2 flex items-center gap-2 px-3 text-[10px] font-semibold tracking-wider uppercase group-data-[collapsible=icon]:hidden">
-                        <span className="bg-primary size-1.5 rounded-full" />
-                        Admin Workspace
-                    </div>
-                )}
             </SidebarHeader>
 
             <SidebarContent className="pt-2">

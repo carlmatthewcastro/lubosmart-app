@@ -14,7 +14,7 @@ The admin workspace manages marketplace access, seller compliance, support, plat
 | Seller compliance | `/admin/compliance` | Find category mismatches, warn sellers, block or restore listings, and suspend sellers for violations. Reasons and history are retained. |
 | Complaints and disputes | `/support?kind=complaint` | Review concerns and private evidence, communicate with involved parties, record an outcome, resolve, or reopen a case. |
 | Messaging | `/support?kind=message` | Start a conversation in a modal by choosing an approved recipient or order participants, then selecting a topic. Participants can reply through their Support page. |
-| Commission | `/admin/commission` | Edit commission (0-100%, up to two decimal places) and the delivery fee with confirmation. New orders snapshot these rates; existing orders keep their original rates. Commission amounts are calculated on delivery. |
+| Commission | `/admin/commission` | Edit commission (0-100%, up to two decimal places) with a calculation preview and confirmation. New orders snapshot the percentage; existing orders keep their original rate. Commission amounts are calculated on delivery. Shipping fees are outside the admin controls. |
 | Reports | `/reports` | Filter completed parcels by delivery date and download sales or commission CSV reports. |
 | Platform settings | `/admin/platform` | Create and edit announcements and policies, keep drafts private, publish, or withdraw content. Published announcements appear on the homepage. |
 | COD operations | `/deliveries` | Inspect deliveries and reconcile cash handed over by sorting centers. |
@@ -40,7 +40,7 @@ The new migrations have been applied to the local database. For another local ch
 6. Open a complaint from a buyer account, optionally attaching JPG, PNG, or PDF evidence up to 5 MB. Reply as admin, then as a participant. Record a resolution and reopen the case. Unrelated users must not access the case or its evidence.
 7. Start a general conversation from admin using a testing user's email. Verify it appears in that user's Support inbox and new replies appear in the admin attention count.
 8. In Platform Settings, create an announcement or policy in the modal editor. Preview it, save a draft, and check the Content Type and Visibility filters. Publish it and check the public page (and homepage for announcements). Save it as a draft again and confirm it disappears publicly. Policies are available on `/platform-information`.
-9. Change commission and the delivery fee, then verify new orders use the new rates while existing orders keep their original rates. Commission amounts are calculated when delivered. Filter reports and download both CSV files.
+9. Change commission, then verify new orders use the new percentage while existing orders retain their recorded rates. Delivery fees are not editable from admin. Commission amounts are calculated when delivered. Filter reports and download both CSV files.
 10. Suspend or deactivate a testing account and verify access is denied, including an existing session. Restore eligible access through admin account management.
 
 Only use synthetic data for these checks. Email delivery needs a configured mail provider and queue worker. The floating Messages panel is available from the navbar or bottom-right launcher on admin pages. Open it to read conversations, send replies, or start a new conversation without leaving the current page. The panel refreshes every 30 seconds while open and visible; it does not use websockets. The full inbox provides attachments and case actions. Resolving a dispute records its outcome; it does not issue a refund or seller payout.
@@ -52,3 +52,9 @@ Two additive migrations introduce admin management tables, the deactivated accou
 Your personal verified admin account will be configured separately later. Public registration still cannot create admin accounts. This update does not replace your account or provision a production administrator.
 
 [Documentation index](../README.md) · [Deployment guide](deployment.md)
+
+## Frontend organization and commission controls
+
+The admin homepage is `resources/js/pages/admin/dashboard.tsx`. Admin-only messaging and toolbar components live in `resources/js/components/admin`. Shared account and application-review screens live in `pages/management`, registration completion in `pages/onboarding`, public homepage and content in `pages/public`, and non-admin dashboards in `pages/workspace`. Existing browser URLs are unchanged. Blade in `resources/views` contains the Inertia shell and mail templates; interactive pages are React.
+
+Admin commission settings accept only the commission percentage. Attempts to submit `shipping_fee_per_seller_order` are rejected and leave the settings unchanged. The existing delivery-fee calculation remains in checkout until a separate logistics pricing workflow is designed. No logistics fee editor is introduced in this change.

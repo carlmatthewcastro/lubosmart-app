@@ -29,7 +29,7 @@ test('accounts can register without a name and retain the correct verification a
     $this->get('/application')->assertRedirect(route('verification.notice'));
     $user->markEmailAsVerified();
     $this->actingAs($user->fresh())->get('/application')->assertInertia(fn (Assert $page) => $page
-        ->component('application')->where('profile', null));
+        ->component('onboarding/application')->where('profile', null));
 })->with(['buyer', 'seller', 'courier', 'sorting_center']);
 
 test('structured signup preserves multiword names and prefills the partner application', function () {
@@ -52,7 +52,7 @@ test('structured signup preserves multiword names and prefills the partner appli
     ]);
     $user->markEmailAsVerified();
     $this->actingAs($user->fresh())->get('/application')->assertInertia(fn (Assert $page) => $page
-        ->component('application')
+        ->component('onboarding/application')
         ->where('profile.first_name', 'Carl Matthew')
         ->where('profile.last_name', 'De la Cruz'));
 });

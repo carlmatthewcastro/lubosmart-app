@@ -41,7 +41,7 @@ class ReportController extends Controller
     {
         abort_unless($request->user()->role === 'admin', 403);
 
-        return Inertia::render('admin/commission', ['settings' => CommerceSetting::query()->findOrFail(1)]);
+        return Inertia::render('admin/commission', ['settings' => CommerceSetting::query()->findOrFail(1)->only('platform_commission_basis_points')]);
     }
 
     public function export(Request $request)
@@ -70,13 +70,13 @@ class ReportController extends Controller
     public function update(Request $request)
     {
         abort_unless($request->user()->role === 'admin', 403);
-        $data = $request->validate(['shipping_fee_per_seller_order' => 'required|numeric|decimal:0,2|min:0|max:9999.99', 'platform_commission_basis_points' => 'required|integer|min:0|max:10000'], [
+        $data = $request->validate(['shipping_fee_per_seller_order' => 'missing', 'platform_commission_basis_points' => 'required|integer|min:0|max:10000'], [
             'platform_commission_basis_points.in' => 'Choose a commission between 0% and 100%.',
             'platform_commission_basis_points.required' => 'Enter a commission percentage.',
             'platform_commission_basis_points.integer' => 'Enter a valid commission percentage.',
             'platform_commission_basis_points.min' => 'Commission must be between 0% and 100%.',
             'platform_commission_basis_points.max' => 'Commission must be between 0% and 100%.',
-            'shipping_fee_per_seller_order.*' => 'Enter a delivery fee between PHP 0 and PHP 9,999.99, with up to two decimal places.',
+            'shipping_fee_per_seller_order.missing' => 'Delivery fees cannot be changed through admin commission settings.',
         ]);
         DB::transaction(function () use ($request, $data) {
             $settings = CommerceSetting::query()->whereKey(1)->lockForUpdate()->firstOrFail();
@@ -85,6 +85,6 @@ class ReportController extends Controller
             app(AuditLogger::class)->record(['actor_id' => $request->user()->id, 'subject_type' => 'commerce_settings', 'subject_id' => 1, 'action' => 'updated', 'changes' => json_encode(['before' => $before, 'after' => $data]), 'occurred_at' => now()]);
         });
 
-        return back()->with('status', 'Rates saved. New orders use the updated commission and delivery fee.');
+        return back()->with('status', 'Commission saved. New orders use the updated percentage.');
     }
 }

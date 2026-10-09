@@ -231,8 +231,8 @@ test('split orders only complete after every parcel is delivered', function () {
     expect($order->order->fresh()->status)->toBe('pending');
 });
 
-test('platform rates are admin only validated and audited', function () {
-    $data = ['shipping_fee_per_seller_order' => '65.00', 'platform_commission_basis_points' => 1000];
+test('platform commission is admin only validated and audited', function () {
+    $data = ['platform_commission_basis_points' => 1000];
     $this->actingAs($this->seller)->patch('/reports/settings', $data)->assertForbidden();
     $this->actingAs($this->admin)->patch('/reports/settings', ['shipping_fee_per_seller_order' => '-1', 'platform_commission_basis_points' => 10001])->assertSessionHasErrors(['shipping_fee_per_seller_order', 'platform_commission_basis_points']);
     $this->patch('/reports/settings', $data)->assertRedirect();

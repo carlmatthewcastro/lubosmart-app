@@ -2,7 +2,7 @@ import { secondaryClass } from '@/components/marketplace-ui';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import Account from '@/pages/admin/account';
-import Review from '@/pages/review';
+import Review from '@/pages/management/registrations/show';
 import Conversation from '@/pages/support/show';
 import { ArrowLeft } from 'lucide-react';
 import { useEffect, useState, type ComponentProps } from 'react';

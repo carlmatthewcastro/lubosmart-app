@@ -219,7 +219,7 @@ test('sales and commission exports respect delivery dates and preserve commissio
     $parcel = adminTestParcel($this);
     $parcel->update(['status' => 'completed', 'commission_basis_points' => 1000, 'commission_amount' => '20.00', 'seller_proceeds' => '180.00']);
     $parcel->delivery->forceFill(['status' => 'delivered', 'delivered_at' => '2026-10-07 10:00:00'])->save();
-    $this->actingAs($this->admin)->patch('/reports/settings', ['shipping_fee_per_seller_order' => 50, 'platform_commission_basis_points' => 1000])->assertRedirect();
+    $this->actingAs($this->admin)->patch('/reports/settings', ['platform_commission_basis_points' => 1000])->assertRedirect();
     expect($parcel->fresh()->commission_amount)->toBe('20.00');
     $this->get('/reports/export?type=commission&from=2026-10-07&to=2026-10-07')->assertDownload('commission-report-'.now()->format('Y-m-d').'.csv')->assertStreamedContent("Parcel,Store,\"Product sales (PHP)\",\"Commission (PHP)\",\"Seller proceeds (PHP)\"\n".$parcel->id.",\"Test store\",200.00,20.00,180.00\n");
     $this->get('/reports?from=2026-10-08')->assertInertia(fn (Assert $page) => $page->where('totals.Completed parcels', 0));
@@ -255,10 +255,27 @@ test('all approved administrators have access without a sub role', function () {
 
 test('admin can change commission while existing parcels retain their rates', function () {
     $parcel = adminTestParcel($this);
-    $this->actingAs($this->admin)->patch('/reports/settings', ['shipping_fee_per_seller_order' => '50.00', 'platform_commission_basis_points' => 1250])->assertSessionHasNoErrors();
+    $this->actingAs($this->admin)->patch('/reports/settings', ['platform_commission_basis_points' => 1250])->assertSessionHasNoErrors();
     $this->assertDatabaseHas('commerce_settings', ['id' => 1, 'platform_commission_basis_points' => 1250]);
     expect($parcel->fresh()->commission_basis_points)->toBe(1000);
-    $this->patch('/reports/settings', ['shipping_fee_per_seller_order' => '50.00', 'platform_commission_basis_points' => 10001])->assertSessionHasErrors('platform_commission_basis_points');
+    $this->patch('/reports/settings', ['platform_commission_basis_points' => 10001])->assertSessionHasErrors('platform_commission_basis_points');
+});
+
+test('admin commission settings exclude and reject delivery fee changes', function () {
+    $fee = DB::table('commerce_settings')->where('id', 1)->value('shipping_fee_per_seller_order');
+    $this->actingAs($this->admin)->get('/admin/commission')->assertInertia(fn (Assert $page) => $page
+        ->component('admin/commission')->missing('settings.shipping_fee_per_seller_order'));
+
+    foreach ([70, null, ''] as $value) {
+        $this->patch('/reports/settings', ['platform_commission_basis_points' => 1250, 'shipping_fee_per_seller_order' => $value])
+            ->assertSessionHasErrors('shipping_fee_per_seller_order');
+    }
+    expect(DB::table('commerce_settings')->where('id', 1)->value('shipping_fee_per_seller_order'))->toBe($fee);
+    $this->assertDatabaseHas('commerce_settings', ['id' => 1, 'platform_commission_basis_points' => 1000]);
+    $this->assertDatabaseCount('audit_events', 0);
+
+    $this->patch('/reports/settings', ['platform_commission_basis_points' => 1250])->assertSessionHasNoErrors();
+    expect(DB::table('commerce_settings')->where('id', 1)->value('shipping_fee_per_seller_order'))->toBe($fee);
 });
 
 test('admin conversation options contain approved recipients and restrict other roles', function () {
