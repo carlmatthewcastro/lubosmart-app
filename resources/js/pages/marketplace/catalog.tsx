@@ -133,7 +133,7 @@ export default function Catalog({
                                             {product.stock ? `${product.stock} available` : 'Sold out'}
                                         </span>
                                     </div>
-                                    {auth.user?.role === 'buyer' ? (
+                                    {auth.user?.role === 'buyer' && auth.user.status === 'approved' && auth.user.email_verified_at ? (
                                         <button
                                             className={`${buttonClass} w-full`}
                                             disabled={!product.stock || cart.processing}
@@ -141,6 +141,10 @@ export default function Catalog({
                                         >
                                             {product.stock ? 'Add to bag' : 'Sold out'}
                                         </button>
+                                    ) : auth.user?.role === 'buyer' ? (
+                                        <Link href="/application" className={`${secondaryClass} w-full`}>
+                                            Complete registration / view approval
+                                        </Link>
                                     ) : !auth.user ? (
                                         <Link href="/login" className={`${secondaryClass} w-full`}>
                                             Log in to shop

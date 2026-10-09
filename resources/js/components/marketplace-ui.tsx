@@ -5,17 +5,31 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import { type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, useId } from 'react';
 
 export const money = (value: string | number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(Number(value));
+const roleLabels: Record<string, string> = { buyer: 'Buyer', seller: 'Seller', courier: 'Courier', sorting_center: 'Sorting Center', admin: 'Admin' };
+export const roleLabel = (role: string) => roleLabels[role] ?? role.replaceAll('_', ' ');
 export const buttonClass =
     'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-primary/25 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50';
 export const secondaryClass =
     'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border bg-card px-4 py-2 text-sm font-medium transition-colors hover:border-primary/30 hover:bg-accent/50 focus-visible:ring-2 focus-visible:ring-primary/25 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50';
 export const inputClass =
     'min-h-11 w-full min-w-0 rounded-xl border bg-background px-3.5 py-2.5 text-sm transition-colors placeholder:text-muted-foreground/65 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/15 focus-visible:outline-none aria-invalid:border-primary disabled:cursor-not-allowed disabled:opacity-60';
-export function Page({ title, description, action, children }: { title: string; description?: string; action?: ReactNode; children: ReactNode }) {
+export function Page({
+    title,
+    description,
+    action,
+    children,
+    embedded = false,
+}: {
+    title: string;
+    description?: string;
+    action?: ReactNode;
+    children: ReactNode;
+    embedded?: boolean;
+}) {
     const { auth, status, errors } = usePage<SharedData>().props;
     const content = (
         <div className="mx-auto flex w-full max-w-6xl min-w-0 flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-9">
-            <Head title={title} />
+            {!embedded && <Head title={title} />}
             <div className="flex flex-wrap items-start justify-between gap-4 border-b pb-6">
                 <div className="min-w-0">
                     <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">{title}</h1>
@@ -40,6 +54,7 @@ export function Page({ title, description, action, children }: { title: string; 
             {children}
         </div>
     );
+    if (embedded) return content;
     return auth.user ? (
         <AppLayout breadcrumbs={[{ title, href: '#' }]}>{content}</AppLayout>
     ) : (
@@ -80,13 +95,13 @@ export function Empty({ title, description, href, label }: { title: string; desc
         </Card>
     );
 }
-export function Badge({ status }: { status: string }) {
+export function Badge({ status, label }: { status: string; label?: string }) {
     const good = ['completed', 'delivered', 'approved', 'active', 'reconciled'].includes(status);
     return (
         <span
             className={`inline-flex rounded-full px-3 py-1 text-xs font-medium capitalize ${good ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : ['cancelled', 'rejected', 'suspended', 'deactivated', 'blocked', 'failed', 'hidden'].includes(status) ? 'bg-destructive/10 text-destructive' : 'bg-accent text-primary'}`}
         >
-            {status.replaceAll('_', ' ')}
+            {label ?? status.replaceAll('_', ' ')}
         </span>
     );
 }

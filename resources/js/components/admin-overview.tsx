@@ -1,25 +1,16 @@
-import { Card, Empty, Page, buttonClass, secondaryClass } from '@/components/marketplace-ui';
-import { Link } from '@inertiajs/react';
-import { ClipboardCheck, Store, Users, Wallet } from 'lucide-react';
+import { InfoModal } from '@/components/info-modal';
+import { Card, Empty, Page, secondaryClass } from '@/components/marketplace-ui';
+import { activityAction, activityDate, titleCase } from '@/lib/admin-display';
+import type { SharedData } from '@/types';
+import { Link, usePage } from '@inertiajs/react';
+import { ClipboardCheck, MessageSquareWarning, ShieldCheck, Users } from 'lucide-react';
 
 export type AdminOverviewData = {
     applications: { id: number; name: string; role: string; submittedAt: string | null }[];
-    activeDeliveries: number;
-    codAwaitingReconciliation: number;
-    openComplaints: number;
-    unreadConversations: number;
-    blockedListings: number;
+    openComplaints: number | null;
+    unreadConversations: number | null;
+    blockedListings: number | null;
 };
-
-type Activity = { id: number; label: string; status: string; detail: string; occurredAt?: string };
-
-function dateLabel(value?: string | null) {
-    if (!value) return null;
-    // Database timestamps without an offset are stored in UTC.
-    const date = new Date(value.includes('T') ? value : `${value.replace(' ', 'T')}Z`);
-    return Number.isNaN(date.getTime()) ? null : date.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
 export default function AdminOverview({
     stats,
     overview,
@@ -27,173 +18,154 @@ export default function AdminOverview({
 }: {
     stats: Record<string, number>;
     overview: AdminOverviewData;
-    records: Activity[];
+    records: { id: number; label: string; status: string; detail: string; occurredAt?: string }[];
 }) {
+    const { adminWorkspace } = usePage<SharedData>().props;
+    const permissions = adminWorkspace?.permissions ?? [];
     const metrics = [
+        { label: 'Pending Registrations', value: stats['Pending review'], href: '/reviews', permission: 'registrations', icon: ClipboardCheck },
+        { label: 'User Accounts', value: stats.Accounts, href: '/accounts', permission: 'accounts', icon: Users },
+        { label: 'Flagged Listings', value: overview.blockedListings, href: '/admin/compliance', permission: 'compliance', icon: ShieldCheck },
         {
-            label: 'Pending applications',
-            value: stats['Pending review'],
-            detail: 'Ready for your review',
-            href: '/reviews?status=submitted',
-            icon: ClipboardCheck,
+            label: 'Open Disputes',
+            value: overview.openComplaints,
+            href: '/support?kind=complaint',
+            permission: 'disputes',
+            icon: MessageSquareWarning,
         },
-        { label: 'Registered accounts', value: stats.Accounts, detail: 'Manage account access', href: '/accounts', icon: Users },
-        { label: 'Approved stores', value: stats['Approved stores'], detail: 'Review seller listings', href: '/admin/compliance', icon: Store },
-        {
-            label: 'COD to reconcile',
-            value: overview.codAwaitingReconciliation,
-            detail: 'Cash received by centers',
-            href: '/deliveries',
-            icon: Wallet,
-        },
-    ];
-
+    ].filter((item) => permissions.includes(item.permission));
     return (
         <Page
-            title="Admin overview"
-            description="Review applications, manage accounts, and keep operations moving."
+            title="Admin Dashboard"
+            description="Manage the platform and review items that need your attention."
             action={
-                <Link href="/reports" className={secondaryClass}>
-                    View reports
-                </Link>
+                permissions.includes('reports') && (
+                    <Link href="/reports" className={secondaryClass}>
+                        View Reports
+                    </Link>
+                )
             }
         >
-            <section aria-label="Platform summary" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                {metrics.map((metric) => (
-                    <Link
-                        key={metric.label}
-                        href={metric.href}
-                        className="bg-card hover:border-primary/40 focus-visible:ring-primary/30 min-w-0 rounded-2xl border p-5 transition focus-visible:ring-4 focus-visible:outline-none"
-                    >
-                        <div className="flex items-center justify-between gap-3">
-                            <p className="text-muted-foreground text-sm font-medium">{metric.label}</p>
-                            <metric.icon aria-hidden="true" className="text-primary size-4 shrink-0" />
-                        </div>
-                        <p className="mt-5 text-3xl font-semibold tracking-tight">{metric.value.toLocaleString()}</p>
-                        <p className="text-muted-foreground mt-2 text-xs">{metric.detail}</p>
-                    </Link>
-                ))}
-            </section>
-
-            <Card className="border-primary/15 !bg-accent/40">
-                <h2 className="font-semibold">Needs your attention</h2>
-                <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                    {[
-                        { label: 'Applications to review', count: stats['Pending review'], href: '/reviews?status=submitted' },
-                        { label: 'Open complaints', count: overview.openComplaints, href: '/support?kind=complaint' },
-                        { label: 'Unread conversations', count: overview.unreadConversations, href: '/support' },
-                        { label: 'Blocked listings', count: overview.blockedListings, href: '/admin/compliance?status=blocked' },
-                    ].map((item) => (
+            {!!metrics.length && (
+                <section aria-label="Platform summary" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    {metrics.map((metric) => (
                         <Link
-                            key={item.label}
-                            href={item.href}
-                            className="bg-card hover:border-primary/40 flex items-center justify-between gap-3 rounded-xl border p-4 text-sm focus-visible:ring-2 focus-visible:outline-none"
+                            key={metric.label}
+                            href={metric.href}
+                            className="bg-card hover:border-primary/30 rounded-2xl border p-5 transition-colors"
                         >
-                            <span>{item.label}</span>
-                            <span className="text-primary font-semibold">{item.count.toLocaleString()}</span>
+                            <div className="flex items-center justify-between gap-3">
+                                <p className="text-muted-foreground text-sm">{metric.label}</p>
+                                <span className="bg-accent text-primary rounded-lg p-2">
+                                    <metric.icon className="size-4" />
+                                </span>
+                            </div>
+                            <p className="mt-3 text-3xl font-semibold tabular-nums">{(metric.value ?? 0).toLocaleString()}</p>
                         </Link>
                     ))}
-                </div>
-            </Card>
-
-            <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-                <Card className="overflow-hidden !p-0">
-                    <div className="flex flex-wrap items-center justify-between gap-3 border-b p-5 sm:p-6">
-                        <div>
-                            <h2 className="font-semibold">Application queue</h2>
-                            <p className="text-muted-foreground mt-1 text-sm">Oldest submissions first.</p>
-                        </div>
-                        <Link
-                            href="/reviews?status=submitted"
-                            className="text-primary rounded-md text-sm font-medium hover:underline focus-visible:ring-2 focus-visible:outline-none"
-                        >
-                            View all
+                </section>
+            )}
+            {permissions.includes('finance') && (
+                <Card>
+                    <h2 className="font-semibold">Commission & Reports</h2>
+                    <p className="text-muted-foreground mt-2 text-sm">Manage platform rates or review sales and commission reports.</p>
+                    <div className="mt-4 flex flex-wrap gap-3">
+                        <Link href="/admin/commission" className={secondaryClass}>
+                            Commission
+                        </Link>
+                        <Link href="/reports" className={secondaryClass}>
+                            Reports
                         </Link>
                     </div>
+                </Card>
+            )}
+            {!!metrics.length && (
+                <Card>
+                    <h2 className="font-semibold">Recommended Actions</h2>
+                    <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                        {metrics
+                            .filter((item) => item.permission !== 'accounts')
+                            .map((item) => (
+                                <Link
+                                    key={item.label}
+                                    href={item.href}
+                                    className="bg-background flex justify-between gap-3 rounded-xl border p-4 text-sm"
+                                >
+                                    <span>
+                                        <span className="block font-medium">{item.label}</span>
+                                        <span className="text-muted-foreground mt-1 block text-xs">
+                                            {item.permission === 'registrations'
+                                                ? 'Check documents and approve or request corrections.'
+                                                : item.permission === 'compliance'
+                                                  ? 'Check categories, warn sellers or review blocked listings.'
+                                                  : 'Review the complaint, check supporting evidence, and contact the parties involved.'}
+                                        </span>
+                                    </span>
+                                    <span className="text-primary font-semibold">{item.value ?? 0}</span>
+                                </Link>
+                            ))}
+                        {permissions.includes('messages') && (
+                            <Link href="/support?kind=message" className="bg-background flex justify-between gap-3 rounded-xl border p-4 text-sm">
+                                <span>
+                                    <span className="block font-medium">Unread Messages</span>
+                                    <span className="text-muted-foreground mt-1 block text-xs">
+                                        Read new replies and respond to account or order concerns.
+                                    </span>
+                                </span>
+                                <span className="text-primary font-semibold">{overview.unreadConversations ?? 0}</span>
+                            </Link>
+                        )}
+                    </div>
+                </Card>
+            )}
+            {permissions.includes('registrations') && (
+                <Card>
+                    <h2 className="font-semibold">Application Queue</h2>
+                    <p className="text-muted-foreground mt-1 text-sm">Oldest submissions first.</p>
                     {overview.applications.length ? (
-                        <ul className="divide-y">
-                            {overview.applications.map((application) => (
-                                <li key={application.id} className="flex flex-wrap items-center justify-between gap-4 p-5 sm:px-6">
-                                    <div className="min-w-0">
-                                        <p className="text-sm font-medium break-words">{application.name}</p>
-                                        <p className="text-muted-foreground mt-1 text-xs">
-                                            {application.role === 'logistics'
-                                                ? 'Sorting center'
-                                                : application.role === 'rider'
-                                                  ? 'Courier'
-                                                  : application.role === 'seller'
-                                                    ? 'Seller'
-                                                    : 'Buyer'}{' '}
-                                            · #{application.id}
-                                            {application.submittedAt && ` · ${dateLabel(application.submittedAt)}`}
-                                        </p>
+                        <ul className="mt-4 divide-y">
+                            {overview.applications.map((item) => (
+                                <li key={item.id} className="flex flex-wrap items-center justify-between gap-3 py-4">
+                                    <div>
+                                        <p className="font-medium">{item.name}</p>
+                                        <p className="text-muted-foreground mt-1 text-xs capitalize">{item.role.replaceAll('_', ' ')}</p>
                                     </div>
-                                    <Link
-                                        href={`/reviews/${application.id}`}
-                                        className={secondaryClass}
-                                        aria-label={`Review application ${application.id}`}
-                                    >
-                                        Review
-                                    </Link>
+                                    <InfoModal kind="registration" id={item.id} label="Review Application" />
                                 </li>
                             ))}
                         </ul>
                     ) : (
-                        <div className="px-5 py-12 text-center sm:px-6">
-                            <h3 className="font-medium">No applications waiting</h3>
-                            <p className="text-muted-foreground mt-2 text-sm">New submissions will appear here.</p>
-                        </div>
+                        <p className="text-muted-foreground mt-4 text-sm">No applications awaiting review.</p>
                     )}
                 </Card>
-
-                <Card className="border-primary/15 bg-accent/40">
-                    <h2 className="font-semibold">Parcel operations</h2>
-                    <p className="text-muted-foreground mt-2 text-sm leading-relaxed">Follow deliveries and cash handovers across the platform.</p>
-                    <dl className="mt-6 space-y-4 text-sm">
-                        <div className="flex items-center justify-between gap-3">
-                            <dt className="text-muted-foreground">Active deliveries</dt>
-                            <dd className="font-semibold">{overview.activeDeliveries.toLocaleString()}</dd>
-                        </div>
-                        <div className="flex items-center justify-between gap-3">
-                            <dt className="text-muted-foreground">COD to reconcile</dt>
-                            <dd className="font-semibold">{overview.codAwaitingReconciliation.toLocaleString()}</dd>
-                        </div>
-                    </dl>
-                    <Link href="/deliveries" className={`${buttonClass} mt-6 w-full`}>
-                        Open operations
+            )}
+            <Card>
+                <div className="flex items-center justify-between gap-3">
+                    <h2 className="font-semibold">Recent Activity</h2>
+                    <Link href="/admin/audit-log" className="text-primary text-sm hover:underline">
+                        View Activity History
                     </Link>
-                </Card>
-            </div>
-
-            <section aria-labelledby="admin-activity-title">
-                <h2 id="admin-activity-title" className="mb-4 font-semibold">
-                    Recent platform activity
-                </h2>
+                </div>
                 {records.length ? (
-                    <Card className="overflow-hidden !p-0">
-                        <ul className="divide-y">
-                            {records.map((record) => (
-                                <li key={record.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 sm:px-6">
-                                    <div className="min-w-0">
-                                        <p className="text-sm font-medium break-words">{record.label}</p>
-                                        <p className="text-muted-foreground mt-1 text-xs">{record.detail}</p>
-                                    </div>
-                                    {record.occurredAt && (
-                                        <time
-                                            dateTime={record.occurredAt.includes('T') ? record.occurredAt : `${record.occurredAt.replace(' ', 'T')}Z`}
-                                            className="text-muted-foreground text-xs"
-                                        >
-                                            {dateLabel(record.occurredAt)}
+                    <ul className="mt-4 divide-y">
+                        {records.map((item) => (
+                            <li key={item.id} className="py-4 text-sm">
+                                <p className="font-medium">{titleCase(item.label)}</p>
+                                <div className="mt-1 flex flex-wrap items-center justify-between gap-2">
+                                    <p className="text-muted-foreground">{activityAction(item.status)}</p>
+                                    {item.occurredAt && (
+                                        <time className="text-muted-foreground text-xs" dateTime={item.occurredAt}>
+                                            {activityDate(item.occurredAt)}
                                         </time>
                                     )}
-                                </li>
-                            ))}
-                        </ul>
-                    </Card>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
                 ) : (
-                    <Empty title="No activity yet" description="Application decisions and account updates will appear here." />
+                    <Empty title="No Activity Yet" description="Admin actions will appear here." />
                 )}
-            </section>
+            </Card>
         </Page>
     );
 }

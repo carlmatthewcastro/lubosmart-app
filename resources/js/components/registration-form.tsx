@@ -6,13 +6,13 @@ import { useForm, usePage } from '@inertiajs/react';
 import { Eye, EyeOff, LoaderCircle, ShoppingBag, Store, Truck, Warehouse } from 'lucide-react';
 import { type InputHTMLAttributes, useRef, useState } from 'react';
 
-export type RegistrationRole = 'buyer' | 'seller' | 'rider' | 'logistics';
+export type RegistrationRole = 'buyer' | 'seller' | 'courier' | 'sorting_center';
 export const authInputClass = inputClass;
 export const registrationRoles = [
     { value: 'buyer', title: 'Buyer', description: 'Discover local favorites', icon: ShoppingBag },
     { value: 'seller', title: 'Seller', description: 'Grow your own store', icon: Store },
-    { value: 'rider', title: 'Courier', description: 'Deliver in your community', icon: Truck },
-    { value: 'logistics', title: 'Sorting center', description: 'Manage parcels and couriers', icon: Warehouse },
+    { value: 'courier', title: 'Courier', description: 'Deliver in your community', icon: Truck },
+    { value: 'sorting_center', title: 'Sorting center', description: 'Manage parcels and couriers', icon: Warehouse },
 ] as const;
 
 type Details = {
@@ -93,6 +93,13 @@ export default function RegistrationForm({ initialRole = 'buyer', compact = fals
     });
     const error = (key: keyof Details) => form.errors[key] ?? google.errors[key as keyof typeof google.errors];
     const busy = form.processing || google.processing;
+    const strength =
+        form.data.password.length < 8
+            ? 0
+            : Math.min(
+                  3,
+                  1 + Number(form.data.password.length >= 12) + Number(/[A-Za-z]/.test(form.data.password) && /[^A-Za-z]/.test(form.data.password)),
+              );
     const focusError = (errors: Record<string, string>) =>
         requestAnimationFrame(() => {
             const key = Object.keys(errors)[0];
@@ -211,6 +218,18 @@ export default function RegistrationForm({ initialRole = 'buyer', compact = fals
                     error={error('password_confirmation')}
                 />
             </div>
+            {form.data.password && (
+                <div className="space-y-2" aria-live="polite">
+                    <div className="grid grid-cols-3 gap-1" aria-hidden="true">
+                        {[1, 2, 3].map((level) => (
+                            <span key={level} className={`h-1.5 rounded-full ${strength >= level ? 'bg-primary' : 'bg-muted'}`} />
+                        ))}
+                    </div>
+                    <p className="text-muted-foreground text-xs">
+                        Password strength: {['Too short', 'Basic', 'Good', 'Strong'][strength]}. Longer passwords are stronger.
+                    </p>
+                </div>
+            )}
             <div className="space-y-4">
                 <button type="submit" className={`${buttonClass} w-full`} disabled={busy}>
                     {form.processing ? <LoaderCircle className="size-4 animate-spin" /> : null}
@@ -224,7 +243,9 @@ export default function RegistrationForm({ initialRole = 'buyer', compact = fals
                 <GoogleContinueButton
                     processing={google.processing}
                     disabled={busy}
-                    onClick={() => google.post(route('auth.google.redirect'), { onError: focusError })}
+                    onClick={() => {
+                        google.post(route('auth.google.redirect'), { onError: focusError });
+                    }}
                 />
                 <AuthFeedback message={google.errors.google ?? sharedErrors?.google} />
             </div>

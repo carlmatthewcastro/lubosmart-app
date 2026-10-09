@@ -223,16 +223,22 @@ export default function AuthModal({ initialTab, initialRole, onClose }: { initia
                                     </Link>
                                 </div>
                             </div>
-                            <label className="flex min-h-11 items-center gap-3 text-sm" htmlFor="auth-remember">
+                            <label
+                                className="border-primary/10 bg-accent/30 hover:bg-accent/60 flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border px-4 py-3 text-sm transition-colors"
+                                htmlFor="auth-remember"
+                            >
                                 <input
                                     id="auth-remember"
                                     type="checkbox"
-                                    className="accent-primary size-4"
+                                    className="accent-primary size-4 rounded"
                                     disabled={loginProcessing || googleProcessing}
                                     checked={loginData.remember}
                                     onChange={(event) => setLoginData('remember', event.target.checked)}
                                 />
-                                <span>Stay signed in</span>
+                                <span className="flex-1">
+                                    <span className="block font-medium">Stay signed in</span>
+                                    <span className="text-muted-foreground block text-xs">Use on your personal device.</span>
+                                </span>
                             </label>
                             <button className={`${buttonClass} w-full`} type="submit" disabled={loginProcessing || googleProcessing}>
                                 {loginProcessing && <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />}

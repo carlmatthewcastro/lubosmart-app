@@ -42,7 +42,7 @@ export default function Register() {
                                 <ShieldCheck className="size-5 text-[#ECAA68]" />A community built on trust
                             </p>
                             <p className="mt-3 text-xs leading-6 text-purple-200">
-                                Verified email helps protect your account. Sellers and delivery partners also complete reviewed applications.
+                                Verify your email, then complete your registration for review. Buyers can browse while waiting.
                             </p>
                         </div>
                     </div>
@@ -57,8 +57,13 @@ export default function Register() {
                                     icon: Mail,
                                 },
                                 {
-                                    title: 'Start shopping or finish onboarding',
-                                    text: 'Buyers can shop after email verification. Sellers and delivery partners finish an application for review.',
+                                    title: 'Complete your registration',
+                                    text: 'Submit your details and documents for review. Buyers can browse before approval; couriers are reviewed by their chosen sorting center.',
+                                    icon: ShieldCheck,
+                                },
+                                {
+                                    title: 'Wait for approval',
+                                    text: 'We’ll email the decision. Your role’s menus unlock after approval.',
                                     icon: ShieldCheck,
                                 },
                             ].map(({ title, text, icon: Icon }, index) => (

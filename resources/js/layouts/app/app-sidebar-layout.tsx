@@ -1,3 +1,4 @@
+import { AdminFloatingMessages } from '@/components/admin-floating-messages';
 import { AppContent } from '@/components/app-content';
 import { AppShell } from '@/components/app-shell';
 import { AppSidebar } from '@/components/app-sidebar';
@@ -12,6 +13,7 @@ export default function AppSidebarLayout({ children, breadcrumbs = [] }: { child
                 <AppSidebarHeader breadcrumbs={breadcrumbs} />
                 {children}
             </AppContent>
+            <AdminFloatingMessages />
         </AppShell>
     );
 }

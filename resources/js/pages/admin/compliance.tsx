@@ -1,5 +1,7 @@
 import { Badge, Card, Empty, Field, Page, Pager, Select, buttonClass, money, type Pagination } from '@/components/marketplace-ui';
+import { ReasonConfirmation } from '@/components/reason-confirmation';
 import { useForm } from '@inertiajs/react';
+import { useState } from 'react';
 type Product = {
     id: number;
     name: string;
@@ -12,6 +14,7 @@ type Product = {
 };
 type Review = { id: number; action: string; reason: string; created_at: string };
 function Listing({ product, history }: { product: Product; history: Review[] }) {
+    const [confirming, setConfirming] = useState(false);
     const form = useForm({ action: 'warn', reason: '' });
     const mismatch = product.store.business_category_id && product.store.business_category_id !== (product.category.parent_id ?? product.category.id);
     return (
@@ -46,31 +49,62 @@ function Listing({ product, history }: { product: Product; history: Review[] }) 
                 className="mt-5 grid gap-4"
                 onSubmit={(e) => {
                     e.preventDefault();
-                    form.patch(`/admin/compliance/${product.id}`, { preserveScroll: true, onSuccess: () => form.reset('reason') });
+                    setConfirming(true);
                 }}
             >
                 <Select
-                    label="Review action"
+                    label="Review Action"
                     value={form.data.action}
                     onChange={(e) => form.setData('action', e.target.value)}
                     error={form.errors.action}
                 >
-                    <option value="warn">Send seller warning</option>
-                    <option value="hide">Block this listing</option>
-                    <option value="restore">Restore this listing</option>
-                    <option value="suspend">Block listing and suspend seller</option>
+                    <option value="warn">Send a Warning</option>
+                    <option value="hide">Block Listing</option>
+                    <option value="restore">Restore Listing</option>
+                    <option value="suspend">Block Listing and Suspend Seller</option>
                 </Select>
-                <Field
+                <Select
                     label="Reason"
-                    maxLength={2000}
+                    required
                     value={form.data.reason}
-                    onChange={(e) => form.setData('reason', e.target.value)}
+                    onChange={(event) => form.setData('reason', event.target.value)}
                     error={form.errors.reason}
-                />
+                >
+                    <option value="">Select a Reason</option>
+                    {(form.data.action === 'restore'
+                        ? ['Listing corrected and category verified', 'Compliance review completed']
+                        : [
+                              'Product outside the registered category',
+                              'Prohibited or inappropriate product',
+                              'Misleading product information',
+                              'Repeated platform policy violations',
+                          ]
+                    ).map((reason) => (
+                        <option key={reason}>{reason}</option>
+                    ))}
+                </Select>
                 <button className={buttonClass} disabled={form.processing}>
-                    {form.processing ? 'Saving…' : 'Save review'}
+                    {form.processing ? 'Saving…' : 'Save Review'}
                 </button>
             </form>
+            <ReasonConfirmation
+                open={confirming}
+                onOpenChange={setConfirming}
+                title={`${{ warn: 'Send a Warning', hide: 'Block Listing', restore: 'Restore Listing', suspend: 'Suspend Seller' }[form.data.action]}: ${product.name}`}
+                reason={form.data.reason}
+                onReasonChange={(value) => form.setData('reason', value)}
+                processing={form.processing}
+                onConfirm={() =>
+                    form.patch(`/admin/compliance/${product.id}`, {
+                        preserveScroll: true,
+                        onSuccess: () => {
+                            form.reset('reason');
+                            setConfirming(false);
+                        },
+                        onError: () => setConfirming(false),
+                    })
+                }
+            />
             {!!history.length && (
                 <details className="mt-5 border-t pt-4">
                     <summary className="text-muted-foreground cursor-pointer text-sm">Review history ({history.length})</summary>
@@ -98,7 +132,7 @@ export default function Compliance({
 }) {
     const search = useForm({ search: filters.search ?? '', status: filters.status ?? 'all' });
     return (
-        <Page title="Seller compliance" description="Check listing categories, record warnings, and handle violations.">
+        <Page title="Seller Compliance" description="Check listing categories, record warnings, and handle violations.">
             <Card>
                 <form
                     className="grid items-end gap-4 sm:grid-cols-[1fr_220px_auto]"
@@ -114,7 +148,7 @@ export default function Compliance({
                         <option value="blocked">Blocked listings</option>
                     </Select>
                     <button className={buttonClass} disabled={search.processing}>
-                        Apply filters
+                        Apply Filters
                     </button>
                 </form>
             </Card>

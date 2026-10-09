@@ -1,5 +1,7 @@
-import { Badge, Card, Empty, Page, Pager, type Pagination, secondaryClass, Select } from '@/components/marketplace-ui';
-import { Link, router } from '@inertiajs/react';
+import { InfoModal } from '@/components/info-modal';
+import { Badge, Card, Empty, Page, Pager, type Pagination, Select } from '@/components/marketplace-ui';
+import type { SharedData } from '@/types';
+import { router, usePage } from '@inertiajs/react';
 
 export default function Reviews({
     applications,
@@ -8,8 +10,17 @@ export default function Reviews({
     applications: Pagination<{ id: number; requested_role: string; name: string; email: string; status: string }>;
     filters: { status: string };
 }) {
+    const { auth } = usePage<SharedData>().props;
+    const center = auth.user.role === 'sorting_center';
     return (
-        <Page title="Application reviews" description="Review applications and decide account access.">
+        <Page
+            title={center ? 'Courier applications' : 'Manage account registrations'}
+            description={
+                center
+                    ? 'Review only couriers who selected your sorting center.'
+                    : 'Review buyers, sellers, and sorting centers. Courier decisions are available as an Admin override.'
+            }
+        >
             <Card className="flex flex-wrap items-center justify-between gap-4">
                 <div className="w-full sm:max-w-xs">
                     <Select
@@ -42,9 +53,7 @@ export default function Reviews({
                                         <Badge status={application.status} />
                                     </div>
                                 </div>
-                                <Link href={route('reviews.show', application.id)} className={secondaryClass}>
-                                    Review details
-                                </Link>
+                                <InfoModal kind="registration" id={application.id} label="Review Application" />
                             </li>
                         ))}
                     </ul>

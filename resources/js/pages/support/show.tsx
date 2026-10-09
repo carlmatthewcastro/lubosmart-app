@@ -1,4 +1,5 @@
 import { Badge, Card, Field, Page, Pager, Select, buttonClass, inputClass, secondaryClass, type Pagination } from '@/components/marketplace-ui';
+import { ReasonConfirmation } from '@/components/reason-confirmation';
 import { type SharedData } from '@/types';
 import { Link, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
@@ -19,20 +20,36 @@ type Message = {
     created_at: string;
     author: { name: string; role: string };
 };
-export default function Conversation({ case: thread, messages }: { case: Case; messages: Pagination<Message> }) {
+export default function Conversation({
+    case: thread,
+    messages,
+    embedded = false,
+    onSaved,
+    onPageChange,
+}: {
+    case: Case;
+    messages: Pagination<Message>;
+    embedded?: boolean;
+    onSaved?: () => void;
+    onPageChange?: (url: string) => void;
+}) {
     const { auth } = usePage<SharedData>().props;
     const admin = auth.user.role === 'admin';
     const form = useForm({ body: '', attachment: null as File | null });
+    const [confirming, setConfirming] = useState(false);
     const decision = useForm({ status: thread.status, resolution: thread.resolution ?? '' });
     const [fileKey, setFileKey] = useState(0);
     return (
         <Page
+            embedded={embedded}
             title={thread.subject}
             description={`Conversation #${thread.id}${thread.seller_order_id ? ` · Parcel #${thread.seller_order_id}` : ''}`}
             action={
-                <Link href="/support" className={secondaryClass}>
-                    Back to inbox
-                </Link>
+                !embedded && (
+                    <Link href="/support" className={secondaryClass}>
+                        Back to Inbox
+                    </Link>
+                )
             }
         >
             <Card>
@@ -51,7 +68,7 @@ export default function Conversation({ case: thread, messages }: { case: Case; m
                 <div className="grid gap-4">
                     <Card>
                         <h2 className="mb-5 font-semibold">Conversation</h2>
-                        <ol className="space-y-4">
+                        <ol className="max-h-[48dvh] space-y-4 overflow-y-auto overscroll-contain pr-2">
                             {[...messages.data].reverse().map((message) => (
                                 <li
                                     key={message.id}
@@ -74,14 +91,33 @@ export default function Conversation({ case: thread, messages }: { case: Case; m
                                             href={`/support/${thread.id}/evidence/${message.id}`}
                                             className="text-primary mt-3 inline-flex text-sm font-medium hover:underline"
                                         >
-                                            Download evidence
+                                            Download Evidence
                                         </a>
                                     )}
                                 </li>
                             ))}
                         </ol>
                     </Card>
-                    <Pager links={messages.links} />
+                    {embedded ? (
+                        <nav aria-label="Message pages" className="flex flex-wrap justify-center gap-2">
+                            {messages.links.length > 3 &&
+                                messages.links.map((link, index) => (
+                                    <button
+                                        key={index}
+                                        type="button"
+                                        disabled={!link.url || link.active}
+                                        className={secondaryClass}
+                                        onClick={() => {
+                                            if (link.url) onPageChange?.(link.url);
+                                        }}
+                                    >
+                                        {link.label.replace(/&laquo;|&raquo;/g, '').trim()}
+                                    </button>
+                                ))}
+                        </nav>
+                    ) : (
+                        <Pager links={messages.links} />
+                    )}
                     {thread.status !== 'resolved' ? (
                         <Card>
                             <form
@@ -94,20 +130,27 @@ export default function Conversation({ case: thread, messages }: { case: Case; m
                                         preserveScroll: true,
                                         onSuccess: () => {
                                             form.reset();
+                                            onSaved?.();
                                             setFileKey((key) => key + 1);
                                         },
                                     });
                                 }}
                             >
                                 <label className="grid gap-2 text-sm font-medium">
-                                    Your reply
+                                    Your Reply
                                     <textarea
-                                        className={`${inputClass} min-h-28 font-normal`}
+                                        className={`${inputClass} min-h-28 resize-none font-normal`}
+                                        required
+                                        placeholder="Write a reply with the next step or update."
                                         maxLength={5000}
                                         value={form.data.body}
                                         onChange={(e) => form.setData('body', e.target.value)}
                                     />
                                 </label>
+                                <p className="text-muted-foreground text-xs">{form.data.body.length}/5,000 characters</p>
+                                <p className="text-destructive text-sm" role={form.errors.body ? 'alert' : undefined}>
+                                    {form.errors.body}
+                                </p>
                                 <Field
                                     key={fileKey}
                                     label="Evidence (optional, JPG/PNG/PDF, up to 5 MB)"
@@ -117,7 +160,7 @@ export default function Conversation({ case: thread, messages }: { case: Case; m
                                     error={form.errors.attachment}
                                 />
                                 <button className={`${buttonClass} justify-self-start`} disabled={form.processing}>
-                                    {form.processing ? 'Sending…' : 'Send reply'}
+                                    {form.processing ? 'Sending…' : 'Send Reply'}
                                 </button>
                             </form>
                         </Card>
@@ -129,24 +172,24 @@ export default function Conversation({ case: thread, messages }: { case: Case; m
                 </div>
                 {admin && (
                     <Card>
-                        <h2 className="font-semibold">Case management</h2>
+                        <h2 className="font-semibold">Case Management</h2>
                         <form
                             noValidate
                             className="mt-5 grid gap-4"
                             onSubmit={(e) => {
                                 e.preventDefault();
-                                decision.patch(`/support/${thread.id}`, { preserveScroll: true });
+                                setConfirming(true);
                             }}
                         >
                             <Select label="Status" value={decision.data.status} onChange={(e) => decision.setData('status', e.target.value)}>
                                 <option value="open">Open / reopen</option>
-                                <option value="in_review">In review</option>
+                                <option value="in_review">In Review</option>
                                 <option value="resolved">Resolved</option>
                             </Select>
                             <label className="grid gap-2 text-sm font-medium">
-                                Resolution notes
+                                Resolution Notes
                                 <textarea
-                                    className={`${inputClass} min-h-32 font-normal`}
+                                    className={`${inputClass} min-h-32 resize-none font-normal`}
                                     maxLength={5000}
                                     value={decision.data.resolution}
                                     onChange={(e) => decision.setData('resolution', e.target.value)}
@@ -162,6 +205,25 @@ export default function Conversation({ case: thread, messages }: { case: Case; m
                     </Card>
                 )}
             </div>
+            <ReasonConfirmation
+                open={confirming}
+                onOpenChange={setConfirming}
+                title="Confirm case status change?"
+                reason={decision.data.resolution}
+                onReasonChange={(value) => decision.setData('resolution', value)}
+                required={decision.data.status === 'resolved'}
+                processing={decision.processing}
+                onConfirm={() =>
+                    decision.patch(`/support/${thread.id}`, {
+                        preserveScroll: true,
+                        onSuccess: () => {
+                            setConfirming(false);
+                            onSaved?.();
+                        },
+                        onError: () => setConfirming(false),
+                    })
+                }
+            />
         </Page>
     );
 }
