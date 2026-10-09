@@ -42,6 +42,6 @@ LubosMart brings buyers, local sellers, couriers, and sorting centers together i
 
 ## Explore the project
 
-The [documentation hub](documentation/README.md) organizes guides by product, accounts, design, development, and operations.
+The [documentation hub](documentation/README.md) organizes guides by product, accounts, design, development, and operations. For real registration emails during local development, follow [Gmail SMTP setup](documentation/accounts/local-email-setup.md).
 
-[Local setup](documentation/development/local-setup.md) · [User flows](documentation/design/ui-workflow.md) · [Admin workspace](documentation/operations/admin-workspace.md) · [Deployment](documentation/operations/deployment.md)
+[Local setup](documentation/development/local-setup.md) · [User flows](documentation/design/ui-workflow.md) · [Admin workspace](documentation/operations/admin-workspace.md) ? [Account approval and security](documentation/accounts/account-security.md) · [Deployment](documentation/operations/deployment.md)

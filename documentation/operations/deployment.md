@@ -172,6 +172,10 @@ Docker Compose stores the MySQL database, uploaded application files, and Caddy 
 
 Before risky database or infrastructure changes, create and verify a backup stored somewhere other than the VM's Docker volume. A backup kept only on the VM can be lost with the VM or disk.
 
+## Admin workspace release (2026-10-10)
+
+Use the [admin release instructions](admin-release.md) for the current environment checklist, database/upload backups, maintenance mode, four new migrations, image rebuild, queue restart, and email checks. This release includes the earlier account and email changes as well as the dashboard UI.
+
 ## Authentication release (2026-10-07)
 
 The additive registration migration adds logistics applications and location/address fields. Apply it before exposing the updated application code; use the maintenance/compatible-release plan in release-readiness.md. Existing active users are preserved. New buyers become active after email verification; partner accounts remain pending until application approval. Docker Compose now builds a shared app image and runs a queue service for review mail, with persistent storage and the same environment. Verify the queue process and actual mail delivery after release. Docker enables pcntl and registration upload limits. Never run lubosmart:test-accounts in production; use interactive lubosmart:create-admin only when an administrator must be provisioned. Private registration documents use the existing app-storage volume and must be included in backups. The project owner reported successful deployment and Google sign-in on 2026-10-07.

@@ -16,9 +16,12 @@ Marketplace rules, product categories, and the requirements behind the system.
 
 Registration, verification, and approval.
 
+- [Account approval and security](accounts/account-security.md) — Current status flow, admin approvals, Google linking, email codes, and transactional mail setup.
+
 - [Registration and authentication](accounts/registration-authentication.md) — Roles, access, and account states.
 - [Onboarding decisions](accounts/onboarding-design-decisions.md) — Signup and saved application progress.
 - [Google sign-in](accounts/google-oauth.md) — OAuth configuration and troubleshooting.
+- [Gmail SMTP on localhost](accounts/local-email-setup.md) — Private credentials, SMTP checks, queues, and verification links across devices.
 
 ## Design
 
