@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\CommerceSetting;
 use App\Models\SellerOrder;
 use App\Services\Admin\AuditLogger;
+use App\Services\Logistics\LogisticsContacts;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -14,6 +15,9 @@ class ReportController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
+        if ($user->role === 'sorting_center') {
+            return app(Logistics\ReportController::class)->index($request, app(LogisticsContacts::class));
+        }
         abort_unless(in_array($user->role, ['admin', 'seller', 'sorting_center', 'courier']), 403);
         $filters = $request->validate(['from' => 'nullable|date_format:Y-m-d', 'to' => ['nullable', 'date_format:Y-m-d', $request->filled('from') ? 'after_or_equal:from' : 'nullable']]);
         $orders = SellerOrder::query()->where('status', 'completed');

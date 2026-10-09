@@ -69,7 +69,7 @@ test('all five roles can complete the connected order delivery and cash workflow
 
     $this->actingAs($this->seller)->patch('/orders/'.$sellerOrder->id, ['status' => 'processing'])->assertRedirect();
     $this->patch('/orders/'.$sellerOrder->id, ['status' => 'shipped'])->assertRedirect();
-    $this->actingAs($this->logistics)->get('/deliveries')->assertInertia(fn (Assert $page) => $page->component('marketplace/deliveries')->has('available', 1));
+    $this->actingAs($this->logistics)->get('/deliveries')->assertInertia(fn (Assert $page) => $page->component('logistics/parcels')->has('available', 1));
     $this->post('/deliveries/'.$delivery->id, ['action' => 'claim', 'sorting_center_id' => $this->center->id])->assertRedirect();
     $this->post('/deliveries/'.$delivery->id, ['action' => 'assign', 'service_area_id' => $this->areaId, 'rider_id' => $this->rider->id])->assertRedirect();
     $this->actingAs($this->rider)->post('/deliveries/'.$delivery->id, ['action' => 'picked_up'])->assertRedirect();

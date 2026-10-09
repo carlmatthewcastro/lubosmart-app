@@ -69,6 +69,16 @@ export function AppSidebar() {
         { title: 'Activity History', url: '/admin/audit-log', icon: History },
         { title: 'My Account', url: '/settings/profile', icon: Settings },
     ];
+    const logisticsItems: NavItem[] = [
+        { title: 'Dashboard', url: '/dashboard', icon: LayoutGrid },
+        { title: 'Parcel Operations', url: '/deliveries', icon: Package },
+        { title: 'Rider Applications', url: '/reviews', icon: ClipboardCheck },
+        { title: 'Rider Management', url: '/accounts', icon: Users },
+        { title: 'Shipping Rates', url: '/logistics/shipping-rates', icon: Truck },
+        { title: 'Delivery Reports', url: '/reports', icon: ChartNoAxesCombined },
+        { title: 'Messages', url: '/support?kind=message', icon: MessageCircle },
+        { title: 'My Account', url: '/settings/profile', icon: Settings },
+    ];
     const role = auth.user.role;
     useEffect(() => {
         if (role === 'admin' && auth.user.status === 'approved') poll.start();
@@ -94,7 +104,11 @@ export function AppSidebar() {
     if (auth.user.status === 'pending')
         items.splice(0, items.length, { title: 'Waiting for approval', url: '/application/waiting', icon: ClipboardCheck });
     return (
-        <Sidebar collapsible="icon" variant="inset" className={role === 'admin' ? '[&_[data-sidebar=sidebar]]:bg-card' : undefined}>
+        <Sidebar
+            collapsible="icon"
+            variant="inset"
+            className={['admin', 'sorting_center'].includes(role) ? '[&_[data-sidebar=sidebar]]:bg-card' : undefined}
+        >
             <SidebarHeader className="border-b px-3 py-4">
                 <SidebarMenu>
                     <SidebarMenuItem>
@@ -119,6 +133,12 @@ export function AppSidebar() {
                             <NavMain title="Platform" items={adminItems.slice(5, 8)} />
                             <NavMain title="Communication & Account" items={adminItems.slice(8)} />
                         </>
+                    ) : role === 'sorting_center' && auth.user.status === 'approved' ? (
+                        <>
+                            <NavMain title="Operations" items={logisticsItems.slice(0, 2)} />
+                            <NavMain title="Center Management" items={logisticsItems.slice(2, 6)} />
+                            <NavMain title="Communication & Account" items={logisticsItems.slice(6)} />
+                        </>
                     ) : (
                         <NavMain items={items} />
                     )}
@@ -129,7 +149,7 @@ export function AppSidebar() {
                 {role !== 'admin' && <NavFooter items={footerNavItems} className="mt-auto" />}
                 <NavUser />
             </SidebarFooter>
-            {role === 'admin' && (
+            {['admin', 'sorting_center'].includes(role) && (
                 <SidebarRail
                     tabIndex={0}
                     aria-expanded={state === 'expanded'}

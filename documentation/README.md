@@ -40,6 +40,7 @@ Registration, verification, and approval.
 ## Operations
 
 - [Admin workspace](operations/admin-workspace.md) — Functions, permissions, and a local testing checklist.
+- [Logistics workspace](operations/logistics-workspace.md) — Shipping rates, coverage, rider management, parcel processing, reports, and release instructions.
 - [Deployment](operations/deployment.md) — Updating the Azure VM and Docker application.
 - [Release checklist](operations/release-readiness.md) — Acceptance checks and recovery.
 - [Sorting centers](operations/sorting-center.md) — Parcel custody and dispatch rules.

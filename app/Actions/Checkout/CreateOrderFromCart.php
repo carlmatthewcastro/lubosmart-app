@@ -13,15 +13,16 @@ use App\Models\Product;
 use App\Models\SellerOrder;
 use App\Models\Store;
 use App\Models\User;
+use App\Services\Logistics\ShippingQuotes;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class CreateOrderFromCart
 {
-    public function handle(User $buyer, int $addressId): Order
+    public function handle(User $buyer, int $addressId, ?int $sortingCenterId = null, ?int $expectedShippingCents = null): Order
     {
-        return DB::transaction(function () use ($buyer, $addressId): Order {
+        return DB::transaction(function () use ($buyer, $addressId, $sortingCenterId, $expectedShippingCents): Order {
             $buyer = User::query()
                 ->whereKey($buyer->id)
                 ->lockForUpdate()
@@ -72,7 +73,7 @@ class CreateOrderFromCart
             }
 
             $products = Product::query()
-                ->with('category.parent')
+                ->with(['category.parent', 'store:id,user_id'])
                 ->whereIn('id', $cartItems->pluck('product_id'))
                 ->orderBy('id')
                 ->lockForUpdate()
@@ -151,7 +152,11 @@ class CreateOrderFromCart
                 ]);
             }
 
-            $shippingTotalCents = $shippingFeeCents * $itemsByStore->count();
+            $quotes = app(ShippingQuotes::class)->quote($address, $cartItems, $products, $sortingCenterId);
+            $shippingTotalCents = array_sum(array_column($quotes, 'fee_cents'));
+            if ($expectedShippingCents !== null && $shippingTotalCents !== $expectedShippingCents) {
+                throw ValidationException::withMessages(['shipping_fee' => 'Shipping rates changed. Refresh your cart and review the updated quote before placing the order.']);
+            }
             $subtotalCents = $cartItems->sum(
                 fn (CartItem $item): int => $this->toCents($products->get($item->product_id)->price) * $item->quantity
             );
@@ -185,7 +190,9 @@ class CreateOrderFromCart
                     'order_id' => $order->id,
                     'store_id' => $storeId,
                     'subtotal' => $this->fromCents($storeSubtotalCents),
-                    'shipping_fee' => $this->fromCents($shippingFeeCents),
+                    'shipping_fee' => $this->fromCents($quotes[$storeId]['fee_cents']),
+                    'shipping_quote' => $quotes[$storeId],
+                    'shipping_weight_grams' => $quotes[$storeId]['weight_grams'],
                     'commission_basis_points' => $commissionBasisPoints,
                     'commission_amount' => null,
                     'seller_proceeds' => null,
@@ -218,6 +225,8 @@ class CreateOrderFromCart
 
                 Delivery::query()->create([
                     'seller_order_id' => $sellerOrder->id,
+                    'sorting_center_id' => $quotes[$storeId]['center_id'],
+                    'service_area_id' => $quotes[$storeId]['area_id'],
                     'status' => 'unassigned',
                 ]);
             }

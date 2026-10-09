@@ -16,6 +16,7 @@ class CommerceSetting extends Model
         return [
             'shipping_fee_per_seller_order' => 'decimal:2',
             'platform_commission_basis_points' => 'integer',
+            'logistics_shipping_enabled' => 'boolean',
         ];
     }
 }

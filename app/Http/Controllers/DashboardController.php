@@ -11,6 +11,7 @@ use App\Models\Store;
 use App\Models\User;
 use App\Services\Admin\AdminWorkspace;
 use App\Services\Admin\AuditLogger;
+use App\Services\Logistics\LogisticsWorkspace;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -42,6 +43,9 @@ class DashboardController extends Controller
         $stats = [];
         $records = collect();
         $adminOverview = null;
+        if ($role === 'sorting_center') {
+            return Inertia::render('logistics/dashboard', app(LogisticsWorkspace::class)->data($user));
+        }
         if ($role === 'buyer') {
             $orders = Order::query()->where('buyer_id', $user->id);
             $stats = ['Orders' => (clone $orders)->count(), 'In progress' => (clone $orders)->whereIn('status', ['pending', 'processing'])->count(), 'Completed' => (clone $orders)->where('status', 'completed')->count()];

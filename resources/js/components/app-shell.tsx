@@ -26,7 +26,7 @@ export function AppShell({ children, variant = 'header' }: AppShellProps) {
 
     return (
         <SidebarProvider
-            style={auth.user?.role === 'admin' ? ({ '--sidebar-width-icon': '4.5rem' } as CSSProperties) : undefined}
+            style={['admin', 'sorting_center'].includes(auth.user?.role) ? ({ '--sidebar-width-icon': '4.5rem' } as CSSProperties) : undefined}
             defaultOpen={isOpen}
             open={isOpen}
             onOpenChange={handleSidebarChange}

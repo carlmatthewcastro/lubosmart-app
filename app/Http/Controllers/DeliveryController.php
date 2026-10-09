@@ -22,16 +22,34 @@ class DeliveryController extends Controller
         $user = $request->user();
         abort_unless(in_array($user->role, ['courier', 'sorting_center', 'admin']), 403);
         $centers = $user->sortingCenters()->operational()->get(['sorting_centers.id', 'name']);
-        $query = Delivery::query()->with(['sellerOrder.items', 'sellerOrder.order', 'sellerOrder.store:id,name', 'rider:id,name']);
+        $relations = ['sellerOrder.items', 'sellerOrder.order', 'sellerOrder.store:id,name,user_id', 'sellerOrder.store.user:id,name', 'sellerOrder.store.user.addresses:id,user_id,line1,barangay,city,province,phone', 'rider:id,name'];
+        $query = Delivery::query()->with($relations);
         if ($user->role === 'courier') {
             $query->where('rider_id', $user->id);
         } elseif ($user->role === 'sorting_center') {
             $query->whereIn('sorting_center_id', $centers->pluck('id'));
         }
-        $deliveries = $query->latest('id')->paginate(10);
+        $filters = $request->validate(['stage' => 'nullable|in:all,pickups,incoming,sorting,dispatch,monitoring', 'search' => 'nullable|string|max:100']);
+        $query->when($filters['search'] ?? null, fn ($q, $search) => $q->whereHas('sellerOrder.store', fn ($q) => $q->where('name', 'like', '%'.$search.'%')));
+        if ($user->role === 'sorting_center') {
+            match ($filters['stage'] ?? 'all') {
+                'pickups' => $query->where('status', 'unassigned')->whereNull('pickup_approved_at')->whereHas('sellerOrder', fn ($q) => $q->where('status', 'shipped')),
+                'incoming' => $query->whereIn('status', ['assigned', 'picked_up', 'in_transit'])->whereNull('received_at'),
+                'sorting' => $query->whereNotNull('received_at')->whereNull('sorted_at')->where('status', '!=', 'delivered'),
+                'dispatch' => $query->whereNotNull('sorted_at')->whereIn('status', ['picked_up', 'in_transit']),
+                'monitoring' => $query->whereIn('status', ['in_transit', 'out_for_delivery', 'delivered']),
+                default => null,
+            };
+        }
+        $deliveries = $query->latest('id')->paginate(10)->withQueryString();
         $available = $user->role === 'sorting_center' && $centers->isNotEmpty()
-            ? Delivery::query()->whereNull('sorting_center_id')->where('status', 'unassigned')->whereHas('sellerOrder', fn ($q) => $q->where('status', 'shipped'))->with('sellerOrder.store:id,name')->latest('id')->limit(50)->get()
+            ? Delivery::query()->whereNull('sorting_center_id')->where('status', 'unassigned')->whereHas('sellerOrder', fn ($q) => $q->where('status', 'shipped'))->with($relations)->latest('id')->limit(50)->get()
             : [];
+        foreach (collect($deliveries->items())->merge($available) as $parcel) {
+            $store = $parcel->sellerOrder->store;
+            $store->setAttribute('pickup_address', $store->user?->addresses->first()?->only(['line1', 'barangay', 'city', 'province', 'phone']));
+            $store->unsetRelation('user');
+        }
         $riders = $user->role === 'sorting_center' ? User::query()->where('role', 'courier')->where('status', 'approved')->whereNotNull('email_verified_at')
             ->whereIn('sorting_center_id', $centers->pluck('id'))->get(['id', 'name', 'sorting_center_id']) : collect();
         $areaLinks = DB::table('rider_service_area')->whereIn('rider_id', $riders->pluck('id'))->get()->groupBy('rider_id');
@@ -39,12 +57,12 @@ class DeliveryController extends Controller
         $areas = DB::table('service_areas')->whereIn('sorting_center_id', $centers->pluck('id'))->where('is_active', true)->orderBy('name')->get(['id', 'name', 'sorting_center_id']);
         $cod = DB::table('cod_collections')->whereIn('delivery_id', $deliveries->pluck('id'))->get()->keyBy('delivery_id');
 
-        return Inertia::render('marketplace/deliveries', compact('deliveries', 'available', 'centers', 'riders', 'areas', 'cod') + ['role' => $user->role]);
+        return Inertia::render($user->role === 'sorting_center' ? 'logistics/parcels' : 'marketplace/deliveries', compact('deliveries', 'available', 'centers', 'riders', 'areas', 'cod', 'filters') + ['role' => $user->role]);
     }
 
     public function update(Request $request, Delivery $delivery)
     {
-        $data = $request->validate(['action' => 'required|in:claim,assign,picked_up,in_transit,out_for_delivery,delivered,receive_cod,reconcile_cod', 'sorting_center_id' => 'nullable|integer', 'rider_id' => 'nullable|integer', 'service_area_id' => 'required_if:action,assign|nullable|integer', 'proof' => 'nullable|image|mimes:jpg,jpeg,png|max:5120']);
+        $data = $request->validate(['action' => 'required|in:claim,approve_pickup,receive,sort,assign,picked_up,in_transit,out_for_delivery,delivered,receive_cod,reconcile_cod', 'sorting_center_id' => 'nullable|integer', 'rider_id' => 'nullable|integer', 'service_area_id' => 'required_if:action,assign|nullable|integer', 'proof' => 'nullable|image|mimes:jpg,jpeg,png|max:5120']);
         $path = null;
         try {
             DB::transaction(function () use ($request, $delivery, $data, &$path) {
@@ -56,7 +74,7 @@ class DeliveryController extends Controller
                 $user = User::query()->whereKey($request->user()->id)->lockForUpdate()->firstOrFail();
                 abort_unless($user->canOperate(), 403);
                 $action = $data['action'];
-                if (in_array($action, ['claim', 'assign', 'receive_cod'])) {
+                if (in_array($action, ['claim', 'approve_pickup', 'receive', 'sort', 'assign', 'receive_cod'])) {
                     abort_unless($user->role === 'sorting_center', 403);
                     $centerId = $action === 'claim' ? ($data['sorting_center_id'] ?? null) : $delivery->sorting_center_id;
                     abort_unless($centerId && $user->sortingCenters()->where('sorting_centers.id', $centerId)->operational()->exists(), 403);
@@ -68,9 +86,22 @@ class DeliveryController extends Controller
                 }
                 if ($action === 'claim') {
                     abort_unless(! $delivery->sorting_center_id && $delivery->status === 'unassigned' && $sellerOrder->status === 'shipped', 409);
-                    $delivery->forceFill(['sorting_center_id' => $centerId])->save();
+                    $delivery->forceFill(['sorting_center_id' => $centerId, 'pickup_approved_at' => now()])->save();
+                } elseif ($action === 'approve_pickup') {
+                    abort_unless($delivery->status === 'unassigned' && ! $delivery->pickup_approved_at && $sellerOrder->status === 'shipped', 409);
+                    $delivery->update(['pickup_approved_at' => now()]);
+                } elseif ($action === 'receive') {
+                    abort_unless(in_array($delivery->status, ['picked_up', 'in_transit'], true) && ! $delivery->received_at, 409);
+                    $delivery->update(['received_at' => now()]);
+                } elseif ($action === 'sort') {
+                    abort_unless($delivery->received_at && ! $delivery->sorted_at && in_array($delivery->status, ['picked_up', 'in_transit'], true), 409);
+                    $delivery->update(['sorted_at' => now()]);
                 } elseif ($action === 'assign') {
-                    abort_unless($delivery->status === 'unassigned', 409);
+                    $initial = $delivery->status === 'unassigned';
+                    abort_unless($initial || ($delivery->sorted_at && in_array($delivery->status, ['picked_up', 'in_transit'], true)), 409);
+                    if ($initial && ($sellerOrder->shipping_quote['basis'] ?? '') === 'destination_and_weight') {
+                        abort_unless($delivery->pickup_approved_at && $sellerOrder->status === 'shipped', 409);
+                    }
                     $area = DB::table('service_areas')->where('id', $data['service_area_id'])->where('sorting_center_id', $delivery->sorting_center_id)->where('is_active', true)->first();
                     if (! $area || strcasecmp($area->province_name ?? '', $order->shipping_province) !== 0 || strcasecmp($area->city_name ?? '', $order->shipping_city) !== 0 || strcasecmp($area->barangay_name ?? '', $order->shipping_barangay) !== 0) {
                         throw ValidationException::withMessages(['service_area_id' => 'Choose an active service area matching the delivery address.']);
@@ -82,11 +113,14 @@ class DeliveryController extends Controller
                     if (! DB::table('rider_service_area')->where('rider_id', $rider->id)->where('service_area_id', $area->id)->exists()) {
                         throw ValidationException::withMessages(['rider_id' => 'Choose a courier assigned to this service area.']);
                     }
-                    $delivery->update(['rider_id' => $rider->id, 'service_area_id' => $area->id, 'status' => 'assigned']);
+                    $delivery->update(['rider_id' => $rider->id, 'service_area_id' => $area->id, 'status' => $initial ? 'assigned' : 'in_transit']);
                 } elseif (in_array($action, ['picked_up', 'in_transit', 'out_for_delivery', 'delivered'])) {
                     $expected = ['picked_up' => 'assigned', 'in_transit' => 'picked_up', 'out_for_delivery' => 'in_transit', 'delivered' => 'out_for_delivery'][$action];
                     abort_unless($delivery->status === $expected, 409, 'This parcel has already changed. Refresh the page.');
                     $changes = ['status' => $action];
+                    if (($sellerOrder->shipping_quote['basis'] ?? '') === 'destination_and_weight' && in_array($action, ['in_transit', 'out_for_delivery', 'delivered'], true)) {
+                        abort_unless($delivery->sorted_at, 409, 'The sorting center must receive and sort this parcel before dispatch.');
+                    }
                     if ($action === 'picked_up') {
                         $changes['picked_up_at'] = now();
                     }

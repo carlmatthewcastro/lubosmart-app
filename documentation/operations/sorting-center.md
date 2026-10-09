@@ -1,6 +1,8 @@
 # Logistics and sorting center operations
 
-The `logistics` role represents staff; a center is an organizational entity. Tables include `sorting_centers`, `service_areas`, `sorting_center_user`, `rider_service_area`, `parcel_events`, `cod_collections` and `seller_settlements`. Registration, center-scoped rider review/membership, parcel receipt, rider assignment, delivery proof, COD receipt, and admin reconciliation now have connected screens. Service-area automation, barcode scanning, and seller payouts remain proposed. See [UI workflow](../design/ui-workflow.md).
+The `sorting_center` role represents logistics operators; a center is an organizational entity. Tables include `sorting_centers`, `service_areas`, `shipping_rates`, `sorting_center_user`, `rider_service_area`, `parcel_events`, `cod_collections` and `seller_settlements`. Registration, center-scoped rider review/membership, pickup approval, parcel receipt/sorting, rider assignment, delivery proof, COD receipt, and admin reconciliation have connected screens. Barcode scanning and seller payouts remain proposed.
+
+Use the [current logistics workspace guide](logistics-workspace.md) for the implemented workflow, shipping calculations and deployment migration. The lifecycle diagrams below also describe proposed scanning, task and settlement extensions; they are not a checklist of currently available actions.
 
 ## Registration and ownership
 

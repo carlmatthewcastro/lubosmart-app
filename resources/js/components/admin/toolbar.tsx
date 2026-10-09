@@ -7,7 +7,7 @@ import { UserMenuContent } from '@/components/user-menu-content';
 import { useAppearance } from '@/hooks/use-appearance';
 import type { SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { Bell, ChevronDown, ClipboardCheck, MessageCircle, MessageSquareWarning, Search, ShieldCheck } from 'lucide-react';
+import { Bell, CircleUserRound, ClipboardCheck, MessageCircle, MessageSquareWarning, Search, ShieldCheck } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 type Result = { id: number; kind: 'account' | 'registration' | 'conversation'; label: string; detail: string; url?: string };
@@ -131,18 +131,13 @@ export function AdminToolbar() {
             </DropdownMenu>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                    <button type="button" className="hover:bg-accent flex items-center gap-2 rounded-xl p-1.5" aria-label="Admin Profile Menu">
-                        <span className="bg-accent text-primary flex size-8 items-center justify-center rounded-full text-xs font-semibold">
-                            {auth.user.name
-                                .split(' ')
-                                .filter(Boolean)
-                                .slice(0, 2)
-                                .map((part) => part[0])
-                                .join('')
-                                .toUpperCase()}
-                        </span>
-                        <span className="hidden max-w-28 truncate text-sm font-medium sm:block">{auth.user.name}</span>
-                        <ChevronDown className="text-muted-foreground hidden size-4 sm:block" />
+                    <button
+                        type="button"
+                        className="bg-accent/60 text-primary hover:bg-accent focus-visible:ring-primary flex size-10 items-center justify-center rounded-xl transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                        aria-label="Open account menu"
+                        title="My Account"
+                    >
+                        <CircleUserRound className="size-5" />
                     </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-64">
