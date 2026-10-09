@@ -1,7 +1,7 @@
 import { InfoModal } from '@/components/info-modal';
 import { Badge, buttonClass, Card, Empty, Field, Page, Pager, roleLabel, Select, type Pagination } from '@/components/marketplace-ui';
 import { type SharedData, type User } from '@/types';
-import { useForm, usePage } from '@inertiajs/react';
+import { Link, useForm, usePage } from '@inertiajs/react';
 import { ShieldCheck } from 'lucide-react';
 
 function AccountRow({ account }: { account: User; allowedStatuses: string[] }) {
@@ -44,7 +44,7 @@ export default function Accounts({
             description={
                 center
                     ? 'View and deactivate couriers assigned to your sorting center. Admin handles suspension and reactivation.'
-                    : 'Activate, suspend, or deactivate approved accounts with a recorded reason.'
+                    : 'View all non-admin accounts, track registration progress, and manage eligible accounts.'
             }
         >
             <Card className="flex gap-3">
@@ -69,9 +69,18 @@ export default function Accounts({
                         <option value="seller">Seller</option>
                         <option value="courier">Courier</option>
                         <option value="sorting_center">Sorting Center</option>
+                        {!center && <option value="unassigned">No Role Selected</option>}
                     </Select>
                     <Select label="Status" value={search.data.status} onChange={(e) => search.setData('status', e.target.value)}>
                         <option value="">All Statuses</option>
+                        {!center && (
+                            <>
+                                <option value="unverified">Unverified</option>
+                                <option value="incomplete">Incomplete Registration</option>
+                                <option value="pending">Pending Review</option>
+                                <option value="rejected">Rejected</option>
+                            </>
+                        )}
                         <option value="approved">Approved</option>
                         <option value="suspended">Suspended</option>
                         <option value="deactivated">Deactivated</option>
@@ -79,8 +88,21 @@ export default function Accounts({
                     <button className={buttonClass} disabled={search.processing}>
                         Apply Filters
                     </button>
+                    {(filters.search || filters.role || filters.status) && (
+                        <Link href="/accounts" className="text-primary text-sm font-medium hover:underline">
+                            Clear Filters
+                        </Link>
+                    )}
                 </form>
             </Card>
+            <p className="text-muted-foreground text-sm">
+                {accounts.total} {accounts.total === 1 ? 'account' : 'accounts'}
+                {filters.search || filters.role || filters.status
+                    ? ' matching your filters'
+                    : center
+                      ? ' in your sorting center'
+                      : ' across all registration statuses'}
+            </p>
             {accounts.data.length ? (
                 <div className="grid items-start gap-4 xl:grid-cols-2">
                     {accounts.data.map((account) => (

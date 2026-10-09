@@ -6,6 +6,7 @@ use App\Services\Admin\AdminPermissions;
 use App\Services\EmailVerificationLinks;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -63,6 +64,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function application(): HasOne
     {
         return $this->hasOne(RegistrationApplication::class);
+    }
+
+    public function scopeNonAdmin(Builder $query): void
+    {
+        $query->where(fn (Builder $query) => $query->where('role', '!=', 'admin')->orWhereNull('role'));
     }
 
     public function getEmailVerifiedAttribute(): bool
