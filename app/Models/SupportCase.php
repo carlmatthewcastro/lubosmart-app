@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class SupportCase extends Model
 {
@@ -18,5 +19,10 @@ class SupportCase extends Model
     public function messages(): HasMany
     {
         return $this->hasMany(SupportCaseMessage::class);
+    }
+
+    public function latestMessage(): HasOne
+    {
+        return $this->hasOne(SupportCaseMessage::class)->latestOfMany();
     }
 }

@@ -26,7 +26,7 @@ class CreateAdmin extends Command
             return self::FAILURE;
         }
         $user = User::query()->create(['name' => $data['name'], 'email' => $data['email'], 'role' => 'admin', 'password' => Hash::make($data['password'])]);
-        $user->forceFill(['status' => 'active', 'email_verified_at' => now()])->save();
+        $user->forceFill(['status' => 'approved', 'email_verified_at' => now()])->save();
         $this->info('Administrator created. Sign in with the credentials you entered.');
 
         return self::SUCCESS;

@@ -10,7 +10,9 @@ use Inertia\Testing\AssertableInertia as Assert;
 
 function draftApplicant(string $role = 'seller', string $status = 'draft'): User
 {
-    $user = User::factory()->create(['role' => $role, 'status' => 'pending']);
+    $user = User::factory()->create(['role' => $role, 'status' => match ($status) {
+        'draft' => 'incomplete', 'submitted' => 'pending', default => $status
+    }]);
     RegistrationApplication::query()->create(['user_id' => $user->id, 'requested_role' => $role, 'status' => $status]);
 
     return $user;
@@ -24,7 +26,7 @@ test('a partial application draft saves and resumes without changing privileges'
     expect($application->draft_data)->toBe(['first_name' => 'Jane', 'business_name' => 'Jane Store', 'current_step' => 'role']);
     expect($application->draft_saved_at)->not->toBeNull();
     expect($application->reviewer_id)->toBeNull();
-    expect($user->fresh()->status)->toBe('pending');
+    expect($user->fresh()->status)->toBe('incomplete');
     $this->assertDatabaseCount('stores', 0);
     $this->assertDatabaseCount('user_profiles', 0);
     $this->assertDatabaseCount('addresses', 0);
@@ -48,13 +50,13 @@ test('draft documents stay private and only authorized users can download them',
     $this->actingAs($user)->post('/application/draft', ['identity' => UploadedFile::fake()->create('identity.pdf', 10, 'application/pdf')])->assertSessionHasNoErrors();
     $document = $user->fresh()->application->documents->sole();
     Storage::disk('local')->assertExists($document->path);
-    $this->get(route('registration-documents.show', $document))->assertOk();
+    $this->get(route('registration-documents.show', $document))->assertForbidden();
     $this->actingAs(User::factory()->create())->get(route('registration-documents.show', $document))->assertForbidden();
 });
 
 test('submitted applications cannot be changed by saving a draft', function () {
     $user = draftApplicant('seller', 'submitted');
-    $this->actingAs($user)->post('/application/draft', ['first_name' => 'Changed'])->assertSessionHasErrors('application');
+    $this->actingAs($user)->post('/application/draft', ['first_name' => 'Changed'])->assertRedirect('/application/waiting');
     expect($user->fresh()->application->draft_data)->toBeNull();
 });
 
@@ -87,11 +89,31 @@ test('a seller submits saved private documents and creates the store only at fin
     $data = ['first_name' => 'Jane', 'last_name' => 'Seller', 'sex' => 'female', 'birthday' => '1995-04-12', 'phone' => '09171234567', 'province_code' => '043400000', 'city_code' => '043404000', 'barangay_code' => '043404001', 'line1' => '10 Test Street', 'zip' => '4000', 'business_name' => 'Jane Store', 'business_category_id' => $category->id];
     $this->actingAs($user)->post('/application/draft', [...$data, 'current_step' => 'review', 'identity' => UploadedFile::fake()->create('id.pdf', 10, 'application/pdf'), 'business_permit' => UploadedFile::fake()->create('permit.pdf', 10, 'application/pdf')])->assertSessionHasNoErrors();
     $this->assertDatabaseCount('stores', 0);
-    $this->post('/application', [...$data, 'policy_accepted' => true])->assertSessionHasNoErrors()->assertRedirect('/application');
+    $this->post('/application', [...$data, 'policy_accepted' => true])->assertSessionHasNoErrors()->assertRedirect('/application/waiting');
     $this->assertDatabaseHas('stores', ['user_id' => $user->id, 'name' => 'Jane Store', 'business_category_id' => $category->id, 'status' => 'pending']);
     expect($user->fresh()->application->status)->toBe('submitted');
     expect($user->fresh()->application->draft_data)->toBeNull();
     expect($user->fresh()->status)->toBe('pending');
     $this->assertDatabaseCount('registration_documents', 2);
     Http::assertSentCount(3);
+});
+
+test('partial address drafts validate selected values and parent relationships without losing saved data', function () {
+    Http::preventStrayRequests();
+    Http::fake([
+        'https://psgc.gitlab.io/api/provinces/' => Http::response([['code' => '043400000', 'name' => 'Laguna']]),
+        'https://psgc.gitlab.io/api/cities-municipalities/' => Http::response([['code' => '043404000', 'name' => 'Test City', 'provinceCode' => '043400000', 'regionCode' => '040000000']]),
+        'https://psgc.gitlab.io/api/cities-municipalities/043404000/barangays/' => Http::response([['code' => '043404001', 'name' => 'Test Barangay']]),
+    ]);
+    $user = draftApplicant('buyer');
+    $this->actingAs($user)->post('/application/draft', ['province_code' => '043400000'])->assertSessionHasNoErrors();
+    $this->post('/application/draft', ['city_code' => '999999999'])->assertSessionHasErrors('city_code');
+    expect($user->fresh()->application->draft_data)->toBe(['province_code' => '043400000']);
+    $this->post('/application/draft', ['city_code' => '043404000'])->assertSessionHasNoErrors();
+    $this->post('/application/draft', ['barangay_code' => '999999999'])->assertSessionHasErrors('barangay_code');
+    $this->post('/application/draft', ['barangay_code' => '043404001'])->assertSessionHasNoErrors();
+    expect($user->fresh()->application->draft_data)->toBe(['province_code' => '043400000', 'city_code' => '043404000', 'barangay_code' => '043404001']);
+    $this->post('/application/draft', ['province_code' => '999999999'])->assertSessionHasErrors('province_code');
+    $this->assertDatabaseCount('registration_application_drafts', 1);
+    $this->assertDatabaseCount('addresses', 0);
 });

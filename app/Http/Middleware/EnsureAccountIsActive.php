@@ -10,8 +10,8 @@ class EnsureAccountIsActive
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->user()->status !== 'active') {
-            return to_route('application.edit');
+        if (! $request->user()->canOperate()) {
+            return to_route($request->user()->onboardingRoute());
         }
 
         return $next($request);

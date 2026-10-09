@@ -6,15 +6,19 @@ use App\Models\SortingCenter;
 use App\Models\Store;
 use App\Models\User;
 use App\Notifications\ApplicationReviewed;
+use Carbon\Carbon;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use Inertia\Testing\AssertableInertia as Assert;
 
 function applicationApplicant(string $role = 'buyer', string $status = 'draft'): User
 {
-    $user = User::factory()->create(['role' => $role, 'status' => 'pending']);
+    $user = User::factory()->create(['role' => $role, 'status' => match ($status) {
+        'draft' => 'incomplete', 'submitted' => 'pending', default => $status
+    }]);
     RegistrationApplication::query()->create(['user_id' => $user->id, 'requested_role' => $role, 'status' => $status]);
 
     return $user;
@@ -40,29 +44,37 @@ test('review status filters preserve role and sorting center authorization', fun
     applicationApplicant('seller', 'submitted');
     $center = SortingCenter::query()->create(['code' => 'CENTER-A', 'name' => 'Center A', 'address' => 'Test Street']);
     $otherCenter = SortingCenter::query()->create(['code' => 'CENTER-B', 'name' => 'Center B', 'address' => 'Other Street']);
-    $rider = applicationApplicant('rider', 'approved');
+    $rider = applicationApplicant('courier', 'approved');
     $rider->application->update(['sorting_center_id' => $center->id]);
-    $otherRider = applicationApplicant('rider', 'approved');
+    $rider->forceFill(['sorting_center_id' => $center->id])->save();
+    $otherRider = applicationApplicant('courier', 'approved');
     $otherRider->application->update(['sorting_center_id' => $otherCenter->id]);
+    $otherRider->forceFill(['sorting_center_id' => $otherCenter->id])->save();
     $admin = User::factory()->create(['role' => 'admin']);
     $this->actingAs($admin)->get('/reviews?status=approved')->assertInertia(fn (Assert $page) => $page->has('applications.data', 3)->where('applications.data.0.id', $seller->application->id)->where('filters.status', 'approved'));
-    $logistics = User::factory()->create(['role' => 'logistics']);
+    $logistics = User::factory()->create(['role' => 'sorting_center']);
     $logistics->sortingCenters()->attach($center->id, ['granted_by' => $admin->id]);
     $this->actingAs($logistics)->get('/reviews?status=approved')->assertInertia(fn (Assert $page) => $page->has('applications.data', 1)->where('applications.data.0.id', $rider->application->id));
-    $this->get('/reviews?status=draft')->assertSessionHasErrors('status');
+    $this->actingAs($admin)->get('/reviews?status=draft')->assertSessionHasErrors('status');
 });
 
 test('buyer submits validated details and private ID for review', function () {
     Storage::fake('local');
     fakeApplicationLocations();
     $user = applicationApplicant();
-    $this->actingAs($user)->post(route('application.store'), [...applicationPayload(), 'status' => 'approved', 'role' => 'admin'])->assertRedirect(route('application.edit'));
+    $this->actingAs($user)->post(route('application.store'), [...applicationPayload(), 'status' => 'approved', 'role' => 'admin', 'age' => 999,
+        'house_number' => '14', 'street' => 'Verified Street', 'line1' => 'Injected address', 'province' => 'Injected province',
+    ])->assertSessionHasNoErrors()->assertRedirect(route('application.waiting'));
     $this->assertDatabaseHas('user_profiles', ['user_id' => $user->id, 'first_name' => 'Test', 'birthday' => '1995-04-12', 'province_code' => '043400000']);
     $this->assertDatabaseHas('registration_applications', ['user_id' => $user->id, 'status' => 'submitted', 'requested_role' => 'buyer']);
-    $this->assertDatabaseHas('addresses', ['user_id' => $user->id, 'province' => 'Laguna', 'city' => 'Test City', 'barangay' => 'Test Barangay']);
+    $this->assertDatabaseHas('addresses', ['user_id' => $user->id, 'province' => 'Laguna', 'city' => 'Test City', 'barangay' => 'Test Barangay',
+        'line1' => '14 Verified Street', 'house_number' => '14', 'street' => 'Verified Street',
+    ]);
     expect($user->fresh()->status)->toBe('pending');
     $document = $user->fresh()->application->documents->sole();
     Storage::disk('local')->assertExists($document->path);
+    $this->actingAs(User::factory()->create(['role' => 'admin']))->get('/reviews/'.$user->fresh()->application->id)
+        ->assertInertia(fn (Assert $page) => $page->where('profile.age', Carbon::parse('1995-04-12')->age));
     Http::assertSent(fn ($request) => $request->url() === 'https://psgc.gitlab.io/api/cities-municipalities/043404000/barangays/');
 });
 
@@ -74,6 +86,15 @@ test('invalid address hierarchy does not save profiles or files', function () {
     $this->assertDatabaseCount('user_profiles', 0);
     $this->assertDatabaseCount('registration_documents', 0);
     Http::assertSentCount(2);
+});
+
+test('the current application form reports missing house and street fields rather than accepting a stale combined address', function () {
+    Storage::fake('local');
+    $user = applicationApplicant();
+    $this->actingAs($user)->post('/application', [...applicationPayload(), 'house_number' => '', 'street' => ''])
+        ->assertSessionHasErrors(['house_number', 'street']);
+    $this->assertDatabaseCount('addresses', 0);
+    $this->assertDatabaseCount('registration_documents', 0);
 });
 
 test('required identity and policy cannot be omitted', function () {
@@ -90,18 +111,51 @@ test('seller requires a department and business permit', function () {
 });
 
 test('rider requires vehicle registration and a reviewing center', function () {
-    $user = applicationApplicant('rider');
+    $user = applicationApplicant('courier');
     $this->actingAs($user)->from('/application')->post('/application', [...applicationPayload(), 'vehicle_type' => 'motorcycle'])->assertRedirect('/application')->assertSessionHasErrors(['plate_number', 'vehicle_registration', 'sorting_center_id']);
 });
+
+test('rider submission links the selected approved logistics center while leaving approval pending', function () {
+    Storage::fake('local');
+    fakeApplicationLocations();
+    $rider = applicationApplicant('courier');
+    $center = linkRiderToApprovedCenter($rider);
+    $rider->forceFill(['sorting_center_id' => null])->save();
+    $this->actingAs($rider)->post('/application', [...applicationPayload(),
+        'vehicle_type' => 'motorcycle', 'plate_number' => 'TEST123', 'sorting_center_id' => $center->id,
+        'license' => UploadedFile::fake()->create('license.pdf', 10, 'application/pdf'),
+        'vehicle_registration' => UploadedFile::fake()->create('orcr.pdf', 10, 'application/pdf'),
+    ])->assertRedirect('/application/waiting')->assertSessionHasNoErrors();
+    expect($rider->fresh()->status)->toBe('pending');
+    expect($rider->fresh()->sorting_center_id)->toBe($center->id);
+    expect($rider->fresh()->application->sorting_center_id)->toBe($center->id);
+    expect($rider->fresh()->application->documents)->toHaveCount(3);
+});
+
+test('a center with an unapproved operator cannot receive rider applications', function () {
+    $rider = applicationApplicant('courier');
+    $center = linkRiderToApprovedCenter($rider);
+    $center->users()->where('role', 'sorting_center')->firstOrFail()->forceFill(['status' => 'pending'])->save();
+    $rider->forceFill(['sorting_center_id' => null])->save();
+    $this->actingAs($rider)->post('/application', [...applicationPayload(), 'sorting_center_id' => $center->id])->assertSessionHasErrors('sorting_center_id');
+    $this->get('/application')->assertInertia(fn (Assert $page) => $page->has('centers', 0));
+});
+
+test('rider registration requires both a license and plate number for every vehicle choice', function (string $vehicle) {
+    $user = applicationApplicant('courier');
+    $this->actingAs($user)->post('/application', [...applicationPayload(), 'vehicle_type' => $vehicle])->assertSessionHasErrors(['license', 'plate_number']);
+    expect($user->fresh()->status)->toBe('incomplete');
+    $this->assertDatabaseCount('registration_documents', 0);
+})->with(['motorcycle', 'bicycle']);
 
 test('a submitted application cannot be changed or submitted twice', function () {
     Storage::fake('local');
     fakeApplicationLocations();
     $user = applicationApplicant('buyer', 'submitted');
-    $this->actingAs($user)->from('/application')->post('/application', applicationPayload())->assertRedirect('/application')->assertSessionHasErrors('application');
+    $this->actingAs($user)->from('/application')->post('/application', applicationPayload())->assertRedirect('/application/waiting');
     $this->assertDatabaseCount('user_profiles', 0);
     Storage::disk('local')->assertDirectoryEmpty('registration');
-    Http::assertSentCount(3);
+    Http::assertNothingSent();
 });
 
 test('admin approval activates buyer and queues decision mail', function () {
@@ -109,19 +163,28 @@ test('admin approval activates buyer and queues decision mail', function () {
     $user = applicationApplicant('buyer', 'submitted');
     $admin = User::factory()->create(['role' => 'admin']);
     $this->actingAs($admin)->patch(route('reviews.update', $user->application->id), ['decision' => 'approved'])->assertRedirect(route('reviews.index'));
-    expect($user->fresh()->status)->toBe('active');
+    expect($user->fresh()->status)->toBe('approved');
     $this->assertDatabaseHas('registration_applications', ['user_id' => $user->id, 'status' => 'approved', 'reviewer_id' => $admin->id]);
     $this->assertDatabaseHas('audit_events', ['actor_id' => $admin->id, 'action' => 'approved']);
     Notification::assertSentTo($user, ApplicationReviewed::class, fn ($notification) => $notification->decision === 'approved');
 });
 
-test('rejection remains pending and supplies a resubmission reason', function () {
+test('rejection sets rejected status and supplies a resubmission reason', function () {
     Notification::fake();
     $user = applicationApplicant('buyer', 'submitted');
     $this->actingAs(User::factory()->create(['role' => 'admin']))->patch(route('reviews.update', $user->application->id), ['decision' => 'rejected', 'reason' => 'Please upload a readable ID.'])->assertRedirect(route('reviews.index'));
-    expect($user->fresh()->status)->toBe('pending');
+    expect($user->fresh()->status)->toBe('rejected');
     $this->assertDatabaseHas('registration_applications', ['user_id' => $user->id, 'status' => 'rejected', 'rejection_reason' => 'Please upload a readable ID.']);
     Notification::assertSentTo($user, ApplicationReviewed::class);
+});
+
+test('rejecting an application requires a reason without changing its review state', function () {
+    Notification::fake();
+    $user = applicationApplicant('seller', 'submitted');
+    $this->actingAs(User::factory()->create(['role' => 'admin']))->patch(route('reviews.update', $user->application->id), ['decision' => 'rejected', 'reason' => ' '])->assertSessionHasErrors('reason');
+    expect($user->fresh()->status)->toBe('pending');
+    expect($user->fresh()->application->status)->toBe('submitted');
+    Notification::assertNothingSent();
 });
 
 test('reviewing an already decided application does not produce another decision', function () {
@@ -136,32 +199,34 @@ test('buyer and seller cannot review applications', function (string $role) {
     $user = applicationApplicant('buyer', 'submitted');
     $this->actingAs(User::factory()->create(['role' => $role]))->patch(route('reviews.update', $user->application->id), ['decision' => 'approved'])->assertForbidden();
     expect($user->fresh()->status)->toBe('pending');
-})->with(['buyer', 'seller', 'rider']);
+})->with(['buyer', 'seller', 'courier']);
 
-test('admin can approve a courier assigned to a sorting center', function () {
+test('admin courier override requires an audit reason', function () {
     Notification::fake();
-    $user = applicationApplicant('rider', 'submitted');
+    $user = applicationApplicant('courier', 'submitted');
     $center = SortingCenter::query()->create(['code' => 'ADMIN-REVIEW', 'name' => 'Review center', 'address' => 'Synthetic address']);
     $user->application->update(['sorting_center_id' => $center->id]);
-    $this->actingAs(User::factory()->create(['role' => 'admin']))->patch(route('reviews.update', $user->application->id), ['decision' => 'approved'])->assertRedirect();
-    expect($user->fresh()->status)->toBe('active');
-    expect($user->sortingCenters()->where('sorting_centers.id', $center->id)->exists())->toBeTrue();
-    Notification::assertSentTo($user, ApplicationReviewed::class);
+    $this->actingAs(User::factory()->create(['role' => 'admin']))->get(route('reviews.show', $user->application->id))->assertOk();
+    $this->patch(route('reviews.update', $user->application->id), ['decision' => 'approved'])->assertSessionHasErrors('reason');
+    expect($user->fresh()->status)->toBe('pending');
+    Notification::assertNothingSent();
 });
 
-test('logistics approves only riders in its assigned center', function (bool $sameCenter) {
+test('logistics can approve only riders applying to its own center', function (bool $sameCenter) {
     Notification::fake();
     $admin = User::factory()->create(['role' => 'admin']);
-    $logistics = User::factory()->create(['role' => 'logistics']);
+    $logistics = User::factory()->create(['role' => 'sorting_center']);
     $center = SortingCenter::query()->create(['code' => 'CENTER-A', 'name' => 'Center A', 'address' => 'Synthetic address']);
     $other = SortingCenter::query()->create(['code' => 'CENTER-B', 'name' => 'Center B', 'address' => 'Synthetic address']);
     $logistics->sortingCenters()->attach($center->id, ['granted_by' => $admin->id]);
-    $user = applicationApplicant('rider', 'submitted');
+    $user = applicationApplicant('courier', 'submitted');
     $user->application->update(['sorting_center_id' => $sameCenter ? $center->id : $other->id]);
+    $user->forceFill(['sorting_center_id' => $sameCenter ? $center->id : $other->id])->save();
     $response = $this->actingAs($logistics)->patch(route('reviews.update', $user->application->id), ['decision' => 'approved']);
     if ($sameCenter) {
         $response->assertRedirect(route('reviews.index'));
-        expect($user->fresh()->status)->toBe('active');
+        expect($user->fresh()->status)->toBe('approved');
+        expect($user->fresh()->sorting_center_id)->toBe($center->id);
         Notification::assertSentTo($user, ApplicationReviewed::class);
     } else {
         $response->assertForbidden();
@@ -175,21 +240,22 @@ test('other applicants cannot download private documents', function () {
     $owner = applicationApplicant();
     Storage::disk('local')->put('registration/private.pdf', 'synthetic document');
     $document = $owner->application->documents()->create(['kind' => 'identity', 'disk' => 'local', 'path' => 'registration/private.pdf', 'mime_type' => 'application/pdf', 'size_bytes' => 18]);
-    $this->actingAs(User::factory()->create())->get(route('registration-documents.show', $document->id))->assertForbidden();
+    $this->actingAs(User::factory()->create())->get(URL::temporarySignedRoute('registration-documents.show', now()->addMinutes(5), ['document' => $document->id]))->assertForbidden();
 });
 
-test('document owners can download their private documents', function () {
+test('document downloads are limited to approvers and admin even for the applicant', function () {
     Storage::fake('local');
     $owner = applicationApplicant();
     Storage::disk('local')->put('registration/private.pdf', 'synthetic document');
     $document = $owner->application->documents()->create(['kind' => 'identity', 'disk' => 'local', 'path' => 'registration/private.pdf', 'mime_type' => 'application/pdf', 'size_bytes' => 18]);
-    $this->actingAs($owner)->get(route('registration-documents.show', $document->id))->assertDownload('identity.pdf');
+    $this->actingAs($owner)->get(URL::temporarySignedRoute('registration-documents.show', now()->addMinutes(5), ['document' => $document->id]))->assertForbidden();
+    $this->actingAs(User::factory()->create(['role' => 'admin']))->get(URL::temporarySignedRoute('registration-documents.show', now()->addMinutes(5), ['document' => $document->id]))->assertOk()->assertHeader('Content-Type', 'application/pdf');
 });
 
-test('administrators cannot activate pending accounts through status management', function () {
+test('administrators cannot activate incomplete accounts through status management', function () {
     $user = applicationApplicant();
-    $this->actingAs(User::factory()->create(['role' => 'admin']))->from('/accounts')->patch(route('accounts.update', $user->id), ['status' => 'active', 'reason' => 'Trying to bypass review'])->assertRedirect('/accounts')->assertSessionHasErrors('status');
-    expect($user->fresh()->status)->toBe('pending');
+    $this->actingAs(User::factory()->create(['role' => 'admin']))->from('/accounts')->patch(route('accounts.update', $user->id), ['status' => 'approved', 'reason' => 'Trying to bypass review'])->assertRedirect('/accounts')->assertSessionHasErrors('status');
+    expect($user->fresh()->status)->toBe('incomplete');
 });
 
 test('administrators can suspend approved accounts with an audit reason', function () {
@@ -197,7 +263,7 @@ test('administrators can suspend approved accounts with an audit reason', functi
     $admin = User::factory()->create(['role' => 'admin']);
     $this->actingAs($admin)->from('/accounts')->patch(route('accounts.update', $user->id), ['status' => 'suspended', 'reason' => 'Test suspension'])->assertRedirect('/accounts');
     expect($user->fresh()->status)->toBe('suspended');
-    $this->assertDatabaseHas('audit_events', ['subject_id' => $user->id, 'actor_id' => $admin->id, 'action' => 'status_changed']);
+    $this->assertDatabaseHas('audit_events', ['subject_id' => $user->id, 'actor_id' => $admin->id, 'action' => 'suspended']);
 });
 
 test('rejected applicants can resubmit and clear the old review decision', function () {
@@ -205,21 +271,21 @@ test('rejected applicants can resubmit and clear the old review decision', funct
     fakeApplicationLocations();
     $user = applicationApplicant('buyer', 'rejected');
     $user->application->update(['rejection_reason' => 'Unreadable ID', 'reviewer_id' => User::factory()->create(['role' => 'admin'])->id, 'reviewed_at' => now()]);
-    $this->actingAs($user)->post('/application', applicationPayload())->assertRedirect(route('application.edit'));
+    $this->actingAs($user)->post('/application', applicationPayload())->assertRedirect(route('application.waiting'));
     $this->assertDatabaseHas('registration_applications', ['user_id' => $user->id, 'status' => 'submitted', 'rejection_reason' => null, 'reviewer_id' => null, 'reviewed_at' => null]);
     Http::assertSentCount(3);
 });
 
 test('approved logistics applicants receive a center and membership', function () {
     Notification::fake();
-    $user = applicationApplicant('logistics', 'submitted');
+    $user = applicationApplicant('sorting_center', 'submitted');
     $address = Address::query()->create(['user_id' => $user->id, 'label' => 'Registration', 'recipient_name' => 'Logistics Test', 'phone' => '09171234567', 'line1' => 'Synthetic address', 'barangay' => 'Test Barangay', 'city' => 'Test City', 'province' => 'Test Province', 'region' => 'Test Region', 'zip' => '4000']);
     $user->application->forceFill(['address_id' => $address->id, 'business_name' => 'Test Center'])->save();
     $admin = User::factory()->create(['role' => 'admin']);
     $this->actingAs($admin)->patch(route('reviews.update', $user->application->id), ['decision' => 'approved'])->assertRedirect(route('reviews.index'));
     $center = SortingCenter::query()->where('code', 'APP-'.$user->application->id)->firstOrFail();
     $this->assertDatabaseHas('sorting_center_user', ['user_id' => $user->id, 'sorting_center_id' => $center->id, 'granted_by' => $admin->id]);
-    expect($user->fresh()->status)->toBe('active');
+    expect($user->fresh()->status)->toBe('approved');
     Notification::assertSentTo($user, ApplicationReviewed::class);
 });
 

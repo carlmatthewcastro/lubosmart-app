@@ -35,7 +35,7 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->forget('url.intended');
 
-        return to_route('dashboard');
+        return to_route($request->user()->onboardingRoute());
     }
 
     /**

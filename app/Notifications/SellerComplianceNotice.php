@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Notifications\Messages\LubosMartMailMessage;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -23,7 +24,7 @@ class SellerComplianceNotice extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)->subject('LubosMart listing review')
+        return (new LubosMartMailMessage($notifiable))->subject('LubosMart listing review')
             ->line('Listing: '.$this->product)->line('Action: '.$this->action)->line($this->reason)
             ->action('Open LubosMart', route('dashboard'));
     }

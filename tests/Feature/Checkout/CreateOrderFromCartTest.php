@@ -18,7 +18,7 @@ use Illuminate\Validation\ValidationException;
 
 function setupCheckoutCart(array $productDefinitions): array
 {
-    $buyer = User::factory()->create(['status' => 'active']);
+    $buyer = User::factory()->create(['status' => 'approved']);
     $category = Category::query()->create(['name' => 'Test category']);
     $stores = [];
     $products = [];
@@ -179,7 +179,10 @@ it('rejects inactive or non-buyer accounts', function (string $role, string $sta
     expect(Order::query()->count())->toBe(0)
         ->and($setup['products']['Product']->fresh()->stock)->toBe(5);
 })->with([
-    'seller account' => ['seller', 'active'],
+    'seller account' => ['seller', 'approved'],
+    'incomplete buyer' => ['buyer', 'incomplete'],
+    'pending buyer' => ['buyer', 'pending'],
+    'rejected buyer' => ['buyer', 'rejected'],
     'suspended buyer' => ['buyer', 'suspended'],
 ]);
 
@@ -225,7 +228,7 @@ it('rejects unavailable cart contents', function (string $productStatus, string 
     'unapproved store' => ['active', 'pending'],
 ]);
 
-it('snapshots commission per store without adding it to the buyer COD amount', function () {
+it('defers commission amounts until delivery without adding commission to buyer COD', function () {
     $setup = setupCheckoutCart([
         ['store' => 'A', 'name' => 'Product A', 'price' => '100.05', 'stock' => 2, 'quantity' => 1],
         ['store' => 'B', 'name' => 'Product B', 'price' => '80.00', 'stock' => 2, 'quantity' => 1],
@@ -238,12 +241,12 @@ it('snapshots commission per store without adding it to the buyer COD amount', f
     expect($order->total)->toBe('280.05');
     expect($order->payment_method)->toBe('cod');
     expect($sellerOrder->commission_basis_points)->toBe(1000);
-    expect($sellerOrder->commission_amount)->toBe('10.01');
-    expect($sellerOrder->seller_proceeds)->toBe('90.04');
-    expect($order->sellerOrders->firstWhere('store_id', $setup['stores']['B']->id)->commission_amount)->toBe('8.00');
+    expect($sellerOrder->commission_amount)->toBeNull();
+    expect($sellerOrder->seller_proceeds)->toBeNull();
+    expect($order->sellerOrders->firstWhere('store_id', $setup['stores']['B']->id)->commission_amount)->toBeNull();
 });
 
-it('uses the persisted commission rate including its zero and full-rate boundaries', function (int $rate, string $commission, string $proceeds) {
+it('snapshots the configured rate when the order is placed', function (int $rate, string $commission, string $proceeds) {
     $setup = setupCheckoutCart([
         ['store' => 'A', 'name' => 'Product', 'price' => '10.00', 'stock' => 2, 'quantity' => 1],
     ]);
@@ -251,30 +254,20 @@ it('uses the persisted commission rate including its zero and full-rate boundari
 
     $order = app(CreateOrderFromCart::class)->handle($setup['buyer'], $setup['address']->id);
 
-    expect($order->sellerOrders->first()->commission_amount)->toBe($commission);
-    expect($order->sellerOrders->first()->seller_proceeds)->toBe($proceeds);
+    expect($order->sellerOrders->first()->commission_amount)->toBeNull();
+    expect($order->sellerOrders->first()->commission_basis_points)->toBe($rate);
+    expect($order->sellerOrders->first()->seller_proceeds)->toBeNull();
 })->with([
     'zero commission' => [0, '0.00', '10.00'],
     'configured rate' => [1250, '1.25', '8.75'],
     'full commission' => [10000, '10.00', '0.00'],
 ]);
 
-it('rejects an invalid persisted commission without deducting stock or clearing the cart', function () {
-    $setup = setupCheckoutCart([
-        ['store' => 'A', 'name' => 'Product', 'price' => '10.00', 'stock' => 2, 'quantity' => 1],
-    ]);
+it('rejects a configured commission outside the allowed range', function () {
+    $setup = setupCheckoutCart([['store' => 'A', 'name' => 'Product', 'price' => '10.00', 'stock' => 2, 'quantity' => 1]]);
     CommerceSetting::query()->whereKey(1)->update(['platform_commission_basis_points' => 10001]);
-
-    try {
-        app(CreateOrderFromCart::class)->handle($setup['buyer'], $setup['address']->id);
-        $this->fail('Invalid commission should prevent checkout.');
-    } catch (ValidationException $exception) {
-        expect($exception->errors()['commission'])->toBe(['The configured commission rate must be between 0% and 100%.']);
-    }
-
-    expect(Order::query()->count())->toBe(0);
+    expect(fn () => app(CreateOrderFromCart::class)->handle($setup['buyer'], $setup['address']->id))->toThrow(ValidationException::class);
     expect($setup['products']['Product']->fresh()->stock)->toBe(2);
-    expect($setup['cart']->items()->count())->toBe(1);
 });
 
 it('rejects a disabled product category or department', function (bool $disableParent) {

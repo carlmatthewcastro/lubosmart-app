@@ -37,7 +37,6 @@ class RegisteredUserController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->merge(['role' => $request->input('role', 'buyer')]);
         if (is_string($request->input('email'))) {
             $request->merge(['email' => strtolower(trim($request->input('email')))]);
         }
@@ -48,10 +47,11 @@ class RegisteredUserController extends Controller
             'first_name' => [$structuredName ? 'required' : 'exclude', 'string', 'max:80'],
             'last_name' => [$structuredName ? 'required' : 'exclude', 'string', 'max:80'],
             'email' => 'required|string|lowercase|email|max:160|unique:'.User::class,
-            'role' => ['required', Rule::in(['buyer', 'seller', 'rider', 'logistics'])],
+            'role' => ['required', Rule::in(['buyer', 'seller', 'courier', 'sorting_center'])],
             'store_name' => ['nullable', 'string', 'max:160'],
             'business_category_id' => ['nullable', 'integer', Rule::exists(Category::class, 'id')->whereNull('parent_id')->where('is_active', true)],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'policy_accepted' => ['sometimes', 'boolean'],
         ], [
             'email.required' => 'Enter your email.',
             'email.email' => 'Enter a valid email.',
@@ -71,7 +71,7 @@ class RegisteredUserController extends Controller
                 'password' => Hash::make($validated['password']),
                 'role' => $validated['role'],
             ]);
-            $user->forceFill(['status' => $user->role === 'buyer' ? 'active' : 'pending'])->save();
+            $user->forceFill(['status' => 'unverified'])->save();
             if (isset($validated['first_name'])) {
                 DB::table('user_profiles')->insert([
                     'user_id' => $user->id,
@@ -81,9 +81,10 @@ class RegisteredUserController extends Controller
                     'updated_at' => now(),
                 ]);
             }
-            if ($user->role !== 'buyer') {
-                RegistrationApplication::query()->create(['user_id' => $user->id, 'requested_role' => $user->role]);
-            }
+            RegistrationApplication::query()->create([
+                'user_id' => $user->id, 'requested_role' => $user->role,
+                'policy_version' => ! empty($validated['policy_accepted']) ? 'terms-privacy-2026-10' : null, 'policy_accepted_at' => ! empty($validated['policy_accepted']) ? now() : null,
+            ]);
 
             if ($validated['role'] === 'seller' && filled($validated['store_name'] ?? null) && filled($validated['business_category_id'] ?? null)) {
                 Store::query()->create([
@@ -97,11 +98,17 @@ class RegisteredUserController extends Controller
             return $user;
         });
 
-        event(new Registered($user));
+        $mailStatus = 'verification-link-sent';
+        try {
+            event(new Registered($user));
+        } catch (\Throwable $exception) {
+            report($exception);
+            $mailStatus = 'verification-mail-unavailable';
+        }
 
         Auth::login($user);
         $request->session()->regenerate();
 
-        return to_route('dashboard');
+        return to_route('verification.notice')->with('status', $mailStatus);
     }
 }

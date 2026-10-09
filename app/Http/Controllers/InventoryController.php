@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Store;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -38,7 +40,10 @@ class InventoryController extends Controller
             $data['image_path'] = $imagePath;
         }
         try {
-            DB::transaction(function () use ($product, $store, $data) {
+            DB::transaction(function () use ($request, $product, $store, $data) {
+                $seller = User::query()->whereKey($request->user()->id)->lockForUpdate()->firstOrFail();
+                $store = Store::query()->whereKey($store->id)->lockForUpdate()->firstOrFail();
+                abort_unless($seller->status === 'approved' && $store->status === 'approved', 403);
                 if ($product) {
                     $lockedProduct = Product::query()->whereKey($product->id)->lockForUpdate()->firstOrFail();
                     if ($lockedProduct->blocked_at && $data['status'] === 'active') {

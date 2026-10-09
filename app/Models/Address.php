@@ -13,6 +13,8 @@ class Address extends Model
         'recipient_name',
         'phone',
         'line1',
+        'street',
+        'house_number',
         'line2',
         'barangay',
         'city',

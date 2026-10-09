@@ -12,10 +12,13 @@ class RegistrationDocumentController extends Controller
 {
     public function __invoke(Request $request, RegistrationDocument $document): StreamedResponse
     {
-        if ($document->application->user_id !== $request->user()->id) {
-            Gate::authorize('review', $document->application);
-        }
+        Gate::authorize('view', $document->application);
 
-        return Storage::disk($document->disk)->download($document->path, $document->kind.'.'.pathinfo($document->path, PATHINFO_EXTENSION), ['X-Content-Type-Options' => 'nosniff', 'Cache-Control' => 'private, no-store']);
+        abort_unless(Storage::disk($document->disk)->exists($document->path), 404, 'This document is unavailable.');
+
+        return Storage::disk($document->disk)->response($document->path, $document->kind.'.'.pathinfo($document->path, PATHINFO_EXTENSION), [
+            'X-Content-Type-Options' => 'nosniff', 'Cache-Control' => 'private, no-store',
+            'Content-Security-Policy' => "default-src 'none'; sandbox", 'Content-Type' => $document->mime_type,
+        ], 'inline');
     }
 }

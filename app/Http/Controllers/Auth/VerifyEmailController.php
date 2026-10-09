@@ -3,31 +3,27 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Auth\Events\Verified;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use App\Services\EmailVerificationLinks;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 class VerifyEmailController extends Controller
 {
     /**
      * Mark the authenticated user's email address as verified.
      */
-    public function __invoke(EmailVerificationRequest $request): RedirectResponse
+    public function __invoke(Request $request, string $token, EmailVerificationLinks $links): Response|RedirectResponse
     {
-        if ($request->user()->hasVerifiedEmail()) {
-            return redirect(route('dashboard', absolute: false).'?verified=1');
+        $user = $links->verify($token);
+        if ($user && $request->user()?->id === $user->id) {
+            $request->user()->setRawAttributes($user->getAttributes(), true);
+            $request->session()->forget('url.intended');
+
+            return to_route($user->onboardingRoute());
         }
 
-        if ($request->user()->markEmailAsVerified()) {
-            /** @var MustVerifyEmail $user */
-            $user = $request->user();
-
-            event(new Verified($user));
-        }
-
-        $request->session()->forget('url.intended');
-
-        return redirect(route('dashboard', absolute: false).'?verified=1');
+        return Inertia::render('auth/verification-result', ['verified' => $user !== null]);
     }
 }

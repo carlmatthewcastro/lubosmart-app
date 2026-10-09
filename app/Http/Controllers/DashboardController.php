@@ -8,8 +8,9 @@ use App\Models\Product;
 use App\Models\RegistrationApplication;
 use App\Models\SellerOrder;
 use App\Models\Store;
-use App\Models\SupportCase;
 use App\Models\User;
+use App\Services\Admin\AdminWorkspace;
+use App\Services\Admin\AuditLogger;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -21,11 +22,14 @@ class DashboardController extends Controller
     public function index(Request $request): RedirectResponse
     {
         $user = $request->user();
+        if ($user->role === null) {
+            return to_route('role.choose');
+        }
         if (! $user->hasVerifiedEmail()) {
             return to_route('verification.notice');
         }
-        if ($user->status !== 'active') {
-            return to_route('application.edit');
+        if ($user->status !== 'approved') {
+            return to_route($user->onboardingRoute());
         }
 
         return to_route('dashboard.role', ['role' => $user->role]);
@@ -47,30 +51,36 @@ class DashboardController extends Controller
             $orders = SellerOrder::query()->where('store_id', $store?->id);
             $stats = ['Products' => Product::query()->where('store_id', $store?->id)->count(), 'Seller orders' => (clone $orders)->count(), 'Completed' => (clone $orders)->where('status', 'completed')->count()];
             $records = $orders->latest('id')->limit(10)->get(['id', 'status', 'subtotal'])->map(fn ($row) => ['id' => $row->id, 'label' => 'Seller order #'.$row->id, 'status' => $row->status, 'detail' => 'PHP '.$row->subtotal]);
-        } elseif ($role === 'rider' || $role === 'logistics') {
+        } elseif ($role === 'courier' || $role === 'sorting_center') {
             $deliveries = Delivery::query();
-            if ($role === 'rider') {
+            if ($role === 'courier') {
                 $deliveries->where('rider_id', $user->id);
             } else {
-                $deliveries->whereIn('sorting_center_id', $user->sortingCenters()->where('is_active', true)->pluck('sorting_centers.id'));
+                $deliveries->whereIn('sorting_center_id', $user->sortingCenters()->operational()->pluck('sorting_centers.id'));
             }
             $stats = ['Parcels' => (clone $deliveries)->count(), 'For pickup' => (clone $deliveries)->where('status', 'assigned')->count(), 'Delivered' => (clone $deliveries)->where('status', 'delivered')->count()];
             $records = $deliveries->latest('id')->limit(10)->get(['id', 'status'])->map(fn ($row) => ['id' => $row->id, 'label' => 'Delivery #'.$row->id, 'status' => $row->status, 'detail' => 'Assigned parcel']);
         } else {
-            $pending = RegistrationApplication::query()->where('status', 'submitted');
-            $stats = ['Accounts' => User::query()->count(), 'Pending review' => (clone $pending)->count(), 'Approved stores' => Store::query()->where('status', 'approved')->count()];
+            $workspace = app(AdminWorkspace::class)->data($user);
+            $stats = [];
+            if ($user->canAdmin('accounts')) {
+                $stats['Accounts'] = User::query()->count();
+            }
+            if ($user->canAdmin('registrations')) {
+                $stats['Pending review'] = $workspace['badges']['registrations'];
+            }
+            if ($user->canAdmin('compliance')) {
+                $stats['Approved stores'] = Store::query()->where('status', 'approved')->count();
+            }
             $adminOverview = [
-                'applications' => $pending->with('user:id,name')->orderBy('submitted_at')->orderBy('id')->limit(5)->get(['id', 'user_id', 'requested_role', 'submitted_at'])->map(fn ($application) => [
+                'applications' => $user->canAdmin('registrations') ? RegistrationApplication::query()->where('status', 'submitted')->with('user:id,name')->orderBy('submitted_at')->orderBy('id')->limit(5)->get(['id', 'user_id', 'requested_role', 'submitted_at'])->map(fn ($application) => [
                     'id' => $application->id, 'name' => $application->user->name, 'role' => $application->requested_role, 'submittedAt' => $application->submitted_at?->toIso8601String(),
-                ]),
-                'activeDeliveries' => Delivery::query()->whereIn('status', ['assigned', 'picked_up', 'in_transit'])->count(),
-                'codAwaitingReconciliation' => DB::table('cod_collections')->where('status', 'handed_over')->count(),
-                'openComplaints' => SupportCase::query()->where('kind', 'complaint')->where('status', '!=', 'resolved')->count(),
-                'unreadConversations' => SupportCase::query()->whereHas('messages', fn ($q) => $q->whereHas('author', fn ($author) => $author->where('role', '!=', 'admin'))
-                    ->where(fn ($messages) => $messages->whereNull('support_cases.last_admin_seen_message_id')->orWhereColumn('support_case_messages.id', '>', 'support_cases.last_admin_seen_message_id')))->count(),
-                'blockedListings' => Product::query()->whereNotNull('blocked_at')->count(),
+                ]) : [],
+                'openComplaints' => $workspace['badges']['disputes'] ?? null,
+                'unreadConversations' => $workspace['badges']['messages'] ?? null,
+                'blockedListings' => $workspace['badges']['compliance'] ?? null,
             ];
-            $records = DB::table('audit_events')->orderByDesc('id')->limit(10)->get(['id', 'action', 'subject_type', 'subject_id', 'occurred_at'])->map(fn ($row) => [
+            $records = app(AuditLogger::class)->scope(DB::table('audit_events'), $user)->orderByDesc('id')->limit(10)->get(['id', 'action', 'subject_type', 'subject_id', 'occurred_at'])->map(fn ($row) => [
                 'id' => $row->id,
                 'label' => match ($row->subject_type) {
                     'registration_application' => 'Application #'.$row->subject_id,

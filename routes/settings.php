@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\EmailCodeController;
 use App\Http\Controllers\Settings\AddressController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
@@ -20,6 +21,9 @@ Route::middleware('auth')->group(function () {
     Route::patch('settings/addresses/{address}/default', [AddressController::class, 'default'])->name('settings.addresses.default');
 
     Route::get('settings/password', [PasswordController::class, 'edit'])->name('password.edit');
+    Route::post('settings/password/confirm', [PasswordController::class, 'confirmChange'])->middleware('throttle:5,1')->name('password.confirm-change');
+    Route::post('settings/security-code', [EmailCodeController::class, 'sendAuthenticated'])->middleware('throttle:5,1')->name('security-code.send');
+    Route::post('settings/security-code/verify', [EmailCodeController::class, 'verifyAuthenticated'])->middleware('throttle:10,1')->name('security-code.verify');
     Route::put('settings/password', [PasswordController::class, 'update'])->name('password.update');
 
     Route::get('settings/appearance', function () {
