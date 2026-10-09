@@ -36,7 +36,7 @@ class ApplicationController extends Controller
             $profile->age = Carbon::parse($profile->birthday)->age;
         }
 
-        return Inertia::render('application', [
+        return Inertia::render('onboarding/application', [
             'application' => $application->only(['id', 'status', 'rejection_reason', 'business_name', 'sorting_center_id', 'draft_data', 'draft_saved_at', 'submitted_at', 'reviewed_at']),
             'profile' => $profile,
             'address' => Address::query()->find($application->address_id),

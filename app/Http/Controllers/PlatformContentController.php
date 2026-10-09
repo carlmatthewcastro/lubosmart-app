@@ -50,7 +50,7 @@ class PlatformContentController extends Controller
         $data = $request->validate(['policy' => ['nullable', Rule::in(['terms', 'privacy'])]]);
         $policy = $data['policy'] ?? null;
 
-        return Inertia::render('platform-information', [
+        return Inertia::render('public/platform-information', [
             'policy' => $policy,
             'contents' => DB::table('platform_contents')->where('published', true)
                 ->when($policy, fn ($query) => $query->where('kind', 'policy')->where('title', 'like', '%'.$policy.'%'))

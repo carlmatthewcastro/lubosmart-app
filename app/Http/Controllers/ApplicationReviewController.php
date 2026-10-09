@@ -34,7 +34,7 @@ class ApplicationReviewController extends Controller
                 ->whereHas('user', fn ($users) => $users->where('role', 'courier')->whereColumn('users.sorting_center_id', 'registration_applications.sorting_center_id'));
         }
 
-        return Inertia::render('reviews', ['filters' => ['status' => $status], 'applications' => $query->with('user')->orderBy('submitted_at')->orderBy('id')->paginate(15)->withQueryString()->through(fn ($application) => [
+        return Inertia::render('management/registrations/index', ['filters' => ['status' => $status], 'applications' => $query->with('user')->orderBy('submitted_at')->orderBy('id')->paginate(15)->withQueryString()->through(fn ($application) => [
             ...$application->only(['id', 'status', 'requested_role', 'submitted_at', 'reviewed_at']), 'name' => $application->user->name, 'email' => $application->user->email,
         ])]);
     }
@@ -63,7 +63,7 @@ class ApplicationReviewController extends Controller
             ]),
         ];
 
-        return $request->expectsJson() ? response()->json($data)->header('Cache-Control', 'private, no-store') : Inertia::render('review', $data);
+        return $request->expectsJson() ? response()->json($data)->header('Cache-Control', 'private, no-store') : Inertia::render('management/registrations/show', $data);
     }
 
     public function update(Request $request, RegistrationApplication $application): RedirectResponse

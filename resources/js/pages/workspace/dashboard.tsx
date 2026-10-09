@@ -1,4 +1,3 @@
-import AdminOverview, { type AdminOverviewData } from '@/components/admin-overview';
 import { Badge, Card, Empty, Page, buttonClass, secondaryClass } from '@/components/marketplace-ui';
 import { type SharedData, type UserRole } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
@@ -51,37 +50,20 @@ const roles = {
             { title: 'Delivery history', text: 'Review your completed parcels.', href: '/reports', icon: ChartNoAxesCombined },
         ],
     },
-    admin: {
-        title: 'Platform overview',
-        description: 'Keep the community running smoothly with thoughtful oversight.',
-        primary: 'Review applications',
-        href: '/reviews',
-        steps: ['Approve eligible applications', 'Monitor accounts & orders', 'Reconcile COD & review rates'],
-        links: [
-            { title: 'Applications', text: 'Review buyers, sellers, and centers.', href: '/reviews', icon: ClipboardCheck },
-            { title: 'Parcel operations', text: 'Monitor deliveries and reconcile COD.', href: '/deliveries', icon: Truck },
-            { title: 'Platform reports', text: 'Review sales, shipping, and commission.', href: '/reports', icon: ChartNoAxesCombined },
-        ],
-    },
 };
 export default function Dashboard({
     role,
     stats,
     records,
     storeStatus,
-    adminOverview,
 }: {
-    role: UserRole;
+    role: Exclude<UserRole, 'admin'>;
     stats: Record<string, number>;
     records: { id: number; label: string; status: string; detail: string }[];
     storeStatus?: string;
-    adminOverview?: AdminOverviewData | null;
 }) {
     const { auth } = usePage<SharedData>().props;
     const content = roles[role];
-    if (role === 'admin' && adminOverview) {
-        return <AdminOverview stats={stats} overview={adminOverview} records={records} />;
-    }
     return (
         <Page
             title={content.title}
@@ -125,10 +107,7 @@ export default function Dashboard({
                 <div>
                     <div className="mb-4 flex items-center justify-between">
                         <h2 className="font-semibold">Recent activity</h2>
-                        <Link
-                            className="text-primary text-sm"
-                            href={role === 'admin' ? '/reviews' : ['courier', 'sorting_center'].includes(role) ? '/deliveries' : '/orders'}
-                        >
+                        <Link className="text-primary text-sm" href={['courier', 'sorting_center'].includes(role) ? '/deliveries' : '/orders'}>
                             View workspace
                         </Link>
                     </div>

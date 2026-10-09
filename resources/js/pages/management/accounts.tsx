@@ -2,22 +2,22 @@ import { InfoModal } from '@/components/info-modal';
 import { Badge, buttonClass, Card, Empty, Field, Page, Pager, roleLabel, Select, type Pagination } from '@/components/marketplace-ui';
 import { type SharedData, type User } from '@/types';
 import { Link, useForm, usePage } from '@inertiajs/react';
-import { ShieldCheck } from 'lucide-react';
+import { ClipboardCheck, ShieldCheck } from 'lucide-react';
 
 function AccountRow({ account }: { account: User; allowedStatuses: string[] }) {
     return (
         <Card>
             <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex min-w-0 items-center gap-3">
-                    <span className="bg-accent text-primary flex size-11 shrink-0 items-center justify-center rounded-xl font-semibold">
+                    <span className="bg-accent/70 text-primary flex size-11 shrink-0 items-center justify-center rounded-full font-semibold">
                         {account.name.charAt(0).toUpperCase()}
                     </span>
                     <div className="min-w-0">
-                        <h2 className="truncate font-semibold">{account.name}</h2>
+                        <h2 className="text-sm font-semibold break-words">{account.name}</h2>
                         <p className="text-muted-foreground mt-1 text-xs">{roleLabel(account.role)}</p>
                     </div>
                 </div>
-                <Badge status={account.status} />
+                <Badge status={account.status} label={account.status === 'incomplete' ? 'Incomplete Registration' : undefined} />
             </div>
             <p className="text-muted-foreground mt-4 text-sm break-all">{account.email}</p>
             <div className="mt-5 border-t pt-4">
@@ -47,14 +47,16 @@ export default function Accounts({
                     : 'View all non-admin accounts, track registration progress, and manage eligible accounts.'
             }
         >
-            <Card className="flex gap-3">
-                <ShieldCheck className="text-primary size-5 shrink-0" />
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                    Suspension blocks access immediately, including existing sessions. Pending accounts must complete application review before
-                    activation.
-                </p>
-            </Card>
             <Card>
+                <div className="mb-5 flex items-center gap-3">
+                    <span className="bg-accent text-primary rounded-xl p-2.5">
+                        <ShieldCheck className="size-4" />
+                    </span>
+                    <div>
+                        <h2 className="text-sm font-semibold">Find an Account</h2>
+                        <p className="text-muted-foreground mt-1 text-xs">Search by name or email, then narrow by role and status.</p>
+                    </div>
+                </div>
                 <form
                     className="grid items-end gap-4 sm:grid-cols-2 xl:grid-cols-[1fr_160px_160px_auto]"
                     onSubmit={(e) => {
@@ -94,6 +96,19 @@ export default function Accounts({
                         </Link>
                     )}
                 </form>
+                <details className="text-muted-foreground mt-5 border-t pt-4 text-xs">
+                    <summary className="hover:text-primary cursor-pointer font-medium">Account access rules</summary>
+                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                        <p className="flex items-start gap-2 leading-relaxed">
+                            <ShieldCheck className="mt-0.5 size-3.5 shrink-0" />
+                            Suspension immediately blocks sign-in and existing sessions.
+                        </p>
+                        <p className="flex items-start gap-2 leading-relaxed">
+                            <ClipboardCheck className="mt-0.5 size-3.5 shrink-0" />
+                            Pending applications must be approved before account activation.
+                        </p>
+                    </div>
+                </details>
             </Card>
             <p className="text-muted-foreground text-sm">
                 {accounts.total} {accounts.total === 1 ? 'account' : 'accounts'}

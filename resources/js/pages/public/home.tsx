@@ -4,7 +4,7 @@ import { type MouseEvent, useState } from 'react';
 
 import AuthModal from '@/components/storefront-auth-modal';
 import type { SharedData } from '@/types';
-import '../../css/auth-preview.css';
+import '../../../css/auth-preview.css';
 
 type AuthTab = 'login' | 'register';
 type PublicRole = 'buyer' | 'seller' | 'courier' | 'sorting_center';
