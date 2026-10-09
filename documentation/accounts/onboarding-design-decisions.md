@@ -1,5 +1,7 @@
 # Progressive registration and verification
 
+> Historical October 7 design notes. Current rules require approval for all four public roles, including buyers. See [account approval and security](account-security.md) and [registration flow](registration-authentication.md) for the implemented October 9 requirements.
+
 Applied from `Marketplace_Registration_and_Verification_System_Design.docx` on 2026-10-07, alongside the existing ERP role boundaries. The document is a design reference. The implementation uses the existing Laravel account, application, document, address, and audit models instead of replacing historical records.
 
 ## Account journeys

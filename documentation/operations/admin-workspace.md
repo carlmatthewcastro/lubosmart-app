@@ -1,5 +1,7 @@
 # Admin workspace
 
+The admin workspace uses grouped navigation, a light theme, categorized attention notifications, and account/registration/conversation detail modals. Activity history uses account names and action choices instead of requiring account IDs.
+
 The admin workspace manages marketplace access, seller compliance, support, platform rates, and published content. This update is local; it has not been pushed or deployed.
 
 ## Functions
@@ -7,20 +9,24 @@ The admin workspace manages marketplace access, seller compliance, support, plat
 | Function | Page | Behavior |
 | --- | --- | --- |
 | Overview and notifications | `/dashboard/admin` | Live counts, oldest application queue, unread conversations, open complaints, blocked listings, and platform activity. |
-| Registration review | `/reviews` | Inspect submitted information and private documents; approve or reject buyer, seller, courier, and sorting-center applications. Decisions queue an email. New buyers normally verify their email without submitting an application. |
+| Registration review | `/reviews` | Inspect submitted information and private documents. Admin approves or rejects buyers, sellers, and sorting centers, with courier override available. Each approved sorting center reviews its own couriers. Decisions queue an email. |
 | Account management | `/accounts` | Search and filter accounts, inspect profiles, and activate, suspend, or deactivate eligible accounts with a required audit reason. |
 | Seller compliance | `/admin/compliance` | Find category mismatches, warn sellers, block or restore listings, and suspend sellers for violations. Reasons and history are retained. |
 | Complaints and disputes | `/support?kind=complaint` | Review concerns and private evidence, communicate with involved parties, record an outcome, resolve, or reopen a case. |
-| Messaging | `/support?kind=message` | Start an admin conversation using a recipient email or a parcel order number. Participants can reply through their Support page. |
-| Commission | `/admin/commission` | Set the commission percentage and delivery fee. Defaults remain 10% and PHP 50; existing order snapshots do not change. |
+| Messaging | `/support?kind=message` | Start a conversation in a modal by choosing an approved recipient or order participants, then selecting a topic. Participants can reply through their Support page. |
+| Commission | `/admin/commission` | Edit commission (0-100%, up to two decimal places) and the delivery fee with confirmation. New orders snapshot these rates; existing orders keep their original rates. Commission amounts are calculated on delivery. |
 | Reports | `/reports` | Filter completed parcels by delivery date and download sales or commission CSV reports. |
 | Platform settings | `/admin/platform` | Create and edit announcements and policies, keep drafts private, publish, or withdraw content. Published announcements appear on the homepage. |
 | COD operations | `/deliveries` | Inspect deliveries and reconcile cash handed over by sorting centers. |
-| Own account and logout | `/settings/profile` and the user menu | Maintain account details and password; end the session. |
+| Own account and logout | `/settings/profile`, `/settings/password`, and the user menu | Edit the admin display name and change the password; the sign-in email is read-only and contact numbers are omitted. End the session from the user menu. |
 
-Admin can review couriers across centers. Sorting-center staff retain permission to review couriers assigned to their active centers.
+Admin can inspect and override courier decisions across centers and suspend accounts for compliance. Each approved sorting center reviews and deactivates only its own couriers. Admin handles suspension and reactivation. All approved, verified admins have the same access; there are no sub-admin roles. Activity history is retained for accountability, with the read-only audit page at `/admin/audit-log`. See [Account approval and security](../accounts/account-security.md) for the current rules.
 
 Deactivation retains account and transaction records. Suspended or deactivated sellers cannot publish, appear in the public catalog, or receive new checkouts. Admin cannot deactivate their own account or activate an unapproved partner through account management. Blocked listings need admin clearance before a seller can republish them.
+
+Admin accounts can use email and password without Google sign-in. Keep an accessible sign-in email for password recovery and your current password plus an email security code for password changes. Name edits do not require a code. The server rejects admin email and contact-number changes through profile settings. Existing contact values are retained in storage but are not shown in admin settings.
+
+Local testing accounts and live accounts belong to their respective databases. Starting or restarting `php artisan serve` does not recreate accounts. The account migrations preserve existing administrators, passwords, and verification; keep the existing live database when deploying updates.
 
 ## Test locally
 
@@ -33,11 +39,11 @@ The new migrations have been applied to the local database. For another local ch
 5. Warn or block a synthetic seller listing. Verify the seller sees the review notice in Inventory and cannot republish a blocked listing. Restore it after correcting any category mismatch.
 6. Open a complaint from a buyer account, optionally attaching JPG, PNG, or PDF evidence up to 5 MB. Reply as admin, then as a participant. Record a resolution and reopen the case. Unrelated users must not access the case or its evidence.
 7. Start a general conversation from admin using a testing user's email. Verify it appears in that user's Support inbox and new replies appear in the admin attention count.
-8. Publish a sample announcement and check the homepage and public announcements page. Unpublish it and confirm it disappears. Policies are available on `/platform-information`.
-9. Change the commission rate, then verify a new order uses it while older order snapshots remain unchanged. Filter reports and download both CSV files.
+8. In Platform Settings, create an announcement or policy in the modal editor. Preview it, save a draft, and check the Content Type and Visibility filters. Publish it and check the public page (and homepage for announcements). Save it as a draft again and confirm it disappears publicly. Policies are available on `/platform-information`.
+9. Change commission and the delivery fee, then verify new orders use the new rates while existing orders keep their original rates. Commission amounts are calculated when delivered. Filter reports and download both CSV files.
 10. Suspend or deactivate a testing account and verify access is denied, including an existing session. Restore eligible access through admin account management.
 
-Only use synthetic data for these checks. Email delivery needs a configured mail provider and queue worker. Messaging is stored and refreshed through page navigation; it is not a live websocket chat service. Resolving a dispute records its outcome; it does not issue a refund or seller payout.
+Only use synthetic data for these checks. Email delivery needs a configured mail provider and queue worker. The floating Messages panel is available from the navbar or bottom-right launcher on admin pages. Open it to read conversations, send replies, or start a new conversation without leaving the current page. The panel refreshes every 30 seconds while open and visible; it does not use websockets. The full inbox provides attachments and case actions. Resolving a dispute records its outcome; it does not issue a refund or seller payout.
 
 ## Deployment notes
 
