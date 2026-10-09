@@ -21,12 +21,13 @@ class AccountController extends Controller
     {
         $actor = $request->user();
         abort_unless(in_array($actor->role, ['admin', 'sorting_center'], true), 403);
-        $filters = $request->validate(['search' => 'nullable|string|max:160', 'role' => ['nullable', Rule::in(['buyer', 'seller', 'courier', 'sorting_center'])], 'status' => ['nullable', Rule::in(['approved', 'suspended', 'deactivated'])]]);
-        $query = User::query()->where('role', '!=', 'admin')->whereIn('status', ['approved', 'suspended', 'deactivated']);
+        $filters = $request->validate(['search' => 'nullable|string|max:160', 'role' => ['nullable', Rule::in(['buyer', 'seller', 'courier', 'sorting_center', 'unassigned'])], 'status' => ['nullable', Rule::in(['unverified', 'incomplete', 'pending', 'approved', 'rejected', 'suspended', 'deactivated'])]]);
+        $query = User::query()->nonAdmin();
         $query->when($filters['search'] ?? null, fn ($q, $search) => $q->where(fn ($q) => $q->where('name', 'like', '%'.$search.'%')->orWhere('email', 'like', '%'.$search.'%')));
-        $query->when($filters['role'] ?? null, fn ($q, $role) => $q->where('role', $role));
+        $query->when($filters['role'] ?? null, fn ($q, $role) => $role === 'unassigned' ? $q->whereNull('role') : $q->where('role', $role));
         $query->when($filters['status'] ?? null, fn ($q, $status) => $q->where('status', $status));
         if ($actor->role === 'sorting_center') {
+            $query->whereIn('status', ['approved', 'suspended', 'deactivated']);
             $query->where('role', 'courier')->whereIn('sorting_center_id', $actor->sortingCenters()->operational()->pluck('sorting_centers.id'))->whereHas('application', fn ($query) => $query->where('status', 'approved'));
         }
 

@@ -64,7 +64,7 @@ class DashboardController extends Controller
             $workspace = app(AdminWorkspace::class)->data($user);
             $stats = [];
             if ($user->canAdmin('accounts')) {
-                $stats['Accounts'] = User::query()->count();
+                $stats['Accounts'] = User::query()->nonAdmin()->count();
             }
             if ($user->canAdmin('registrations')) {
                 $stats['Pending review'] = $workspace['badges']['registrations'];

@@ -6,7 +6,7 @@ import { type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, us
 
 export const money = (value: string | number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(Number(value));
 const roleLabels: Record<string, string> = { buyer: 'Buyer', seller: 'Seller', courier: 'Courier', sorting_center: 'Sorting Center', admin: 'Admin' };
-export const roleLabel = (role: string) => roleLabels[role] ?? role.replaceAll('_', ' ');
+export const roleLabel = (role: string | null | undefined) => (role ? (roleLabels[role] ?? role.replaceAll('_', ' ')) : 'No Role Selected');
 export const buttonClass =
     'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-primary/25 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50';
 export const secondaryClass =

@@ -64,6 +64,34 @@ function adminTestParcel($test): SellerOrder
     return SellerOrder::query()->latest('id')->firstOrFail();
 }
 
+test('admin account list and dashboard include every non admin registration state', function () {
+    foreach (['unverified', 'incomplete', 'pending', 'approved', 'rejected', 'suspended', 'deactivated'] as $status) {
+        User::factory()->create(['role' => 'buyer', 'status' => $status]);
+    }
+    $unassigned = User::factory()->create(['role' => null, 'status' => 'unverified']);
+    User::factory()->create(['role' => 'admin']);
+
+    $this->actingAs($this->admin)->get('/accounts')->assertInertia(fn (Assert $page) => $page
+        ->has('accounts.data', 10)->where('accounts.total', 10)
+        ->where('accounts.data', fn ($accounts) => collect($accounts)->contains('id', $unassigned->id)
+            && ! collect($accounts)->contains('role', 'admin')));
+    $this->get('/dashboard/admin')->assertInertia(fn (Assert $page) => $page->where('stats.Accounts', 10));
+    $this->getJson('/accounts/'.$unassigned->id)->assertOk()->assertJsonPath('account.role', null)->assertJsonPath('allowedStatuses', []);
+});
+
+test('admin can filter unfinished registrations without exposing admins or bypassing approval', function () {
+    $pending = User::factory()->create(['role' => 'seller', 'status' => 'pending']);
+    $unassigned = User::factory()->create(['role' => null, 'status' => 'unverified', 'name' => 'Unassigned applicant']);
+
+    $this->actingAs($this->admin)->get('/accounts?status=pending&role=seller')->assertInertia(fn (Assert $page) => $page
+        ->has('accounts.data', 1)->where('accounts.data.0.id', $pending->id));
+    $this->get('/accounts?role=unassigned')->assertInertia(fn (Assert $page) => $page
+        ->has('accounts.data', 1)->where('accounts.data.0.id', $unassigned->id));
+    $this->get('/accounts?search=No%20matching%20name')->assertInertia(fn (Assert $page) => $page->has('accounts.data', 0));
+    $this->patch('/accounts/'.$pending->id, ['status' => 'approved', 'reason' => 'Attempt to bypass application review'])->assertSessionHasErrors('status');
+    expect($pending->fresh()->status)->toBe('pending');
+});
+
 test('all admin management pages reject non admin roles', function (string $role) {
     $this->actingAs(User::factory()->create(['role' => $role]));
     foreach (['/admin/compliance', '/admin/platform', '/admin/commission', '/reports/export?type=sales'] as $url) {
