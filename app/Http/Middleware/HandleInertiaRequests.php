@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\Admin\AdminWorkspace;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -43,8 +44,9 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
-                'user' => $request->user(),
+                'user' => $request->user()?->only(['id', 'name', 'email', 'role', 'status', 'sorting_center_id', 'phone', 'email_verified_at', 'email_verified', 'created_at', 'updated_at']),
             ],
+            'adminWorkspace' => fn () => $request->user()?->role === 'admin' ? app(AdminWorkspace::class)->data($request->user()) : null,
             'status' => fn () => $request->session()->get('status'),
         ]);
     }

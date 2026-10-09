@@ -29,8 +29,8 @@ test('address settings only shows addresses belonging to the signed in user', fu
     $this->actingAs($user)->get('/settings/addresses')->assertInertia(fn (Assert $page) => $page->component('settings/addresses')->has('addresses', 1)->where('addresses.0.label', 'Home'));
 });
 
-test('pending accounts can save an address and switch the default without duplicate defaults', function () {
-    $user = User::factory()->unverified()->create(['status' => 'pending']);
+test('approved accounts can save an address and switch the default without duplicate defaults', function () {
+    $user = User::factory()->create();
     $this->actingAs($user)->post('/settings/addresses', savedAddressData(['user_id' => 999]))->assertSessionHasNoErrors()->assertRedirect('/settings/addresses');
     $first = Address::query()->firstOrFail();
     expect($first->user_id)->toBe($user->id);

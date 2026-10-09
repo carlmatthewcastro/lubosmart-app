@@ -37,6 +37,25 @@ class PhilippineLocations
         return ['province' => $province['name'], 'city' => $city['name'], 'barangay' => $barangay['name'], 'region' => $city['regionCode']];
     }
 
+    public function validateDraft(array $selection): void
+    {
+        $province = $selection['province_code'] ?? null;
+        $city = $selection['city_code'] ?? null;
+        $barangay = $selection['barangay_code'] ?? null;
+        if (! $province && ! $city && ! $barangay) {
+            return;
+        }
+        if (! $province || ! collect($this->provinces())->firstWhere('code', $province)) {
+            throw ValidationException::withMessages(['province_code' => 'Choose a valid province.']);
+        }
+        if (($city || $barangay) && (! $city || ! collect($this->cities($province))->firstWhere('code', $city))) {
+            throw ValidationException::withMessages(['city_code' => 'Choose a municipality belonging to the selected province.']);
+        }
+        if ($barangay && ! collect($this->barangays($city))->firstWhere('code', $barangay)) {
+            throw ValidationException::withMessages(['barangay_code' => 'Choose a barangay belonging to the selected municipality.']);
+        }
+    }
+
     private function fetch(string $path): array
     {
         try {

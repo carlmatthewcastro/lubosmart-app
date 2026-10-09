@@ -8,6 +8,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Store extends Model
 {
+    protected $hidden = ['bank_account'];
+
+    protected function casts(): array
+    {
+        return ['bank_account' => 'encrypted'];
+    }
+
     protected $fillable = [
         'user_id',
         'name',

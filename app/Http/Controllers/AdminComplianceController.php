@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\User;
 use App\Notifications\SellerComplianceNotice;
+use App\Services\Admin\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -48,11 +49,12 @@ class AdminComplianceController extends Controller
                 $product->forceFill(['status' => 'active', 'blocked_at' => null])->save();
             }
             if ($data['action'] === 'suspend') {
-                abort_unless($seller->status === 'active', 409);
+                abort_unless($seller->status === 'approved', 409);
                 $seller->forceFill(['status' => 'suspended'])->save();
+                app(AuditLogger::class)->record(['actor_id' => $request->user()->id, 'subject_type' => 'user', 'subject_id' => $seller->id, 'action' => 'suspended', 'changes' => json_encode(['from' => 'approved', 'to' => 'suspended', 'reason' => $data['reason']]), 'occurred_at' => now()]);
             }
             DB::table('product_moderations')->insert(['product_id' => $product->id, 'actor_id' => $request->user()->id, 'action' => $data['action'], 'reason' => $data['reason'], 'created_at' => now(), 'updated_at' => now()]);
-            DB::table('audit_events')->insert(['actor_id' => $request->user()->id, 'subject_type' => 'product', 'subject_id' => $product->id, 'action' => $data['action'], 'changes' => json_encode(['reason' => $data['reason']]), 'occurred_at' => now()]);
+            app(AuditLogger::class)->record(['actor_id' => $request->user()->id, 'subject_type' => 'product', 'subject_id' => $product->id, 'action' => $data['action'], 'changes' => json_encode(['reason' => $data['reason']]), 'occurred_at' => now()]);
             $seller->notify(new SellerComplianceNotice($product->name, $data['action'], $data['reason']));
         });
 

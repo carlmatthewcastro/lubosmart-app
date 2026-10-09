@@ -22,7 +22,7 @@ class MarketplaceController extends Controller
     {
         $filters = $request->validate(['search' => 'nullable|string|max:100', 'category' => 'nullable|integer']);
         $products = Product::query()->with(['store:id,name', 'category:id,name'])
-            ->where('status', 'active')->whereHas('store', fn ($q) => $q->where('status', 'approved')->whereHas('user', fn ($user) => $user->where('status', 'active')))
+            ->where('status', 'active')->whereHas('store', fn ($q) => $q->where('status', 'approved')->whereHas('user', fn ($user) => $user->where('role', 'seller')->where('status', 'approved')->whereNotNull('email_verified_at')))
             ->whereHas('category', fn ($q) => $q->where('is_active', true)->where(fn ($q) => $q->whereNull('parent_id')->orWhereHas('parent', fn ($q) => $q->where('is_active', true))))
             ->when($filters['search'] ?? null, fn ($q, $search) => $q->where('name', 'like', '%'.$search.'%'))
             ->when($filters['category'] ?? null, fn ($q, $id) => $q->where(fn ($q) => $q->where('category_id', $id)->orWhereHas('category', fn ($q) => $q->where('parent_id', $id))))
@@ -46,7 +46,8 @@ class MarketplaceController extends Controller
         abort_unless($request->user()->role === 'buyer', 403);
         $data = $request->validate(['quantity' => 'required|integer|min:0|max:999', 'add' => 'sometimes|boolean']);
         DB::transaction(function () use ($request, $product, $data) {
-            User::query()->whereKey($request->user()->id)->lockForUpdate()->firstOrFail();
+            $buyer = User::query()->whereKey($request->user()->id)->lockForUpdate()->firstOrFail();
+            abort_unless($buyer->role === 'buyer' && $buyer->canOperate(), 403);
             $cart = Cart::query()->firstOrCreate(['user_id' => $request->user()->id]);
             if ($data['add'] ?? false) {
                 $data['quantity'] += CartItem::query()->where('cart_id', $cart->id)->where('product_id', $product->id)->value('quantity') ?? 0;
@@ -57,7 +58,7 @@ class MarketplaceController extends Controller
                 return;
             }
             $product->refresh()->load('store');
-            if ($product->status !== 'active' || $product->store->status !== 'approved' || $product->stock < $data['quantity'] || $data['quantity'] > 999) {
+            if ($product->status !== 'active' || $product->blocked_at || $product->store->status !== 'approved' || $product->store->user->role !== 'seller' || ! $product->store->user->canOperate() || $product->stock < $data['quantity'] || $data['quantity'] > 999) {
                 throw ValidationException::withMessages(['quantity' => 'This quantity is unavailable. Please check the remaining stock.']);
             }
             CartItem::query()->updateOrCreate(['cart_id' => $cart->id, 'product_id' => $product->id], ['quantity' => $data['quantity']]);

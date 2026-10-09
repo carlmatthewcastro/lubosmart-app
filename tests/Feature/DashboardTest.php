@@ -26,7 +26,7 @@ test('admin overview shows the oldest eligible applications including couriers a
         ]);
         $first ??= $application;
     }
-    foreach ([['rider', 'submitted'], ['seller', 'draft'], ['logistics', 'approved']] as [$role, $status]) {
+    foreach ([['courier', 'submitted'], ['seller', 'draft'], ['sorting_center', 'approved']] as [$role, $status]) {
         RegistrationApplication::query()->create([
             'user_id' => User::factory()->create(['role' => $role])->id,
             'requested_role' => $role,
@@ -39,10 +39,10 @@ test('admin overview shows the oldest eligible applications including couriers a
         ->component('dashboard')
         ->where('stats.Pending review', 7)
         ->has('adminOverview.applications', 5)
-        ->where('adminOverview.applications.0.role', 'rider')
+        ->where('adminOverview.applications.0.role', 'courier')
         ->where('adminOverview.applications.1.id', $first->id)
-        ->where('adminOverview.activeDeliveries', 0)
-        ->where('adminOverview.codAwaitingReconciliation', 0));
+        ->missing('adminOverview.activeDeliveries')
+        ->missing('adminOverview.codAwaitingReconciliation'));
 });
 
 test('non admin dashboards do not expose the admin review queue', function () {

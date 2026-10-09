@@ -9,13 +9,18 @@ class RegistrationApplicationPolicy
 {
     public function review(User $user, RegistrationApplication $application): bool
     {
-        if ($user->status !== 'active' || ! $user->hasVerifiedEmail() || $user->id === $application->user_id) {
+        if ($user->status !== 'approved' || ! $user->hasVerifiedEmail() || $user->id === $application->user_id) {
             return false;
         }
-        if ($user->role === 'admin' || $application->requested_role !== 'rider') {
-            return $user->role === 'admin';
-        }
 
-        return $user->role === 'logistics' && $user->sortingCenters()->where('sorting_centers.id', $application->sorting_center_id)->where('is_active', true)->exists();
+        return $user->canAdmin('registrations')
+            || ($user->role === 'sorting_center' && $application->requested_role === 'courier'
+                && $application->user->role === 'courier' && $application->user->sorting_center_id === $application->sorting_center_id
+                && $user->sortingCenters()->operational()->where('sorting_centers.id', $application->sorting_center_id)->exists());
+    }
+
+    public function view(User $user, RegistrationApplication $application): bool
+    {
+        return $user->canOperate() && ($user->canAdmin('registrations') || $this->review($user, $application));
     }
 }

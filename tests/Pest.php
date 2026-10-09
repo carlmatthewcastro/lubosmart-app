@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\SortingCenter;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -44,7 +46,13 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+function linkRiderToApprovedCenter(User $rider): SortingCenter
 {
-    // ..
+    $operator = User::factory()->create(['role' => 'sorting_center']);
+    $center = SortingCenter::query()->create(['code' => 'TEST-'.$rider->id, 'name' => 'Test center', 'address' => 'Synthetic address']);
+    $operator->sortingCenters()->attach($center->id, ['granted_by' => $operator->id]);
+    $rider->sortingCenters()->attach($center->id, ['granted_by' => $operator->id]);
+    $rider->forceFill(['sorting_center_id' => $center->id])->save();
+
+    return $center;
 }

@@ -26,7 +26,7 @@ test('users can not authenticate with invalid password', function () {
     $this->post('/login', [
         'email' => $user->email,
         'password' => 'wrong-password',
-    ])->assertSessionHasErrors(['email' => 'Email or password is incorrect.']);
+    ])->assertSessionHasErrors(['email' => 'Incorrect email or password']);
 
     $this->assertGuest();
 });

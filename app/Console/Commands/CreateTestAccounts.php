@@ -36,9 +36,14 @@ class CreateTestAccounts extends Command
         try {
             $accounts = DB::transaction(function () use ($password, $resetPasswords, &$credentialsChanged, &$accountStates) {
                 $accounts = [];
-                foreach (['admin', 'buyer', 'seller', 'rider', 'logistics'] as $role) {
+                foreach (['admin', 'buyer', 'seller', 'courier', 'sorting_center'] as $role) {
                     $email = 'lubosmart-'.$role.'@testing.app';
                     $user = User::query()->where('email', $email)->lockForUpdate()->first();
+                    // Preserve existing local credentials after the canonical role migration.
+                    if (! $user && in_array($role, ['courier', 'sorting_center'], true)) {
+                        $legacyRole = $role === 'courier' ? 'rider' : 'logistics';
+                        $user = User::query()->where('email', 'lubosmart-'.$legacyRole.'@testing.app')->lockForUpdate()->first();
+                    }
                     if (! $user) {
                         $user = User::query()->where('email', $role.'@testing.lubosmart.invalid')->lockForUpdate()->first();
                         if ($user && $user->role === $role) {
@@ -50,7 +55,7 @@ class CreateTestAccounts extends Command
                     }
                     if (! $user) {
                         $user = User::query()->create(['name' => ucfirst($role).' Test', 'email' => $email, 'role' => $role, 'password' => Hash::make($password)]);
-                        $user->forceFill(['status' => 'active', 'email_verified_at' => now()])->save();
+                        $user->forceFill(['status' => 'approved', 'email_verified_at' => now()])->save();
                         $accountStates[$role] = 'Created';
                         $credentialsChanged = true;
                     } elseif ($resetPasswords) {
@@ -63,12 +68,15 @@ class CreateTestAccounts extends Command
                     $accounts[$role] = $user;
                 }
                 Store::query()->firstOrCreate(['user_id' => $accounts['seller']->id], ['name' => 'Test Store', 'description' => 'Local dashboard testing', 'status' => 'approved']);
-                if (! $accounts['logistics']->sortingCenters()->exists()) {
+                if (! $accounts['sorting_center']->sortingCenters()->exists()) {
                     $center = SortingCenter::query()->create(['code' => 'TEST-'.Str::upper(Str::random(8)), 'name' => 'Local Test Sorting Center', 'address' => 'Synthetic test address']);
-                    $accounts['logistics']->sortingCenters()->attach($center->id, ['granted_by' => $accounts['admin']->id]);
+                    $accounts['sorting_center']->sortingCenters()->attach($center->id, ['granted_by' => $accounts['admin']->id]);
                 }
-                $center = $accounts['logistics']->sortingCenters()->firstOrFail();
-                $accounts['rider']->sortingCenters()->syncWithoutDetaching([$center->id => ['granted_by' => $accounts['admin']->id]]);
+                $center = $accounts['sorting_center']->sortingCenters()->firstOrFail();
+                if (! $accounts['courier']->sorting_center_id) {
+                    $accounts['courier']->forceFill(['sorting_center_id' => $center->id])->save();
+                }
+                $accounts['courier']->sortingCenters()->syncWithoutDetaching([$center->id => ['granted_by' => $accounts['admin']->id]]);
 
                 return $accounts;
             });
@@ -105,7 +113,7 @@ class CreateTestAccounts extends Command
             $display = $known && Hash::check($known, $user->password) ? '`'.$known.'`' : 'Existing password unknown; run the reset command below';
             $guide .= '| '.$user->role.' | '.$user->email.' | '.$display." |\n";
         }
-        $guide .= "\n## Testing the complete flow\n\n1. Buyer: Discover → add to bag → choose an address → Place COD order.\n2. Seller: Fulfillment → Start preparing → Mark ready for pickup.\n3. Logistics: Parcel operations → Receive parcel → Assign Rider Test.\n4. Rider: My deliveries → Confirm pickup → Start delivery → upload a photo → confirm delivery and COD collection.\n5. Logistics: Confirm cash received. Admin: Reconcile COD.\n6. Buyer/seller: open Order conversation to send messages. Reports show completed sales.\n\nUse only synthetic personal information and photos for local testing.\n\n## Start again\n\nStart MySQL, then run `php artisan serve`. In another terminal use `npm run dev`, or build once with `npm run build`. Accounts need no regeneration.\n\nTo intentionally change test passwords: `php artisan lubosmart:test-accounts --reset-passwords`. This guide updates automatically. To add sample products: `php artisan lubosmart:test-accounts --demo`.\n\nThis private file and password metadata are ignored by Git. Do not publish or deploy them. These inboxes are synthetic test identities; do not send real email to them.\n";
+        $guide .= "\n## Testing the complete flow\n\n1. Buyer: Discover → add to bag → choose an address → Place COD order.\n2. Seller: Fulfillment → Start preparing → Mark ready for pickup.\n3. Logistics: Parcel operations → Receive parcel → configure Rider Test coverage → select the destination area → Assign Rider Test.\n4. Rider: My deliveries → Confirm pickup → Start delivery → Mark out for delivery → upload a photo → confirm delivery and COD collection.\n5. Logistics: Confirm cash received. Admin: Reconcile COD.\n6. Buyer/seller: open Order conversation to send messages. Reports show completed sales.\n\nUse only synthetic personal information and photos for local testing.\n\n## Start again\n\nStart MySQL, then run `php artisan serve`. In another terminal use `npm run dev`, or build once with `npm run build`. Accounts need no regeneration.\n\nTo intentionally change test passwords: `php artisan lubosmart:test-accounts --reset-passwords`. This guide updates automatically. To add sample products: `php artisan lubosmart:test-accounts --demo`.\n\nThis private file and password metadata are ignored by Git. Do not publish or deploy them. These inboxes are synthetic test identities; do not send real email to them.\n";
         if (! $disk->put('local-test-accounts.md', $guide)) {
             $this->error('Unable to write the login guide. Check local storage permissions.');
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Auth;
 
+use App\Models\User;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -61,8 +62,10 @@ class LoginRequest extends FormRequest
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());
 
+            $googleOnly = User::query()->where('email', $this->input('email'))->whereNull('password')->whereNotNull('google_id')->exists();
+
             throw ValidationException::withMessages([
-                'email' => 'Email or password is incorrect.',
+                'email' => $googleOnly ? 'Use Continue with Google.' : 'Incorrect email or password',
             ]);
         }
 

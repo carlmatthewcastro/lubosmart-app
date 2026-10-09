@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CommerceSetting;
 use App\Models\SellerOrder;
+use App\Services\Admin\AuditLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -13,15 +14,15 @@ class ReportController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        abort_unless(in_array($user->role, ['admin', 'seller', 'logistics', 'rider']), 403);
+        abort_unless(in_array($user->role, ['admin', 'seller', 'sorting_center', 'courier']), 403);
         $filters = $request->validate(['from' => 'nullable|date_format:Y-m-d', 'to' => ['nullable', 'date_format:Y-m-d', $request->filled('from') ? 'after_or_equal:from' : 'nullable']]);
         $orders = SellerOrder::query()->where('status', 'completed');
         $orders->when($filters['from'] ?? null, fn ($q, $date) => $q->whereHas('delivery', fn ($q) => $q->whereDate('delivered_at', '>=', $date)));
         $orders->when($filters['to'] ?? null, fn ($q, $date) => $q->whereHas('delivery', fn ($q) => $q->whereDate('delivered_at', '<=', $date)));
         if ($user->role === 'seller') {
             $orders->where('store_id', $user->store?->id);
-        } elseif (in_array($user->role, ['logistics', 'rider'])) {
-            $orders->whereHas('delivery', fn ($q) => $user->role === 'rider' ? $q->where('rider_id', $user->id) : $q->whereIn('sorting_center_id', $user->sortingCenters()->where('is_active', true)->pluck('sorting_centers.id')));
+        } elseif (in_array($user->role, ['sorting_center', 'courier'])) {
+            $orders->whereHas('delivery', fn ($q) => $user->role === 'courier' ? $q->where('rider_id', $user->id) : $q->whereIn('sorting_center_id', $user->sortingCenters()->operational()->pluck('sorting_centers.id')));
         }
         $financial = in_array($user->role, ['admin', 'seller']);
         $columns = $financial ? ['*'] : ['id', 'order_id', 'store_id', 'subtotal', 'shipping_fee'];
@@ -70,6 +71,7 @@ class ReportController extends Controller
     {
         abort_unless($request->user()->role === 'admin', 403);
         $data = $request->validate(['shipping_fee_per_seller_order' => 'required|numeric|decimal:0,2|min:0|max:9999.99', 'platform_commission_basis_points' => 'required|integer|min:0|max:10000'], [
+            'platform_commission_basis_points.in' => 'Choose a commission between 0% and 100%.',
             'platform_commission_basis_points.required' => 'Enter a commission percentage.',
             'platform_commission_basis_points.integer' => 'Enter a valid commission percentage.',
             'platform_commission_basis_points.min' => 'Commission must be between 0% and 100%.',
@@ -80,9 +82,9 @@ class ReportController extends Controller
             $settings = CommerceSetting::query()->whereKey(1)->lockForUpdate()->firstOrFail();
             $before = $settings->only(array_keys($data));
             $settings->update($data);
-            DB::table('audit_events')->insert(['actor_id' => $request->user()->id, 'subject_type' => 'commerce_settings', 'subject_id' => 1, 'action' => 'updated', 'changes' => json_encode(['before' => $before, 'after' => $data]), 'occurred_at' => now()]);
+            app(AuditLogger::class)->record(['actor_id' => $request->user()->id, 'subject_type' => 'commerce_settings', 'subject_id' => 1, 'action' => 'updated', 'changes' => json_encode(['before' => $before, 'after' => $data]), 'occurred_at' => now()]);
         });
 
-        return back()->with('status', 'Rates saved. Existing orders retain their original rates.');
+        return back()->with('status', 'Rates saved. New orders use the updated commission and delivery fee.');
     }
 }

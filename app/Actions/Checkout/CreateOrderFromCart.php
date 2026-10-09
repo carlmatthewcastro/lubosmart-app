@@ -27,8 +27,8 @@ class CreateOrderFromCart
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if ($buyer->role !== 'buyer' || $buyer->status !== 'active' || ! $buyer->hasVerifiedEmail()) {
-                throw new AuthorizationException('Only verified, active buyer accounts can check out.');
+            if ($buyer->role !== 'buyer' || $buyer->status !== 'approved' || ! $buyer->hasVerifiedEmail()) {
+                throw new AuthorizationException('Only verified, approved buyer accounts can check out.');
             }
 
             $cart = Cart::query()
@@ -86,7 +86,7 @@ class CreateOrderFromCart
             }
 
             $stores = Store::query()
-                ->with('user:id,status')
+                ->with('user:id,status,role,email_verified_at')
                 ->whereIn('id', $products->pluck('store_id'))
                 ->orderBy('id')
                 ->lockForUpdate()
@@ -112,7 +112,7 @@ class CreateOrderFromCart
                     ]);
                 }
 
-                if ($product->status !== 'active' || $product->blocked_at || $stores->get($product->store_id)?->status !== 'approved' || $store?->user?->status !== 'active') {
+                if ($product->status !== 'active' || $product->blocked_at || $stores->get($product->store_id)?->status !== 'approved' || $store?->user?->role !== 'seller' || ! $store?->user?->canOperate()) {
                     throw ValidationException::withMessages([
                         'cart' => "The product \"{$product->name}\" is no longer available.",
                     ]);
@@ -140,12 +140,9 @@ class CreateOrderFromCart
             );
 
             $shippingFeeCents = $this->toCents($setting->shipping_fee_per_seller_order);
-            $commissionBasisPoints = $setting->platform_commission_basis_points;
-
+            $commissionBasisPoints = (int) $setting->platform_commission_basis_points;
             if ($commissionBasisPoints < 0 || $commissionBasisPoints > 10000) {
-                throw ValidationException::withMessages([
-                    'commission' => 'The configured commission rate must be between 0% and 100%.',
-                ]);
+                throw ValidationException::withMessages(['commission' => 'The configured commission must be between 0% and 100%.']);
             }
 
             if ($shippingFeeCents < 0) {
@@ -182,7 +179,7 @@ class CreateOrderFromCart
                 $storeSubtotalCents = $storeItems->sum(
                     fn (CartItem $item): int => $this->toCents($products->get($item->product_id)->price) * $item->quantity
                 );
-                $commissionCents = intdiv($storeSubtotalCents * $commissionBasisPoints + 5000, 10000);
+                // Commission amounts are recognized when the delivery is completed.
 
                 $sellerOrder = SellerOrder::query()->create([
                     'order_id' => $order->id,
@@ -190,8 +187,8 @@ class CreateOrderFromCart
                     'subtotal' => $this->fromCents($storeSubtotalCents),
                     'shipping_fee' => $this->fromCents($shippingFeeCents),
                     'commission_basis_points' => $commissionBasisPoints,
-                    'commission_amount' => $this->fromCents($commissionCents),
-                    'seller_proceeds' => $this->fromCents($storeSubtotalCents - $commissionCents),
+                    'commission_amount' => null,
+                    'seller_proceeds' => null,
                     'status' => 'pending',
                 ]);
 

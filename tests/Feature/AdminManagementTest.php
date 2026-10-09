@@ -3,6 +3,7 @@
 use App\Models\Address;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\RegistrationApplication;
 use App\Models\SellerOrder;
 use App\Models\Store;
 use App\Models\SupportCase;
@@ -29,6 +30,32 @@ beforeEach(function () {
     $this->address = Address::query()->create(['user_id' => $this->buyer->id, 'label' => 'Home', 'recipient_name' => 'Test buyer', 'phone' => '09000000000', 'line1' => 'Test street', 'barangay' => 'Test barangay', 'city' => 'Manila', 'province' => 'Metro Manila', 'region' => 'NCR', 'zip' => '1000']);
 });
 
+test('quick inbox JSON keeps conversations private and separates complaints', function () {
+    $message = SupportCase::query()->create(['opened_by' => $this->buyer->id, 'kind' => 'message', 'subject' => 'Account assistance']);
+    $message->participants()->attach($this->buyer);
+    $message->messages()->create(['user_id' => $this->buyer->id, 'body' => 'Please review my account.']);
+    $private = SupportCase::query()->create(['opened_by' => $this->seller->id, 'kind' => 'message', 'subject' => 'Private seller message']);
+    $private->participants()->attach($this->seller);
+    SupportCase::query()->create(['opened_by' => $this->buyer->id, 'kind' => 'complaint', 'subject' => 'Delivery dispute']);
+
+    $this->actingAs($this->buyer)->getJson('/support?kind=message')->assertOk()
+        ->assertJsonCount(1, 'cases.data')->assertJsonPath('cases.data.0.id', $message->id)
+        ->assertJsonPath('cases.data.0.latest_message.body', 'Please review my account.')
+        ->assertJsonPath('cases.data.0.latest_message.author.id', $this->buyer->id);
+    $this->getJson('/support/'.$private->id)->assertForbidden();
+    $this->actingAs($this->admin)->getJson('/support?kind=message')->assertOk()->assertJsonCount(2, 'cases.data');
+});
+
+test('platform content filters preserve summary counts and validate choices', function () {
+    foreach ([['announcement', true], ['announcement', false], ['policy', true]] as [$kind, $published]) {
+        DB::table('platform_contents')->insert(['kind' => $kind, 'title' => 'Test content', 'body' => 'Content body', 'published' => $published, 'updated_by' => $this->admin->id, 'created_at' => now(), 'updated_at' => now()]);
+    }
+    $this->actingAs($this->admin)->get('/admin/platform?kind=announcement&visibility=draft')
+        ->assertInertia(fn (Assert $page) => $page->component('admin/platform')->has('contents.data', 1)
+            ->where('contents.data.0.published', 0)->where('summary.total', 3)->where('summary.published', 2)->where('summary.draft', 1));
+    $this->get('/admin/platform?visibility=invalid')->assertSessionHasErrors('visibility');
+});
+
 function adminTestParcel($test): SellerOrder
 {
     $test->actingAs($test->buyer)->put('/cart/'.$test->product->id, ['quantity' => 2]);
@@ -46,7 +73,7 @@ test('all admin management pages reject non admin roles', function (string $role
     $this->post('/admin/platform', ['kind' => 'policy', 'title' => 'Policy', 'body' => 'Rules', 'published' => true])->assertForbidden();
     $this->assertDatabaseCount('product_moderations', 0);
     $this->assertDatabaseCount('platform_contents', 0);
-})->with(['buyer', 'seller', 'rider', 'logistics']);
+})->with(['buyer', 'seller', 'courier', 'sorting_center']);
 
 test('admin warns blocks and restores listings with audit and seller notification', function () {
     $this->actingAs($this->admin)->patch('/admin/compliance/'.$this->product->id, ['action' => 'warn', 'reason' => 'Correct the product photo.'])->assertRedirect();
@@ -79,21 +106,22 @@ test('suspending a seller removes all their listings from the public catalog and
     $this->assertDatabaseCount('orders', 0);
 });
 
-test('admin deactivates accounts while retaining data and immediately blocking sessions and password login', function () {
-    $this->actingAs($this->admin)->patch('/accounts/'.$this->buyer->id, ['status' => 'deactivated', 'reason' => 'Account closure request.'])->assertRedirect();
-    $this->assertDatabaseHas('users', ['id' => $this->buyer->id, 'status' => 'deactivated']);
+test('admin suspends accounts while retaining data and immediately blocking sessions and password login', function () {
+    RegistrationApplication::query()->create(['user_id' => $this->buyer->id, 'requested_role' => 'buyer', 'status' => 'approved']);
+    $this->actingAs($this->admin)->patch('/accounts/'.$this->buyer->id, ['status' => 'suspended', 'reason' => 'Account closure request.'])->assertRedirect();
+    $this->assertDatabaseHas('users', ['id' => $this->buyer->id, 'status' => 'suspended']);
     $this->actingAs($this->buyer->fresh())->get('/settings/profile')->assertForbidden();
     $this->post('/logout')->assertRedirect();
     $this->post('/login', ['email' => $this->buyer->email, 'password' => 'password'])->assertSessionHasErrors('email');
     $this->assertGuest();
-    $this->actingAs($this->admin)->patch('/accounts/'.$this->buyer->id, ['status' => 'active', 'reason' => 'Account reopened.'])->assertRedirect();
-    expect($this->buyer->fresh()->status)->toBe('active');
+    $this->actingAs($this->admin)->patch('/accounts/'.$this->buyer->id, ['status' => 'approved', 'reason' => 'Account reopened.'])->assertRedirect();
+    expect($this->buyer->fresh()->status)->toBe('approved');
 });
 
-test('admin cannot deactivate self or bypass pending approval', function () {
-    $this->actingAs($this->admin)->patch('/accounts/'.$this->admin->id, ['status' => 'deactivated', 'reason' => 'Test'])->assertForbidden();
+test('admin cannot suspend self or bypass pending approval', function () {
+    $this->actingAs($this->admin)->patch('/accounts/'.$this->admin->id, ['status' => 'suspended', 'reason' => 'Test'])->assertForbidden();
     $pending = User::factory()->create(['role' => 'seller', 'status' => 'pending']);
-    $this->patch('/accounts/'.$pending->id, ['status' => 'active', 'reason' => 'Bypass'])->assertSessionHasErrors('status');
+    $this->patch('/accounts/'.$pending->id, ['status' => 'approved', 'reason' => 'Bypass'])->assertSessionHasErrors('status');
     expect($pending->fresh()->status)->toBe('pending');
 });
 
@@ -161,9 +189,9 @@ test('platform drafts stay private while published policies can be edited and un
 
 test('sales and commission exports respect delivery dates and preserve commission snapshots', function () {
     $parcel = adminTestParcel($this);
-    $parcel->update(['status' => 'completed']);
+    $parcel->update(['status' => 'completed', 'commission_basis_points' => 1000, 'commission_amount' => '20.00', 'seller_proceeds' => '180.00']);
     $parcel->delivery->forceFill(['status' => 'delivered', 'delivered_at' => '2026-10-07 10:00:00'])->save();
-    $this->actingAs($this->admin)->patch('/reports/settings', ['shipping_fee_per_seller_order' => 50, 'platform_commission_basis_points' => 2000])->assertRedirect();
+    $this->actingAs($this->admin)->patch('/reports/settings', ['shipping_fee_per_seller_order' => 50, 'platform_commission_basis_points' => 1000])->assertRedirect();
     expect($parcel->fresh()->commission_amount)->toBe('20.00');
     $this->get('/reports/export?type=commission&from=2026-10-07&to=2026-10-07')->assertDownload('commission-report-'.now()->format('Y-m-d').'.csv')->assertStreamedContent("Parcel,Store,\"Product sales (PHP)\",\"Commission (PHP)\",\"Seller proceeds (PHP)\"\n".$parcel->id.",\"Test store\",200.00,20.00,180.00\n");
     $this->get('/reports?from=2026-10-08')->assertInertia(fn (Assert $page) => $page->where('totals.Completed parcels', 0));
@@ -183,4 +211,55 @@ test('only published announcements appear on the homepage', function () {
         $this->post('/admin/platform', ['kind' => $kind, 'title' => $title, 'body' => 'Test content.', 'published' => $published])->assertRedirect();
     }
     $this->get('/')->assertInertia(fn (Assert $page) => $page->has('announcements', 1)->where('announcements.0.title', 'Public update'));
+});
+
+test('all approved administrators have access without a sub role', function () {
+    $admin = User::factory()->create(['role' => 'admin', 'admin_sub_role' => null]);
+    $this->actingAs($admin)->get('/reviews')->assertOk();
+    $this->get('/accounts')->assertOk();
+    $this->get('/admin/compliance')->assertOk();
+    $this->get('/support?kind=complaint')->assertOk();
+    $this->get('/support?kind=message')->assertOk();
+    $this->get('/admin/commission')->assertOk();
+    $this->get('/reports')->assertOk();
+    $this->get('/admin/platform')->assertOk();
+});
+
+test('admin can change commission while existing parcels retain their rates', function () {
+    $parcel = adminTestParcel($this);
+    $this->actingAs($this->admin)->patch('/reports/settings', ['shipping_fee_per_seller_order' => '50.00', 'platform_commission_basis_points' => 1250])->assertSessionHasNoErrors();
+    $this->assertDatabaseHas('commerce_settings', ['id' => 1, 'platform_commission_basis_points' => 1250]);
+    expect($parcel->fresh()->commission_basis_points)->toBe(1000);
+    $this->patch('/reports/settings', ['shipping_fee_per_seller_order' => '50.00', 'platform_commission_basis_points' => 10001])->assertSessionHasErrors('platform_commission_basis_points');
+});
+
+test('admin conversation options contain approved recipients and restrict other roles', function () {
+    $this->actingAs($this->buyer)->getJson('/admin/conversation-options')->assertForbidden();
+    $this->actingAs($this->admin)->getJson('/admin/conversation-options?search='.$this->seller->email.'&role=seller')->assertOk()->assertJsonPath('recipients.0.id', $this->seller->id);
+});
+
+test('admin can load a conversation in a private modal and history by name', function () {
+    $this->actingAs($this->admin)->post('/support', ['kind' => 'message', 'subject' => 'Account assistance', 'body' => 'Please confirm your details.', 'recipient_email' => $this->buyer->email])->assertRedirect();
+    $id = DB::table('support_cases')->value('id');
+    $this->getJson('/support/'.$id)->assertOk()->assertJsonPath('case.subject', 'Account assistance')->assertHeader('Cache-Control', 'no-store, private');
+    $this->patch('/support/'.$id, ['status' => 'in_review'])->assertRedirect();
+    $this->get('/admin/audit-log?search=Account')->assertInertia(fn (Assert $page) => $page->where('events.data.0.subject_name', 'Account assistance')->has('actions'));
+});
+
+test('modal conversation creation returns to the inbox', function () {
+    $this->actingAs($this->admin)->from('/support?kind=message')->post('/support', ['_modal' => true, 'kind' => 'message', 'subject' => 'Account assistance', 'body' => 'Please confirm the next step.', 'recipient_email' => $this->buyer->email])->assertRedirect('/support?kind=message');
+    $this->assertDatabaseHas('support_cases', ['subject' => 'Account assistance']);
+});
+
+test('registration review from a modal returns to its original page', function () {
+    $applicant = User::factory()->create(['role' => 'buyer', 'status' => 'pending']);
+    $application = RegistrationApplication::query()->create(['user_id' => $applicant->id, 'requested_role' => 'buyer', 'status' => 'submitted', 'submitted_at' => now()]);
+    $this->actingAs($this->admin)->from('/accounts')->patch('/reviews/'.$application->id, ['_modal' => true, 'decision' => 'approved'])->assertSessionHasNoErrors()->assertRedirect('/accounts');
+    expect($applicant->fresh()->status)->toBe('approved');
+});
+
+test('pending account details direct admins to registration instead of access changes', function () {
+    $applicant = User::factory()->create(['role' => 'buyer', 'status' => 'pending']);
+    $application = RegistrationApplication::query()->create(['user_id' => $applicant->id, 'requested_role' => 'buyer', 'status' => 'submitted']);
+    $this->actingAs($this->admin)->getJson('/accounts/'.$applicant->id)->assertOk()->assertJsonPath('allowedStatuses', [])->assertJsonPath('applicationId', $application->id)->assertJsonPath('courier', null);
 });
