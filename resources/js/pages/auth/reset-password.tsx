@@ -40,6 +40,7 @@ export default function ResetPassword({ token, email }: ResetPasswordProps) {
             <Head title="Reset password" />
 
             <form onSubmit={submit}>
+                <InputError message={(errors as Record<string, string>).code} />
                 <div className="grid gap-6">
                     <div className="grid gap-2">
                         <Label htmlFor="email">Email</Label>

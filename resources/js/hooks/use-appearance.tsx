@@ -1,11 +1,18 @@
-export function initializeTheme() {
-    document.documentElement.classList.remove('dark');
-    document.documentElement.style.colorScheme = 'only light';
-
-    // Replace older saved preferences without depending on browser storage access.
-    try {
-        localStorage.setItem('appearance', 'light');
-    } catch {
-        // The light theme also works when browser storage is unavailable.
-    }
+import { useState } from 'react';
+export type Appearance = 'light' | 'dark';
+function savedAppearance(): Appearance {
+    try { return localStorage.getItem('appearance') === 'dark' ? 'dark' : 'light'; } catch { return 'light'; }
+}
+function applyTheme(value: Appearance) {
+    document.documentElement.classList.toggle('dark', value === 'dark');
+    document.documentElement.style.colorScheme = value;
+}
+export function initializeTheme() { applyTheme(savedAppearance()); }
+export function useAppearance() {
+    const [appearance, setAppearance] = useState<Appearance>(savedAppearance);
+    const updateAppearance = (value: Appearance) => {
+        setAppearance(value); applyTheme(value);
+        try { localStorage.setItem('appearance', value); } catch { /* Theme also works without storage. */ }
+    };
+    return { appearance, updateAppearance };
 }

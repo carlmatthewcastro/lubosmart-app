@@ -1,8 +1,9 @@
 import { Card, Empty, Page, Pager, type Pagination } from '@/components/marketplace-ui';
 type Content = { id: number; kind: string; title: string; body: string };
-export default function Information({ contents }: { contents: Pagination<Content> }) {
+export default function Information({ contents, policy }: { contents: Pagination<Content>; policy?: 'terms' | 'privacy' | null }) {
+    const title = policy === 'terms' ? 'Terms' : policy === 'privacy' ? 'Privacy Policy' : 'Announcements & policies';
     return (
-        <Page title="Announcements & policies" description="Updates and guidelines from LubosMart.">
+        <Page title={title} description="Updates and guidelines from LubosMart.">
             {contents.data.length ? (
                 contents.data.map((content) => (
                     <Card key={content.id}>
@@ -12,7 +13,14 @@ export default function Information({ contents }: { contents: Pagination<Content
                     </Card>
                 ))
             ) : (
-                <Empty title="No updates yet" description="Published announcements and policies will appear here." />
+                <Empty
+                    title={policy ? `${title} have not been published yet` : 'No updates yet'}
+                    description={
+                        policy
+                            ? 'Contact LubosMart support for this policy before agreeing to it.'
+                            : 'Published announcements and policies will appear here.'
+                    }
+                />
             )}
             <Pager links={contents.links} />
         </Page>

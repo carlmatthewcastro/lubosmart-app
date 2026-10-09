@@ -1,70 +1,52 @@
-import { Badge, buttonClass, Card, Empty, Field, Page, Pager, secondaryClass, Select, type Pagination } from '@/components/marketplace-ui';
+import { InfoModal } from '@/components/info-modal';
+import { Badge, buttonClass, Card, Empty, Field, Page, Pager, roleLabel, Select, type Pagination } from '@/components/marketplace-ui';
 import { type SharedData, type User } from '@/types';
-import { Link, useForm, usePage } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import { ShieldCheck } from 'lucide-react';
 
-function AccountRow({ account }: { account: User }) {
-    const { auth } = usePage<SharedData>().props;
-    const form = useForm({ status: account.status === 'active' ? 'suspended' : 'active', reason: '' });
+function AccountRow({ account }: { account: User; allowedStatuses: string[] }) {
     return (
         <Card>
-            <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-4">
                 <div className="flex min-w-0 items-center gap-3">
-                    <span className="bg-accent text-primary flex size-11 shrink-0 items-center justify-center rounded-full font-semibold">
-                        {account.name.charAt(0)}
+                    <span className="bg-accent text-primary flex size-11 shrink-0 items-center justify-center rounded-xl font-semibold">
+                        {account.name.charAt(0).toUpperCase()}
                     </span>
-                    <div>
-                        <h2 className="font-semibold">{account.name}</h2>
-                        <p className="text-muted-foreground mt-1 text-xs break-all">
-                            {account.email} · {account.role}
-                        </p>
+                    <div className="min-w-0">
+                        <h2 className="truncate font-semibold">{account.name}</h2>
+                        <p className="text-muted-foreground mt-1 text-xs">{roleLabel(account.role)}</p>
                     </div>
                 </div>
                 <Badge status={account.status} />
             </div>
-            <Link className={`${secondaryClass} mt-4`} href={`/accounts/${account.id}`}>
-                View profile
-            </Link>
-            <form
-                className="mt-5 flex flex-wrap items-end gap-3"
-                onSubmit={(e) => {
-                    e.preventDefault();
-                    form.patch(route('accounts.update', account.id), { preserveScroll: true, onSuccess: () => form.reset('reason') });
-                }}
-            >
-                <div className="min-w-0 flex-1 basis-60">
-                    <Field
-                        label="Reason for status change"
-                        placeholder="Add a clear audit reason…"
-                        required
-                        maxLength={1000}
-                        value={form.data.reason}
-                        onChange={(e) => form.setData('reason', e.target.value)}
-                        error={form.errors.reason ?? form.errors.status}
-                    />
-                </div>
-                <Select label="New status" value={form.data.status} onChange={(e) => form.setData('status', e.target.value)}>
-                    <option value="active">Active</option>
-                    <option value="suspended">Suspended</option>
-                    {auth.user.role === 'admin' && <option value="deactivated">Deactivated</option>}
-                </Select>
-                <button className={buttonClass} disabled={form.processing || form.data.status === account.status}>
-                    {form.processing ? 'Saving…' : 'Save status'}
-                </button>
-            </form>
+            <p className="text-muted-foreground mt-4 text-sm break-all">{account.email}</p>
+            <div className="mt-5 border-t pt-4">
+                <InfoModal kind="account" id={account.id} label="View Profile & Actions" />
+            </div>
         </Card>
     );
 }
 export default function Accounts({
     accounts,
     filters,
+    allowedStatuses,
 }: {
     accounts: Pagination<User>;
     filters: { search?: string; role?: string; status?: string };
+    allowedStatuses: string[];
 }) {
+    const { auth } = usePage<SharedData>().props;
+    const center = auth.user.role === 'sorting_center';
     const search = useForm({ search: filters.search ?? '', role: filters.role ?? '', status: filters.status ?? '' });
     return (
-        <Page title="Account management" description="Manage account access and status.">
+        <Page
+            title={center ? 'Courier management' : 'User Accounts'}
+            description={
+                center
+                    ? 'View and deactivate couriers assigned to your sorting center. Admin handles suspension and reactivation.'
+                    : 'Activate, suspend, or deactivate approved accounts with a recorded reason.'
+            }
+        >
             <Card className="flex gap-3">
                 <ShieldCheck className="text-primary size-5 shrink-0" />
                 <p className="text-muted-foreground text-sm leading-relaxed">
@@ -80,33 +62,33 @@ export default function Accounts({
                         search.get('/accounts');
                     }}
                 >
-                    <Field label="Search accounts" value={search.data.search} onChange={(e) => search.setData('search', e.target.value)} />
+                    <Field label="Search Accounts" value={search.data.search} onChange={(e) => search.setData('search', e.target.value)} />
                     <Select label="Role" value={search.data.role} onChange={(e) => search.setData('role', e.target.value)}>
-                        <option value="">All roles</option>
+                        <option value="">All Roles</option>
                         <option value="buyer">Buyer</option>
                         <option value="seller">Seller</option>
-                        <option value="rider">Courier</option>
-                        <option value="logistics">Sorting center</option>
+                        <option value="courier">Courier</option>
+                        <option value="sorting_center">Sorting Center</option>
                     </Select>
                     <Select label="Status" value={search.data.status} onChange={(e) => search.setData('status', e.target.value)}>
-                        <option value="">All statuses</option>
-                        <option value="active">Active</option>
+                        <option value="">All Statuses</option>
+                        <option value="approved">Approved</option>
                         <option value="suspended">Suspended</option>
                         <option value="deactivated">Deactivated</option>
                     </Select>
                     <button className={buttonClass} disabled={search.processing}>
-                        Apply filters
+                        Apply Filters
                     </button>
                 </form>
             </Card>
             {accounts.data.length ? (
                 <div className="grid items-start gap-4 xl:grid-cols-2">
                     {accounts.data.map((account) => (
-                        <AccountRow key={`${account.id}-${account.status}`} account={account} />
+                        <AccountRow key={`${account.id}-${account.status}`} account={account} allowedStatuses={allowedStatuses} />
                     ))}
                 </div>
             ) : (
-                <Empty title="No accounts yet" description="Accounts you can manage will appear here." />
+                <Empty title="No Accounts Found" description="Accounts you can manage will appear here." />
             )}
             <Pager links={accounts.links} />
         </Page>

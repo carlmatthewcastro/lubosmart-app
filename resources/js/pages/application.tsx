@@ -1,5 +1,6 @@
 import InputError from '@/components/input-error';
-import { buttonClass, secondaryClass } from '@/components/marketplace-ui';
+import { buttonClass, roleLabel, secondaryClass } from '@/components/marketplace-ui';
+import OnboardingSteps from '@/components/onboarding-steps';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
@@ -23,6 +24,8 @@ type Form = {
     city_code: string;
     barangay_code: string;
     line1: string;
+    street: string;
+    house_number: string;
     zip: string;
     business_name: string;
     business_category_id: string;
@@ -30,6 +33,7 @@ type Form = {
     plate_number: string;
     sorting_center_id: string;
     identity: File | null;
+    license: File | null;
     business_permit: File | null;
     vehicle_registration: File | null;
     policy_accepted: boolean;
@@ -41,7 +45,7 @@ export default function ApplicationPage({
     profile,
     address,
     store,
-    rider,
+    courier,
     documents,
     categories,
     centers,
@@ -52,15 +56,15 @@ export default function ApplicationPage({
         rejection_reason: string | null;
         business_name: string | null;
         sorting_center_id: number | null;
-        draft_data: Partial<Omit<Form, 'identity' | 'business_permit' | 'vehicle_registration'>> | null;
+        draft_data: Partial<Omit<Form, 'identity' | 'license' | 'business_permit' | 'vehicle_registration'>> | null;
         draft_saved_at: string | null;
         submitted_at: string | null;
         reviewed_at: string | null;
     };
     profile: Record<string, string> | null;
-    address: { line1: string; zip: string } | null;
+    address: { line1: string; zip: string; street: string | null; house_number: string | null } | null;
     store: { name: string; business_category_id: number | null } | null;
-    rider: { vehicle_type: string; plate_number: string | null } | null;
+    courier: { vehicle_type: string; plate_number: string | null } | null;
     documents: Document[];
     categories: Option[];
     centers: Option[];
@@ -82,14 +86,17 @@ export default function ApplicationPage({
         city_code: profile?.city_code ?? '',
         barangay_code: profile?.barangay_code ?? '',
         line1: address?.line1 ?? '',
+        street: address?.street ?? draft?.line1 ?? address?.line1 ?? '',
+        house_number: address?.house_number ?? '',
         zip: address?.zip ?? '',
         business_name: application.business_name ?? store?.name ?? '',
         business_category_id: String(store?.business_category_id ?? ''),
-        vehicle_type: rider?.vehicle_type ?? '',
-        plate_number: rider?.plate_number ?? '',
+        vehicle_type: courier?.vehicle_type ?? '',
+        plate_number: courier?.plate_number ?? '',
         sorting_center_id: String(application.sorting_center_id ?? ''),
         ...Object.fromEntries(Object.entries(draft ?? {}).map(([key, value]) => [key, value ?? ''])),
         identity: null,
+        license: null,
         business_permit: null,
         vehicle_registration: null,
         policy_accepted: false,
@@ -97,7 +104,7 @@ export default function ApplicationPage({
     });
     const steps: { key: Step; title: string }[] = [
         { key: 'personal', title: 'Personal details' },
-        ...(role === 'buyer' ? [] : [{ key: 'role' as Step, title: role === 'rider' ? 'Courier details' : 'Business details' }]),
+        ...(role === 'buyer' ? [] : [{ key: 'role' as Step, title: role === 'courier' ? 'Courier details' : 'Business details' }]),
         { key: 'address', title: 'Address' },
         { key: 'documents', title: 'Documents' },
         { key: 'review', title: 'Review' },
@@ -120,8 +127,11 @@ export default function ApplicationPage({
         city_code: 'address',
         barangay_code: 'address',
         line1: 'address',
+        street: 'address',
+        house_number: 'address',
         zip: 'address',
         identity: 'documents',
+        license: 'documents',
         business_permit: 'documents',
         vehicle_registration: 'documents',
         policy_accepted: 'review',
@@ -136,7 +146,7 @@ export default function ApplicationPage({
             forceFormData: true,
             preserveScroll: true,
             onError: focusError,
-            onSuccess: () => form.reset('identity', 'business_permit', 'vehicle_registration'),
+            onSuccess: () => form.reset('identity', 'license', 'business_permit', 'vehicle_registration'),
         });
     const next = () => {
         const invalid = [
@@ -194,7 +204,17 @@ export default function ApplicationPage({
     const field = (
         key: keyof Pick<
             Form,
-            'first_name' | 'last_name' | 'middle_initial' | 'birthday' | 'phone' | 'line1' | 'zip' | 'business_name' | 'plate_number'
+            | 'first_name'
+            | 'last_name'
+            | 'middle_initial'
+            | 'birthday'
+            | 'phone'
+            | 'line1'
+            | 'street'
+            | 'house_number'
+            | 'zip'
+            | 'business_name'
+            | 'plate_number'
         >,
         label: string,
         type = 'text',
@@ -252,18 +272,20 @@ export default function ApplicationPage({
         </div>
     );
     const locationOptions = (items: Location[]) => items.map((item) => ({ value: item.code, label: item.name }));
-    const fileKinds: ('identity' | 'business_permit' | 'vehicle_registration')[] = ['identity'];
-    if (role === 'seller' || role === 'logistics') fileKinds.push('business_permit');
-    if (role === 'rider' && form.data.vehicle_type !== 'bicycle') fileKinds.push('vehicle_registration');
+    const fileKinds: ('identity' | 'license' | 'business_permit' | 'vehicle_registration')[] = ['identity'];
+    if (role === 'courier') fileKinds.push('license');
+    if (role === 'seller' || role === 'sorting_center') fileKinds.push('business_permit');
+    if (role === 'courier') fileKinds.push('vehicle_registration');
     return (
         <AppLayout breadcrumbs={[{ title: 'Application', href: route('application.edit') }]}>
             <Head title="Your application" />
             <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 p-4 md:p-8">
+                <OnboardingSteps current={3} />
                 <div>
-                    <p className="text-muted-foreground text-sm capitalize">{role === 'rider' ? 'Courier' : role} registration</p>
+                    <p className="text-muted-foreground text-sm">{roleLabel(role)} registration</p>
                     <h1 className="mt-2 text-3xl font-semibold">Your application</h1>
                     <p className="text-muted-foreground mt-2">
-                        Complete your details for {role === 'rider' ? 'your sorting center' : 'administrator'} review.
+                        Complete your details for {role === 'courier' ? 'your sorting center' : 'administrator'} review.
                     </p>
                 </div>
                 {status && (
@@ -304,7 +326,7 @@ export default function ApplicationPage({
                         <p className="text-muted-foreground mt-3">We will email the decision. Your dashboard becomes available after approval.</p>
                         <p className="text-muted-foreground mt-3 text-sm">
                             Submitted: {application.submitted_at ? new Date(application.submitted_at).toLocaleString('en-PH') : 'Recorded'}. Reviewer:{' '}
-                            {role === 'rider'
+                            {role === 'courier'
                                 ? (centers.find((center) => center.id === application.sorting_center_id)?.name ?? 'Your chosen sorting center')
                                 : 'LubosMart administrator'}
                             .
@@ -372,6 +394,11 @@ export default function ApplicationPage({
                             {field('middle_initial', 'Middle initial (optional)', 'text', false)}
                             {field('birthday', 'Birthday', 'date')}
                             {field('phone', 'Mobile number', 'tel')}
+                            <div className="grid gap-2">
+                                <Label htmlFor="application-email">Verified email</Label>
+                                <Input id="application-email" value={auth.user.email} readOnly type="email" />
+                                <p className="text-muted-foreground text-xs">This is the email verified for your account.</p>
+                            </div>
                             {select('sex', 'Sex', [
                                 { value: 'female', label: 'Female' },
                                 { value: 'male', label: 'Male' },
@@ -387,12 +414,13 @@ export default function ApplicationPage({
                             className={`bg-card gap-5 rounded-2xl border p-6 sm:grid-cols-2 ${step === 'address' ? 'grid' : 'hidden'}`}
                         >
                             <legend className="px-2 font-semibold">
-                                {role === 'rider' ? 'Contact address' : role === 'buyer' ? 'Registration address' : 'Business address'}
+                                {role === 'courier' ? 'Contact address' : role === 'buyer' ? 'Registration address' : 'Business address'}
                             </legend>
                             {select('province_code', 'Province / NCR', locationOptions(provinces))}
                             {select('city_code', 'City / municipality', locationOptions(cities), !province)}
                             {select('barangay_code', 'Barangay', locationOptions(barangays), !city)}
-                            {field('line1', 'House number and street')}
+                            {field('house_number', 'House / building number')}
+                            {field('street', 'Street')}
                             {field('zip', 'Postal code')}
                             {locationError && (
                                 <div role="alert" className="text-destructive text-sm sm:col-span-2">
@@ -403,7 +431,7 @@ export default function ApplicationPage({
                                 </div>
                             )}
                         </fieldset>
-                        {(role === 'seller' || role === 'logistics') && (
+                        {(role === 'seller' || role === 'sorting_center') && (
                             <fieldset
                                 hidden={step !== 'role'}
                                 disabled={form.processing || step !== 'role'}
@@ -419,7 +447,7 @@ export default function ApplicationPage({
                                     )}
                             </fieldset>
                         )}
-                        {role === 'rider' && (
+                        {role === 'courier' && (
                             <fieldset
                                 hidden={step !== 'role'}
                                 disabled={form.processing || step !== 'role'}
@@ -431,15 +459,15 @@ export default function ApplicationPage({
                                     'Vehicle',
                                     ['motorcycle', 'bicycle', 'car', 'van', 'truck'].map((vehicle) => ({ value: vehicle, label: vehicle })),
                                 )}
-                                {field('plate_number', 'Plate number (motor vehicles)', 'text', form.data.vehicle_type !== 'bicycle')}
+                                {field('plate_number', 'Plate number')}
                                 {select(
                                     'sorting_center_id',
-                                    'Reviewing sorting center',
+                                    'Choose your Sorting center',
                                     centers.map((center) => ({ value: String(center.id), label: center.name })),
                                 )}
                                 {!centers.length && (
                                     <p className="text-muted-foreground text-sm">
-                                        A logistics application must be approved before riders can select its center.
+                                        Sorting centers must be approved before couriers can select them. You can save your draft and return later.
                                     </p>
                                 )}
                             </fieldset>
@@ -451,17 +479,19 @@ export default function ApplicationPage({
                         >
                             <legend className="px-2 font-semibold">Required documents</legend>
                             <p className="text-muted-foreground text-sm">
-                                Documents are private and accessible only to you and your authorized reviewer. JPG, PNG, or PDF, up to 5 MB each.
-                                Motor vehicle couriers should upload their driver’s license as their ID.
+                                Documents are private and accessible only to your authorized approver and Admin. JPG, PNG, or PDF, up to 5 MB each.
+                                Couriers must upload a photo ID and their driver’s license separately.
                             </p>
                             {fileKinds.map((kind) => (
                                 <div key={kind} className="grid gap-2">
                                     <Label htmlFor={kind}>
                                         {kind === 'identity'
-                                            ? 'ID / driver’s license'
-                                            : kind === 'business_permit'
-                                              ? 'Business / DTI permit'
-                                              : 'Vehicle OR/CR'}
+                                            ? 'Valid photo ID'
+                                            : kind === 'license'
+                                              ? 'Driver’s license'
+                                              : kind === 'business_permit'
+                                                ? 'Business / DTI permit'
+                                                : 'Vehicle OR/CR'}
                                     </Label>
                                     <Input
                                         id={kind}
@@ -484,21 +514,21 @@ export default function ApplicationPage({
                                         Email: auth.user.email,
                                         Phone: form.data.phone,
                                         Birthday: form.data.birthday,
-                                        'Business name': role === 'seller' || role === 'logistics' ? form.data.business_name : null,
+                                        'Business name': role === 'seller' || role === 'sorting_center' ? form.data.business_name : null,
                                         Category:
                                             role === 'seller'
                                                 ? (categories.find((category) => category.id === Number(form.data.business_category_id))?.name ??
                                                   'Not selected')
                                                 : null,
-                                        Vehicle: role === 'rider' ? form.data.vehicle_type : null,
-                                        'Plate number': role === 'rider' ? form.data.plate_number || 'Not applicable' : null,
+                                        Vehicle: role === 'courier' ? form.data.vehicle_type : null,
+                                        'Plate number': role === 'courier' ? form.data.plate_number || 'Not applicable' : null,
                                         'Sorting center':
-                                            role === 'rider'
+                                            role === 'courier'
                                                 ? (centers.find((center) => center.id === Number(form.data.sorting_center_id))?.name ??
                                                   'Not selected')
                                                 : null,
                                         Address: [
-                                            form.data.line1,
+                                            [form.data.house_number, form.data.street].filter(Boolean).join(' ') || form.data.line1,
                                             barangays.find((item) => item.code === form.data.barangay_code)?.name ?? form.data.barangay_code,
                                             cities.find((item) => item.code === city)?.name ?? city,
                                             provinces.find((item) => item.code === province)?.name ?? province,
@@ -530,8 +560,7 @@ export default function ApplicationPage({
                                     </ul>
                                 </div>
                                 <p className="text-muted-foreground text-xs">
-                                    Your {role === 'rider' ? 'chosen sorting center' : 'administrator'} will review the details. Submission does not
-                                    activate your workspace automatically.
+                                    Your approver will review these details. You will receive the decision by email.
                                 </p>
                             </section>
                         )}
@@ -586,9 +615,7 @@ export default function ApplicationPage({
                         <ul className="mt-3 space-y-2 text-sm">
                             {documents.map((document) => (
                                 <li key={document.id}>
-                                    <a className="underline" href={route('registration-documents.show', document.id)}>
-                                        {document.kind.replaceAll('_', ' ')} — download
-                                    </a>
+                                    <span>{document.kind.replaceAll('_', ' ')} — saved for your approver</span>
                                 </li>
                             ))}
                         </ul>

@@ -7,7 +7,7 @@ import type { SharedData } from '@/types';
 import '../../css/auth-preview.css';
 
 type AuthTab = 'login' | 'register';
-type PublicRole = 'buyer' | 'seller' | 'rider' | 'logistics';
+type PublicRole = 'buyer' | 'seller' | 'courier' | 'sorting_center';
 
 function scrollToSection(event: MouseEvent<HTMLAnchorElement>, id: string) {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
@@ -256,10 +256,10 @@ export default function Welcome({
                             <button type="button" onClick={() => openRegistration('seller')}>
                                 Open a seller store
                             </button>
-                            <button type="button" onClick={() => openRegistration('rider')}>
+                            <button type="button" onClick={() => openRegistration('courier')}>
                                 Deliver as a courier
                             </button>
-                            <button type="button" onClick={() => openRegistration('logistics')}>
+                            <button type="button" onClick={() => openRegistration('sorting_center')}>
                                 Register a sorting center
                             </button>
                         </div>

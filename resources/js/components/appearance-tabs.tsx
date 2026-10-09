@@ -1,12 +1,7 @@
+import { useAppearance } from '@/hooks/use-appearance';
 import { cn } from '@/lib/utils';
-import { Sun } from 'lucide-react';
 import { type HTMLAttributes } from 'react';
-
 export default function AppearanceToggleTab({ className = '', ...props }: HTMLAttributes<HTMLDivElement>) {
-    return (
-        <div className={cn('bg-accent text-primary inline-flex items-center gap-2 rounded-xl px-4 py-3 text-sm font-medium', className)} {...props}>
-            <Sun aria-hidden="true" className="size-4" />
-            Light theme
-        </div>
-    );
+    const { appearance, updateAppearance } = useAppearance();
+    return <div className={cn('inline-flex gap-2 rounded-xl border p-1', className)} {...props}>{(['light', 'dark'] as const).map(value => <button key={value} type="button" onClick={() => updateAppearance(value)} aria-pressed={appearance === value} className={cn('rounded-lg px-4 py-2 text-sm capitalize', appearance === value && 'bg-accent text-primary')}>{value}</button>)}</div>;
 }

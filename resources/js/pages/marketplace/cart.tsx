@@ -1,5 +1,6 @@
 import { Card, Empty, Field, Page, Select, buttonClass, money, secondaryClass } from '@/components/marketplace-ui';
-import { Link, router, useForm } from '@inertiajs/react';
+import { type SharedData } from '@/types';
+import { Link, router, useForm, usePage } from '@inertiajs/react';
 import { Minus, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { type Product } from './catalog';
@@ -14,6 +15,8 @@ export default function Cart({
     addresses: Address[];
     shippingFee: string;
 }) {
+    const { auth } = usePage<SharedData>().props;
+    const canCheckout = auth.user.status === 'approved' && !!auth.user.email_verified_at;
     const [addingAddress, setAddingAddress] = useState(addresses.length === 0);
     const [updating, setUpdating] = useState(false);
     const [checkoutKey] = useState(() => crypto.randomUUID());
@@ -45,6 +48,18 @@ export default function Cart({
                 </Link>
             }
         >
+            {!canCheckout && (
+                <Card className="mb-6">
+                    <h2 className="font-semibold">Complete your profile before purchasing</h2>
+                    <p className="text-muted-foreground mt-2 text-sm">
+                        Your account must be approved before shopping. Submit your personal details, full address, and valid photo ID for admin
+                        review. We will email the result.
+                    </p>
+                    <Link href={route('application.edit')} className={`${buttonClass} mt-4`}>
+                        Complete your profile
+                    </Link>
+                </Card>
+            )}
             {!items.length ? (
                 <Empty title="Your bag is empty" description="Browse products and add your favorites." href="/shop" label="Discover products" />
             ) : (
@@ -205,7 +220,10 @@ export default function Cart({
                             <Select label="Payment method" value="cod" disabled>
                                 <option value="cod">Cash on delivery</option>
                             </Select>
-                            <button className={`${buttonClass} mt-5 w-full`} disabled={checkout.processing || updating || !checkout.data.address_id}>
+                            <button
+                                className={`${buttonClass} mt-5 w-full`}
+                                disabled={!canCheckout || checkout.processing || updating || !checkout.data.address_id}
+                            >
                                 {checkout.processing ? 'Placing order…' : 'Place COD order'}
                             </button>
                         </form>

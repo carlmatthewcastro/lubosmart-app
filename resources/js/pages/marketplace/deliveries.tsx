@@ -1,4 +1,6 @@
+import InputError from '@/components/input-error';
 import { Badge, Card, Empty, Field, Page, Pager, type Pagination, Select, buttonClass, money, secondaryClass } from '@/components/marketplace-ui';
+import RiderServiceAreaForm from '@/components/rider-service-area-form';
 import { useForm } from '@inertiajs/react';
 import { MapPin, Truck } from 'lucide-react';
 import { type SellerOrder } from './orders';
@@ -13,25 +15,30 @@ type Delivery = {
 };
 type Collection = { amount: string; status: string };
 type Option = { id: number; name: string };
+type Rider = Option & { sorting_center_id: number; service_area_ids: number[] };
+type Area = Option & { sorting_center_id: number };
 function Parcel({
     parcel,
     role,
     centers,
     riders,
+    areas,
     collection,
     available = false,
 }: {
     parcel: Delivery;
     role: string;
     centers: Option[];
-    riders: Option[];
+    riders: Rider[];
+    areas: Area[];
     collection?: Collection;
     available?: boolean;
 }) {
-    const form = useForm<{ action: string; sorting_center_id: string; rider_id: string; proof: File | null }>({
+    const form = useForm<{ action: string; sorting_center_id: string; rider_id: string; service_area_id: string; proof: File | null }>({
         action: '',
         sorting_center_id: centers[0]?.id.toString() ?? '',
         rider_id: '',
+        service_area_id: '',
         proof: null,
     });
     const send = (action: string) => {
@@ -103,7 +110,7 @@ function Parcel({
                     </button>
                 </form>
             )}
-            {role === 'logistics' && !available && parcel.status === 'unassigned' && (
+            {role === 'sorting_center' && !available && parcel.status === 'unassigned' && (
                 <form
                     className="flex flex-wrap items-end gap-3"
                     onSubmit={(e) => {
@@ -111,23 +118,48 @@ function Parcel({
                         send('assign');
                     }}
                 >
+                    <Select
+                        label="Delivery area"
+                        value={form.data.service_area_id}
+                        onChange={(event) => {
+                            form.setData('service_area_id', event.target.value);
+                            form.setData('rider_id', '');
+                        }}
+                        required
+                    >
+                        <option value="">Choose the destination barangay</option>
+                        {areas
+                            .filter((area) => area.sorting_center_id === parcel.sorting_center_id)
+                            .map((area) => (
+                                <option key={area.id} value={area.id}>
+                                    {area.name}
+                                </option>
+                            ))}
+                    </Select>
+                    <InputError message={form.errors.service_area_id || form.errors.rider_id} />
                     <Select label="Approved courier" value={form.data.rider_id} onChange={(e) => form.setData('rider_id', e.target.value)} required>
                         <option value="">Choose a courier</option>
-                        {riders.map((rider) => (
-                            <option key={rider.id} value={rider.id}>
-                                {rider.name}
-                            </option>
-                        ))}
+                        {riders
+                            .filter(
+                                (rider) =>
+                                    rider.sorting_center_id === parcel.sorting_center_id &&
+                                    rider.service_area_ids.includes(Number(form.data.service_area_id)),
+                            )
+                            .map((rider) => (
+                                <option key={rider.id} value={rider.id}>
+                                    {rider.name}
+                                </option>
+                            ))}
                     </Select>
                     <button className={buttonClass} disabled={form.processing || !riders.length}>
                         Assign courier
                     </button>
-                    {!riders.length && <p className="text-muted-foreground text-xs">Approve a rider for this center before assigning parcels.</p>}
+                    {!riders.length && <p className="text-muted-foreground text-xs">Approve a courier for this center before assigning parcels.</p>}
                 </form>
             )}
-            {role === 'rider' && ['assigned', 'picked_up', 'in_transit'].includes(parcel.status) && (
+            {role === 'courier' && ['assigned', 'picked_up', 'in_transit', 'out_for_delivery'].includes(parcel.status) && (
                 <div className="space-y-4">
-                    {parcel.status === 'in_transit' && (
+                    {parcel.status === 'out_for_delivery' && (
                         <>
                             <Field
                                 label="Delivery proof photo (JPG or PNG, up to 5 MB)"
@@ -143,11 +175,24 @@ function Parcel({
                     )}
                     <button
                         className={buttonClass}
-                        disabled={form.processing || (parcel.status === 'in_transit' && !form.data.proof)}
-                        onClick={() => send({ assigned: 'picked_up', picked_up: 'in_transit', in_transit: 'delivered' }[parcel.status] ?? '')}
+                        disabled={form.processing || (parcel.status === 'out_for_delivery' && !form.data.proof)}
+                        onClick={() =>
+                            send(
+                                { assigned: 'picked_up', picked_up: 'in_transit', in_transit: 'out_for_delivery', out_for_delivery: 'delivered' }[
+                                    parcel.status
+                                ] ?? '',
+                            )
+                        }
                     >
                         <Truck className="size-4" />
-                        {{ assigned: 'Confirm pickup', picked_up: 'Start delivery', in_transit: 'Confirm delivered & COD collected' }[parcel.status]}
+                        {
+                            {
+                                assigned: 'Confirm pickup',
+                                picked_up: 'Start delivery',
+                                in_transit: 'Mark out for delivery',
+                                out_for_delivery: 'Confirm delivered & COD collected',
+                            }[parcel.status]
+                        }
                     </button>
                     {form.progress && <p className="text-muted-foreground text-xs">Uploading {form.progress.percentage}%</p>}
                 </div>
@@ -160,7 +205,7 @@ function Parcel({
                             <Badge status={collection.status} />
                         </div>
                     </div>
-                    {role === 'logistics' && collection.status === 'collected' && (
+                    {role === 'sorting_center' && collection.status === 'collected' && (
                         <button className={buttonClass} disabled={form.processing} onClick={() => send('receive_cod')}>
                             Confirm cash received
                         </button>
@@ -185,34 +230,37 @@ export default function Deliveries({
     available,
     centers,
     riders,
+    areas,
     cod,
     role,
 }: {
     deliveries: Pagination<Delivery>;
     available: Delivery[];
     centers: Option[];
-    riders: Option[];
+    riders: Rider[];
+    areas: Area[];
     cod: Record<string, Collection>;
     role: string;
 }) {
     return (
         <Page
-            title={role === 'rider' ? 'My deliveries' : 'Parcel operations'}
-            description={role === 'rider' ? 'Manage pickups, deliveries and collected cash.' : 'Manage parcels, couriers and collected cash.'}
+            title={role === 'courier' ? 'My deliveries' : 'Parcel operations'}
+            description={role === 'courier' ? 'Manage pickups, deliveries and collected cash.' : 'Manage parcels, couriers and collected cash.'}
         >
+            {role === 'sorting_center' && <RiderServiceAreaForm centers={centers} riders={riders} />}
             {available.length > 0 && (
                 <section>
                     <h2 className="mb-4 font-semibold">Ready for center receipt</h2>
                     <div className="grid gap-4 xl:grid-cols-2">
                         {available.map((parcel) => (
-                            <Parcel key={parcel.id} parcel={parcel} role={role} centers={centers} riders={riders} available />
+                            <Parcel key={parcel.id} parcel={parcel} role={role} centers={centers} riders={riders} areas={areas} available />
                         ))}
                     </div>
                 </section>
             )}
             <section>
                 <h2 className="mb-4 font-semibold">
-                    {role === 'rider' ? 'Assigned to you' : 'Tracked parcels'} ({deliveries.total})
+                    {role === 'courier' ? 'Assigned to you' : 'Tracked parcels'} ({deliveries.total})
                 </h2>
                 {deliveries.data.length ? (
                     <div className="grid items-start gap-5 xl:grid-cols-2">
@@ -223,14 +271,15 @@ export default function Deliveries({
                                 role={role}
                                 centers={centers}
                                 riders={riders}
+                                areas={areas}
                                 collection={cod[parcel.id]}
                             />
                         ))}
                     </div>
                 ) : (
                     <Empty
-                        title={role === 'rider' ? 'No assigned deliveries' : 'No parcels yet'}
-                        description={role === 'rider' ? 'Your center will assign deliveries here.' : 'Received parcels will appear here.'}
+                        title={role === 'courier' ? 'No assigned deliveries' : 'No parcels yet'}
+                        description={role === 'courier' ? 'Your center will assign deliveries here.' : 'Received parcels will appear here.'}
                     />
                 )}
             </section>

@@ -1,16 +1,27 @@
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
+import {
+    Sidebar,
+    SidebarContent,
+    SidebarFooter,
+    SidebarHeader,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+    SidebarRail,
+    useSidebar,
+} from '@/components/ui/sidebar';
 import { type NavItem, type SharedData } from '@/types';
-import { Link, usePage } from '@inertiajs/react';
+import { Link, usePage, usePoll } from '@inertiajs/react';
 import {
     ChartNoAxesCombined,
     ClipboardCheck,
+    History,
     LayoutGrid,
     Megaphone,
+    MessageCircle,
     MessageSquareWarning,
-    MessagesSquare,
     Package,
     Percent,
     Settings,
@@ -21,6 +32,7 @@ import {
     Truck,
     Users,
 } from 'lucide-react';
+import { useEffect } from 'react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -40,50 +52,98 @@ const footerNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
-    const { auth } = usePage<SharedData>().props;
+    const { state } = useSidebar();
+    const { auth, adminWorkspace } = usePage<SharedData>().props;
+    const poll = usePoll(30000, { only: ['adminWorkspace'] }, { autoStart: false });
+    const badges = adminWorkspace?.badges ?? {};
+    const adminItems: NavItem[] = [
+        { title: 'Dashboard', url: '/dashboard', icon: LayoutGrid },
+        { title: 'Registrations', url: '/reviews', icon: ClipboardCheck, badge: badges.registrations },
+        { title: 'User Accounts', url: '/accounts', icon: Users },
+        { title: 'Seller Compliance', url: '/admin/compliance', icon: ShieldCheck, badge: badges.compliance },
+        { title: 'Complaints & Disputes', url: '/support?kind=complaint', icon: MessageSquareWarning, badge: badges.disputes },
+        { title: 'Commission & Fees', url: '/admin/commission', icon: Percent },
+        { title: 'Reports', url: '/reports', icon: ChartNoAxesCombined },
+        { title: 'Platform Settings', url: '/admin/platform', icon: Megaphone },
+        { title: 'Messages', url: '/support?kind=message', icon: MessageCircle, badge: badges.messages },
+        { title: 'Activity History', url: '/admin/audit-log', icon: History },
+        { title: 'My Account', url: '/settings/profile', icon: Settings },
+    ];
     const role = auth.user.role;
+    useEffect(() => {
+        if (role === 'admin' && auth.user.status === 'approved') poll.start();
+        return () => poll.stop();
+    }, [role, auth.user.status, poll]);
     const items: NavItem[] = [...mainNavItems];
     if (role === 'buyer')
         items.push({ title: 'Discover', url: '/shop', icon: ShoppingBag }, { title: 'Shopping bag', url: '/cart', icon: ShoppingCart });
     if (role === 'seller') items.push({ title: 'Inventory', url: '/inventory', icon: Package });
     if (['buyer', 'seller'].includes(role)) items.push({ title: role === 'seller' ? 'Fulfillment' : 'Orders', url: '/orders', icon: Package });
-    if (['rider', 'logistics', 'admin'].includes(role))
-        items.push({ title: role === 'rider' ? 'My deliveries' : 'Parcel operations', url: '/deliveries', icon: Truck });
-    if (['admin', 'logistics'].includes(role))
-        items.push({ title: 'Applications', url: '/reviews', icon: ClipboardCheck }, { title: 'Accounts', url: '/accounts', icon: Users });
-    if (role === 'admin')
+    if (['courier', 'sorting_center', 'admin'].includes(role))
+        items.push({ title: role === 'courier' ? 'My deliveries' : 'Parcel operations', url: '/deliveries', icon: Truck });
+    if (role === 'sorting_center')
         items.push(
-            { title: 'Seller compliance', url: '/admin/compliance', icon: ShieldCheck },
-            { title: 'Complaints & disputes', url: '/support?kind=complaint', icon: MessageSquareWarning },
-            { title: 'Messages', url: '/support?kind=message', icon: MessagesSquare },
-            { title: 'Commission', url: '/admin/commission', icon: Percent },
-            { title: 'Platform settings', url: '/admin/platform', icon: Megaphone },
+            { title: 'Courier applications', url: '/reviews', icon: ClipboardCheck },
+            { title: 'Courier management', url: '/accounts', icon: Users },
         );
-    else items.push({ title: 'Support', url: '/support', icon: MessagesSquare });
+    if (role !== 'admin') items.push({ title: 'Support', url: '/support', icon: MessageCircle });
     if (role !== 'buyer') items.push({ title: 'Reports', url: '/reports', icon: ChartNoAxesCombined });
     items.push({ title: 'Settings', url: '/settings/profile', icon: Settings });
+    if (auth.user.status !== 'approved')
+        items.splice(0, items.length, { title: 'Registration & approval', url: '/application', icon: ClipboardCheck });
+    if (auth.user.status === 'pending')
+        items.splice(0, items.length, { title: 'Waiting for approval', url: '/application/waiting', icon: ClipboardCheck });
     return (
-        <Sidebar collapsible="icon" variant="inset">
-            <SidebarHeader>
+        <Sidebar collapsible="icon" variant="inset" className={role === 'admin' ? '[&_[data-sidebar=sidebar]]:bg-card' : undefined}>
+            <SidebarHeader className="border-b px-3 py-4">
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild>
+                        <SidebarMenuButton
+                            size="lg"
+                            className="group-data-[collapsible=icon]:mx-auto group-data-[collapsible=icon]:size-12! group-data-[collapsible=icon]:p-1! hover:bg-transparent active:bg-transparent"
+                            asChild
+                        >
                             <Link href="/dashboard" prefetch>
                                 <AppLogo />
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
+                {role === 'admin' && (
+                    <div className="text-primary mt-2 flex items-center gap-2 px-3 text-[10px] font-semibold tracking-wider uppercase group-data-[collapsible=icon]:hidden">
+                        <span className="bg-primary size-1.5 rounded-full" />
+                        Admin Workspace
+                    </div>
+                )}
             </SidebarHeader>
 
-            <SidebarContent>
-                <NavMain items={items} />
+            <SidebarContent className="pt-2">
+                <div className="space-y-5 py-3">
+                    {role === 'admin' && auth.user.status === 'approved' ? (
+                        <>
+                            <NavMain title="Workspace" items={adminItems.slice(0, 5)} />
+                            <NavMain title="Platform" items={adminItems.slice(5, 8)} />
+                            <NavMain title="Communication & Account" items={adminItems.slice(8)} />
+                        </>
+                    ) : (
+                        <NavMain items={items} />
+                    )}
+                </div>
             </SidebarContent>
 
-            <SidebarFooter>
+            <SidebarFooter className="border-t p-3">
                 {role !== 'admin' && <NavFooter items={footerNavItems} className="mt-auto" />}
                 <NavUser />
             </SidebarFooter>
+            {role === 'admin' && (
+                <SidebarRail
+                    tabIndex={0}
+                    aria-expanded={state === 'expanded'}
+                    aria-label={state === 'expanded' ? 'Collapse navigation' : 'Expand navigation'}
+                    title={state === 'expanded' ? 'Click edge to collapse navigation (Ctrl+B)' : 'Click edge to expand navigation (Ctrl+B)'}
+                    className="after:bg-border/50 hover:after:bg-primary/50 focus-visible:after:bg-primary focus-visible:outline-none"
+                />
+            )}
         </Sidebar>
     );
 }

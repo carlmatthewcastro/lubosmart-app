@@ -28,7 +28,7 @@ const roles = {
             { title: 'Sales reports', text: 'View completed sales and commission.', href: '/reports', icon: ChartNoAxesCombined },
         ],
     },
-    logistics: {
+    sorting_center: {
         title: 'Center overview',
         description: 'Move every parcel forward with a clear, organized dispatch workflow.',
         primary: 'Open parcel operations',
@@ -36,11 +36,11 @@ const roles = {
         steps: ['Receive ready seller parcels', 'Assign an approved courier', 'Receive collected cash'],
         links: [
             { title: 'Parcel operations', text: 'Receive, assign, and monitor deliveries.', href: '/deliveries', icon: Truck },
-            { title: 'Rider applications', text: 'Review couriers joining your center.', href: '/reviews', icon: ClipboardCheck },
+            { title: 'Courier applications', text: 'Review couriers joining your center.', href: '/reviews', icon: ClipboardCheck },
             { title: 'Center reports', text: 'Follow completed parcels and sales.', href: '/reports', icon: ChartNoAxesCombined },
         ],
     },
-    rider: {
+    courier: {
         title: 'Ready for your next delivery',
         description: 'Your assigned parcels, delivery details, and COD responsibilities in one place.',
         primary: 'View my deliveries',
@@ -95,7 +95,7 @@ export default function Dashboard({
             <section className="border-primary/10 bg-accent/40 rounded-2xl border p-5 sm:p-6">
                 <div className="max-w-xl">
                     <p className="text-primary mb-2 text-xs font-medium capitalize">
-                        {role === 'rider' ? 'Courier' : role === 'logistics' ? 'Sorting center' : role} workspace
+                        {role === 'courier' ? 'Courier' : role === 'sorting_center' ? 'Sorting center' : role} workspace
                     </p>
                     <h2 className="text-xl font-semibold tracking-tight">
                         {auth.user.name === 'LubosMart member' ? 'Welcome to LubosMart.' : `Hello, ${auth.user.name.split(' ')[0]}.`}
@@ -127,7 +127,7 @@ export default function Dashboard({
                         <h2 className="font-semibold">Recent activity</h2>
                         <Link
                             className="text-primary text-sm"
-                            href={role === 'admin' ? '/reviews' : ['rider', 'logistics'].includes(role) ? '/deliveries' : '/orders'}
+                            href={role === 'admin' ? '/reviews' : ['courier', 'sorting_center'].includes(role) ? '/deliveries' : '/orders'}
                         >
                             View workspace
                         </Link>

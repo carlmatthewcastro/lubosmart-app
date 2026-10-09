@@ -24,7 +24,10 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
 
     return (
         <div className="px-4 py-6">
-            <Heading title="Settings" description="Manage your profile and account settings" />
+            <Heading
+                title={auth.user.role === 'admin' ? 'My Account' : 'Settings'}
+                description={auth.user.role === 'admin' ? 'Profile and sign-in security.' : 'Manage your profile and account settings'}
+            />
 
             <div className="flex flex-col gap-6 lg:flex-row lg:gap-12">
                 <aside className="w-full max-w-xl lg:w-48">
@@ -38,11 +41,11 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
                                     variant="ghost"
                                     asChild
                                     className={cn('min-h-11 w-full justify-start', {
-                                        'bg-muted': currentPath === item.url,
+                                        'bg-accent text-primary': currentPath === item.url,
                                     })}
                                 >
                                     <Link href={item.url} prefetch aria-current={currentPath === item.url ? 'page' : undefined}>
-                                        {item.title}
+                                        {auth.user.role === 'admin' && item.url === '/settings/profile' ? 'Profile' : item.title}
                                     </Link>
                                 </Button>
                             ))}
