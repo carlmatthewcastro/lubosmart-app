@@ -1,4 +1,10 @@
+<p align="center">
+  <img src="public/logo.png" alt="LubosMart app logo" width="120">
+</p>
+
 # LubosMart
+
+**A Community-Focused E-Commerce and Logistics Management Platform**
 
 LubosMart is an e-commerce and delivery management platform for Filipino communities. It connects buyers, sellers, couriers, sorting centers and administrators in one system, covering product discovery, cash-on-delivery checkout and parcel fulfillment.
 
@@ -30,13 +36,9 @@ Public accounts require email verification and application approval before opera
 
 A buyer's checkout creates separate orders for each seller. Sellers prepare the parcels, sorting centers coordinate pickup and dispatch, and couriers complete delivery with proof and COD collection. Sorting centers receive the cash; Admin performs final reconciliation.
 
-```mermaid
-flowchart LR
-    Browser[React / Inertia] --> Caddy[Caddy HTTPS]
-    Caddy --> Laravel[Apache / Laravel]
-    Laravel --> Database[(MySQL)]
-    Worker[Laravel Queue Worker] --> Database
-```
+![LubosMart system architecture: React, TypeScript and Inertia.js connect through Caddy HTTPS to Apache and Laravel application services backed by MySQL; a queue worker accesses MySQL, and the REST API with Sanctum is planned.](documentation/assets/system-architecture.png)
+
+Solid arrows show the current architecture. The dashed branch shows the planned REST API with Sanctum and API Resources.
 
 The application uses a Laravel modular monolith: one backend owns the account, commerce, logistics and administration modules. Inertia connects React pages and forms to Laravel. Checkout preserves order details, checks stock and protects against duplicate submissions. Queue workers process operational notifications.
 
