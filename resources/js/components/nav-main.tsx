@@ -14,9 +14,10 @@ export function NavMain({ items = [], title = 'Your workspace' }: { items: NavIt
     const page = usePage();
     const { isMobile, setOpenMobile } = useSidebar();
     const isActive = (item: NavItem) => {
-        if (item.url === '/dashboard') return page.url.startsWith('/dashboard');
+        if (item.url === '/dashboard') return page.url.split('?')[0] === '/dashboard';
         const [path, query] = item.url.split('?');
-        if (!page.url.split('?')[0].startsWith(path)) return false;
+        const currentPath = page.url.split('?')[0];
+        if (currentPath !== path && !currentPath.startsWith(path + '/')) return false;
         if (!query) return true;
         const expected = new URLSearchParams(query);
         const actual = new URLSearchParams(page.url.split('?')[1] ?? '');
@@ -25,9 +26,7 @@ export function NavMain({ items = [], title = 'Your workspace' }: { items: NavIt
     };
     return (
         <SidebarGroup className="px-2 py-0">
-            <SidebarGroupLabel className="text-muted-foreground/70 mb-2 text-[10px] font-semibold tracking-widest uppercase">
-                {title}
-            </SidebarGroupLabel>
+            <SidebarGroupLabel className="text-muted-foreground mb-2 text-xs font-semibold tracking-widest uppercase">{title}</SidebarGroupLabel>
             <SidebarMenu className="gap-1">
                 {items.map((item) => (
                     <SidebarMenuItem key={item.title}>

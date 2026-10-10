@@ -1,4 +1,4 @@
-import { Card, Empty, Field, Page, Select, buttonClass, money, secondaryClass } from '@/components/marketplace-ui';
+import { Card, Empty, Field, Notice, Page, Select, buttonClass, money, secondaryClass } from '@/components/marketplace-ui';
 import { type SharedData } from '@/types';
 import { Link, router, useForm, usePage } from '@inertiajs/react';
 import { Minus, Plus, Trash2 } from 'lucide-react';
@@ -45,17 +45,19 @@ export default function Cart({
     const [quotes, setQuotes] = useState<{ id: number; name: string; total: number; parcels: { weight_grams: number; fee_cents: number }[] }[]>([]);
     const [quoteAddress, setQuoteAddress] = useState('');
     const [quoteError, setQuoteError] = useState('');
+    const [quoteAttempt, setQuoteAttempt] = useState(0);
     const itemKey = items.map((item) => item.id + ':' + item.quantity + ':' + item.product.price).join(',');
     useEffect(() => {
         if (!logisticsPricing || !checkout.data.address_id) return;
         const controller = new AbortController();
+        setQuoteError('');
         fetch('/cart/shipping-quote?address_id=' + checkout.data.address_id, {
             headers: { Accept: 'application/json' },
             signal: controller.signal,
             cache: 'no-store',
         })
             .then(async (response) => {
-                if (!response.ok) throw new Error('Shipping quotes could not be loaded. Refresh to try again.');
+                if (!response.ok) throw new Error('Shipping quotes could not be loaded. Try again.');
                 return response.json();
             })
             .then((data) => {
@@ -69,7 +71,7 @@ export default function Cart({
                 if (!controller.signal.aborted) setQuoteError(error.message);
             });
         return () => controller.abort();
-    }, [logisticsPricing, checkout.data.address_id, itemKey]);
+    }, [logisticsPricing, checkout.data.address_id, itemKey, quoteAttempt]);
     const quotesReady = quoteAddress === checkout.data.address_id + ':' + itemKey;
     const selectedQuote = quotesReady ? quotes.find((quote) => quote.id.toString() === checkout.data.sorting_center_id) : undefined;
     const shipping = logisticsPricing ? (selectedQuote?.total ?? 0) : stores * Number(shippingFee);
@@ -116,7 +118,7 @@ export default function Cart({
                                             <button
                                                 type="button"
                                                 aria-label={`Decrease ${item.product.name} quantity`}
-                                                className="p-3"
+                                                className="hover:bg-accent flex size-11 items-center justify-center rounded-xl"
                                                 disabled={updating}
                                                 onClick={() => update(item.product.id, item.quantity - 1)}
                                             >
@@ -126,7 +128,7 @@ export default function Cart({
                                             <button
                                                 type="button"
                                                 aria-label={`Increase ${item.product.name} quantity`}
-                                                className="p-3"
+                                                className="hover:bg-accent flex size-11 items-center justify-center rounded-xl"
                                                 disabled={updating || item.quantity >= item.product.stock}
                                                 onClick={() => update(item.product.id, item.quantity + 1)}
                                             >
@@ -136,7 +138,7 @@ export default function Cart({
                                         <p className="w-24 text-right text-sm font-semibold">{money(Number(item.product.price) * item.quantity)}</p>
                                         <button
                                             type="button"
-                                            className="text-muted-foreground hover:text-destructive p-3"
+                                            className="text-muted-foreground hover:text-destructive hover:bg-destructive/5 flex size-11 items-center justify-center rounded-xl"
                                             aria-label={`Remove ${item.product.name}`}
                                             disabled={updating}
                                             onClick={() => update(item.product.id, 0)}
@@ -153,7 +155,12 @@ export default function Cart({
                                 <Link href="/settings/addresses" className="text-primary text-sm">
                                     Manage addresses
                                 </Link>
-                                <button type="button" className="text-primary text-sm" onClick={() => setAddingAddress(!addingAddress)}>
+                                <button
+                                    type="button"
+                                    className="text-primary min-h-11 text-sm"
+                                    aria-expanded={addingAddress}
+                                    onClick={() => setAddingAddress(!addingAddress)}
+                                >
                                     {addingAddress ? 'Close form' : 'Add address'}
                                 </button>
                             </div>
@@ -240,7 +247,7 @@ export default function Cart({
                                 <span className="text-muted-foreground">
                                     Delivery ({stores} {stores === 1 ? 'store' : 'stores'})
                                 </span>
-                                {money(shipping)}
+                                {logisticsPricing && !selectedQuote ? 'Choose shipping' : money(shipping)}
                             </div>
                             {logisticsPricing ? (
                                 <div className="space-y-3">
@@ -258,16 +265,33 @@ export default function Cart({
                                             </option>
                                         ))}
                                     </Select>
-                                    <p className="text-muted-foreground text-xs">
-                                        {quoteError ||
-                                            (!checkout.data.address_id
+                                    {quoteError && (
+                                        <Notice tone="error">
+                                            <p>{quoteError}</p>
+                                            <button
+                                                type="button"
+                                                className={`${secondaryClass} mt-3`}
+                                                onClick={() => {
+                                                    setQuoteAddress('');
+                                                    setQuoteError('');
+                                                    setQuoteAttempt((attempt) => attempt + 1);
+                                                }}
+                                            >
+                                                Retry shipping quotes
+                                            </button>
+                                        </Notice>
+                                    )}
+                                    {!quoteError && (
+                                        <p role="status" className="text-muted-foreground text-sm leading-relaxed">
+                                            {!checkout.data.address_id
                                                 ? 'Choose a delivery address to see shipping quotes.'
                                                 : !quotesReady
                                                   ? 'Loading available providers...'
                                                   : !quotes.length
                                                     ? 'No provider can currently serve every parcel. Check address coverage and ask sellers to add packed weights.'
-                                                    : 'Rates include a destination base fee and extra weight charges. Each store sends a separate parcel.')}
-                                    </p>
+                                                    : 'Rates include a destination base fee and extra weight charges. Each store sends a separate parcel.'}
+                                        </p>
+                                    )}
                                     {selectedQuote?.parcels.map((parcel, index) => (
                                         <p key={index} className="text-muted-foreground text-xs">
                                             Parcel {index + 1}: {(parcel.weight_grams / 1000).toFixed(2)} kg / {money(parcel.fee_cents / 100)}

@@ -1,4 +1,4 @@
-import { Badge, Card, Empty, Page, Pager, secondaryClass, type Pagination } from '@/components/marketplace-ui';
+import { Badge, Card, Empty, inputClass, Page, Pager, secondaryClass, type Pagination } from '@/components/marketplace-ui';
 import RiderServiceAreaForm from '@/components/rider-service-area-form';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Link, router } from '@inertiajs/react';
@@ -48,7 +48,7 @@ export default function LogisticsParcels(props: Props) {
                             key={stage.key}
                             onClick={() => visit(stage.key)}
                             aria-pressed={(filters.stage ?? 'all') === stage.key}
-                            className={`rounded-xl px-3.5 py-2.5 text-sm font-medium transition ${(filters.stage ?? 'all') === stage.key ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-accent'}`}
+                            className={`min-h-11 rounded-xl px-3.5 py-2.5 text-sm font-medium transition ${(filters.stage ?? 'all') === stage.key ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-accent'}`}
                         >
                             {stage.label}
                         </button>
@@ -69,7 +69,7 @@ export default function LogisticsParcels(props: Props) {
                             id="parcel-search"
                             type="search"
                             maxLength={100}
-                            className="bg-background focus-visible:outline-primary mt-2 min-h-11 w-full rounded-xl border px-4 text-sm"
+                            className={`${inputClass} mt-2`}
                             value={search}
                             onChange={(event) => setSearch(event.target.value)}
                             placeholder="Search by store name"

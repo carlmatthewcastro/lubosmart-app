@@ -70,7 +70,10 @@ export default function VerifyEmail({ status, email, cooldown }: { status?: stri
                             <label className="grid gap-2 text-sm">
                                 Correct email
                                 <input
+                                    id="corrected-email"
                                     className={inputClass}
+                                    aria-invalid={!!change.errors.email}
+                                    aria-describedby={change.errors.email ? 'corrected-email-error' : undefined}
                                     type="email"
                                     required
                                     maxLength={160}
@@ -79,11 +82,18 @@ export default function VerifyEmail({ status, email, cooldown }: { status?: stri
                                     onChange={(event) => change.setData('email', event.target.value)}
                                 />
                             </label>
-                            <AuthFeedback message={change.errors.email} />
+                            <AuthFeedback id="corrected-email-error" message={change.errors.email} />
                             <label className="grid gap-2 text-sm">
                                 Confirm your password
                                 <input
+                                    id="email-change-password"
                                     className={inputClass}
+                                    aria-invalid={!!change.errors.current_password || !!(change.errors as Record<string, string>).code}
+                                    aria-describedby={
+                                        change.errors.current_password || (change.errors as Record<string, string>).code
+                                            ? 'email-change-password-error'
+                                            : undefined
+                                    }
                                     type="password"
                                     required
                                     autoComplete="current-password"
@@ -91,7 +101,10 @@ export default function VerifyEmail({ status, email, cooldown }: { status?: stri
                                     onChange={(event) => change.setData('current_password', event.target.value)}
                                 />
                             </label>
-                            <AuthFeedback message={change.errors.current_password ?? (change.errors as Record<string, string>).code} />
+                            <AuthFeedback
+                                id="email-change-password-error"
+                                message={change.errors.current_password ?? (change.errors as Record<string, string>).code}
+                            />
                             <button className={secondaryClass} disabled={change.processing}>
                                 Save email and send a new link
                             </button>

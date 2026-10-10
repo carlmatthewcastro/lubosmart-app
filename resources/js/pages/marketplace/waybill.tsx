@@ -7,7 +7,7 @@ export default function Waybill({ order }: { order: SellerOrder }) {
     return (
         <main className="mx-auto max-w-2xl p-5 sm:p-10">
             <Head title={`Waybill ${order.id}`} />
-            <div className="mb-6 flex justify-between gap-3 print:hidden">
+            <div className="mb-6 flex flex-wrap justify-between gap-3 print:hidden">
                 <Link href="/orders" className={secondaryClass}>
                     Back to orders
                 </Link>
@@ -16,8 +16,8 @@ export default function Waybill({ order }: { order: SellerOrder }) {
                     Print waybill
                 </button>
             </div>
-            <article className="rounded-2xl border bg-white p-8 text-gray-900 print:rounded-none print:border-0 print:p-0">
-                <header className="flex items-center justify-between border-b pb-6">
+            <article className="rounded-2xl border bg-white p-5 text-gray-900 sm:p-8 print:rounded-none print:border-0 print:p-0">
+                <header className="flex flex-wrap items-center justify-between gap-3 border-b pb-6">
                     <div className="flex items-center gap-3">
                         <img src="/logo.svg" alt="" className="size-10" />
                         <span className="text-xl font-semibold">LubosMart</span>

@@ -4,13 +4,13 @@ import {
     Card,
     Empty,
     Field,
-    inputClass,
     money,
     Page,
     Pager,
     type Pagination,
     secondaryClass,
     Select,
+    Textarea,
 } from '@/components/marketplace-ui';
 import { useForm } from '@inertiajs/react';
 import { Pencil, Plus } from 'lucide-react';
@@ -80,6 +80,7 @@ function ProductForm({ product, categories, close }: { product: Product | null; 
                 />
                 <Field
                     label="Packed weight per item (grams)"
+                    hint="Include packaging. Required for logistics shipping quotes."
                     type="number"
                     min="1"
                     max="50000"
@@ -88,9 +89,6 @@ function ProductForm({ product, categories, close }: { product: Product | null; 
                     onChange={(e) => form.setData('weight_grams', e.target.value)}
                     error={form.errors.weight_grams}
                 />
-                <p className="text-muted-foreground text-xs sm:col-span-2">
-                    Include packaging in the weight. Required for logistics shipping quotes.
-                </p>
                 <Field
                     label="Available stock"
                     type="number"
@@ -100,16 +98,16 @@ function ProductForm({ product, categories, close }: { product: Product | null; 
                     onChange={(e) => form.setData('stock', Number(e.target.value))}
                     error={form.errors.stock}
                 />
-                <label className="grid gap-2 text-sm font-medium sm:col-span-2">
-                    Description
-                    <textarea
-                        className={inputClass}
+                <div className="sm:col-span-2">
+                    <Textarea
+                        label="Description"
+                        error={form.errors.description}
                         rows={3}
                         maxLength={5000}
                         value={form.data.description}
                         onChange={(e) => form.setData('description', e.target.value)}
                     />
-                </label>
+                </div>
                 <Field
                     label="Product photo (optional, up to 5 MB)"
                     type="file"

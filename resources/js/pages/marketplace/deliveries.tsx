@@ -1,4 +1,3 @@
-import InputError from '@/components/input-error';
 import { Badge, Card, Empty, Field, Page, Pager, type Pagination, Select, buttonClass, money, secondaryClass } from '@/components/marketplace-ui';
 import RiderServiceAreaForm from '@/components/rider-service-area-form';
 import { useForm } from '@inertiajs/react';
@@ -52,6 +51,11 @@ export function Parcel({
     const pickup = order.shipping_quote?.pickup_address ?? order.store.pickup_address;
     return (
         <Card>
+            {form.processing && (
+                <p role="status" className="text-primary mb-4 text-sm">
+                    Updating parcel...
+                </p>
+            )}
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                     <p className="text-muted-foreground text-xs">Parcel #{parcel.id}</p>
@@ -65,7 +69,7 @@ export function Parcel({
                     <p className="mt-2 text-sm">
                         {pickup.line1}, {pickup.barangay}, {pickup.city}, {pickup.province}
                     </p>
-                    <a href={'tel:' + pickup.phone} className="text-primary mt-2 block text-xs">
+                    <a href={'tel:' + pickup.phone} className="text-primary mt-2 inline-flex min-h-11 items-center text-sm">
                         {pickup.phone}
                     </a>
                 </div>
@@ -86,7 +90,7 @@ export function Parcel({
                             {order.order.shipping_line1}, {order.order.shipping_barangay}, {order.order.shipping_city},{' '}
                             {order.order.shipping_province}
                         </p>
-                        <a className="text-primary mt-2 block text-sm" href={`tel:${order.order.shipping_phone}`}>
+                        <a className="text-primary mt-2 inline-flex min-h-11 items-center text-sm" href={`tel:${order.order.shipping_phone}`}>
                             {order.order.shipping_phone}
                         </a>
                     </div>
@@ -115,6 +119,7 @@ export function Parcel({
                 >
                     <Select
                         label="Receiving center"
+                        error={form.errors.sorting_center_id}
                         value={form.data.sorting_center_id}
                         onChange={(e) => form.setData('sorting_center_id', e.target.value)}
                         required
@@ -174,6 +179,7 @@ export function Parcel({
                     >
                         <Select
                             label="Delivery area"
+                            error={form.errors.service_area_id}
                             value={form.data.service_area_id}
                             onChange={(event) => {
                                 form.setData('service_area_id', event.target.value);
@@ -190,9 +196,10 @@ export function Parcel({
                                     </option>
                                 ))}
                         </Select>
-                        <InputError message={form.errors.service_area_id || form.errors.rider_id} />
+
                         <Select
                             label="Approved courier"
+                            error={form.errors.rider_id}
                             value={form.data.rider_id}
                             onChange={(e) => form.setData('rider_id', e.target.value)}
                             required
@@ -264,7 +271,19 @@ export function Parcel({
                             Return the parcel to the center. Dispatch becomes available after receipt and sorting.
                         </p>
                     )}
-                    {form.progress && <p className="text-muted-foreground text-xs">Uploading {form.progress.percentage}%</p>}
+                    {form.progress && (
+                        <div className="space-y-2">
+                            <p role="status" className="text-muted-foreground text-sm">
+                                Uploading proof: {form.progress.percentage ?? 0}%
+                            </p>
+                            <progress
+                                aria-label="Delivery proof upload"
+                                className="accent-primary h-2 w-full"
+                                value={form.progress.percentage ?? 0}
+                                max={100}
+                            />
+                        </div>
+                    )}
                 </div>
             )}
             {collection && (

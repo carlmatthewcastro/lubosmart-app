@@ -1,4 +1,5 @@
 import RegistrationForm from '@/components/registration-form';
+import { SkipLink } from '@/components/skip-link';
 import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft, Check, Mail, ShieldCheck, Sparkles } from 'lucide-react';
 
@@ -6,6 +7,7 @@ export default function Register() {
     return (
         <div className="bg-background min-h-svh">
             <Head title="Create account" />
+            <SkipLink />
             <header className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-5 sm:px-8">
                 <Link href="/" className="flex items-center gap-3 text-lg font-semibold">
                     <img src="/logo.svg" alt="" className="size-10" />
@@ -15,7 +17,11 @@ export default function Register() {
                     <span className="hidden sm:inline">Already a member? </span>Log in
                 </Link>
             </header>
-            <main className="mx-auto grid max-w-6xl items-start gap-8 px-4 py-5 sm:px-8 lg:grid-cols-[.85fr_1.15fr] lg:gap-16 lg:py-10">
+            <main
+                id="main-content"
+                tabIndex={-1}
+                className="mx-auto grid max-w-6xl items-start gap-8 px-4 py-5 sm:px-8 lg:grid-cols-[.85fr_1.15fr] lg:gap-16 lg:py-10"
+            >
                 <aside className="hidden lg:sticky lg:top-10 lg:block">
                     <Link href="/shop" className="text-muted-foreground mb-8 inline-flex items-center gap-2 text-sm">
                         <ArrowLeft className="size-4" />

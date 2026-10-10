@@ -1,4 +1,4 @@
-import { Badge, Card, Field, Page, Pager, Select, buttonClass, inputClass, secondaryClass, type Pagination } from '@/components/marketplace-ui';
+import { Badge, Card, Field, Page, Pager, Select, Textarea, buttonClass, secondaryClass, type Pagination } from '@/components/marketplace-ui';
 import { ReasonConfirmation } from '@/components/reason-confirmation';
 import { type SharedData } from '@/types';
 import { Link, useForm, usePage } from '@inertiajs/react';
@@ -136,21 +136,18 @@ export default function Conversation({
                                     });
                                 }}
                             >
-                                <label className="grid gap-2 text-sm font-medium">
-                                    Your Reply
-                                    <textarea
-                                        className={`${inputClass} min-h-28 resize-none font-normal`}
-                                        required
-                                        placeholder="Write a reply with the next step or update."
-                                        maxLength={5000}
-                                        value={form.data.body}
-                                        onChange={(e) => form.setData('body', e.target.value)}
-                                    />
-                                </label>
+                                <Textarea
+                                    label="Your reply"
+                                    error={form.errors.body}
+                                    className="min-h-28 font-normal"
+                                    required
+                                    placeholder="Write a reply with the next step or update."
+                                    maxLength={5000}
+                                    value={form.data.body}
+                                    onChange={(e) => form.setData('body', e.target.value)}
+                                />
                                 <p className="text-muted-foreground text-xs">{form.data.body.length}/5,000 characters</p>
-                                <p className="text-destructive text-sm" role={form.errors.body ? 'alert' : undefined}>
-                                    {form.errors.body}
-                                </p>
+
                                 <Field
                                     key={fileKey}
                                     label="Evidence (optional, JPG/PNG/PDF, up to 5 MB)"
@@ -186,15 +183,14 @@ export default function Conversation({
                                 <option value="in_review">In Review</option>
                                 <option value="resolved">Resolved</option>
                             </Select>
-                            <label className="grid gap-2 text-sm font-medium">
-                                Resolution Notes
-                                <textarea
-                                    className={`${inputClass} min-h-32 resize-none font-normal`}
-                                    maxLength={5000}
-                                    value={decision.data.resolution}
-                                    onChange={(e) => decision.setData('resolution', e.target.value)}
-                                />
-                            </label>
+                            <Textarea
+                                label="Resolution notes"
+                                error={decision.errors.resolution}
+                                className="min-h-32 font-normal"
+                                maxLength={5000}
+                                value={decision.data.resolution}
+                                onChange={(e) => decision.setData('resolution', e.target.value)}
+                            />
                             <p className="text-muted-foreground text-xs">
                                 Add an outcome before resolving the case. Notes are shared with participants.
                             </p>

@@ -8,14 +8,14 @@ interface AppContentProps extends React.ComponentProps<'div'> {
 export function AppContent({ variant = 'header', children, ...props }: AppContentProps) {
     if (variant === 'sidebar') {
         return (
-            <SidebarInset className="min-w-0" {...props}>
+            <SidebarInset id="main-content" tabIndex={-1} className="min-w-0" {...props}>
                 {children}
             </SidebarInset>
         );
     }
 
     return (
-        <main className="mx-auto flex h-full w-full max-w-7xl flex-1 flex-col gap-4 rounded-xl" {...props}>
+        <main id="main-content" tabIndex={-1} className="mx-auto flex h-full w-full max-w-7xl flex-1 flex-col gap-4 rounded-xl" {...props}>
             {children}
         </main>
     );

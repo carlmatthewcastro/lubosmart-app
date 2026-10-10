@@ -2,6 +2,7 @@ import { Head, router, usePage } from '@inertiajs/react';
 import { PackageCheck, Search, Store, Wallet } from 'lucide-react';
 import { type MouseEvent, useState } from 'react';
 
+import { SkipLink } from '@/components/skip-link';
 import AuthModal from '@/components/storefront-auth-modal';
 import type { SharedData } from '@/types';
 import '../../../css/auth-preview.css';
@@ -48,6 +49,7 @@ export default function Welcome({
             <Head title="Home">
                 <meta name="description" content="Discover local finds, support neighborhood sellers, and shop with LubosMart." />
             </Head>
+            {modalTab === null && <SkipLink />}
             <main className="storefront" inert={modalTab !== null}>
                 <header className="storefront__header">
                     <a className="storefront__brand" href="/" aria-label="LubosMart home">
@@ -82,7 +84,7 @@ export default function Welcome({
                     </nav>
                 </header>
 
-                <section className="storefront__hero">
+                <section id="main-content" tabIndex={-1} className="storefront__hero">
                     <div className="storefront__hero-content">
                         <span className="storefront__eyebrow">YOUR LOCAL MARKETPLACE</span>
                         <h1>
@@ -96,7 +98,7 @@ export default function Welcome({
                                 Search products
                             </label>
                             <Search className="size-5 shrink-0" aria-hidden="true" />
-                            <input id="home-search" name="search" type="search" placeholder="Search products" maxLength={160} />
+                            <input id="home-search" name="search" type="search" placeholder="Search products" maxLength={100} />
                             <button type="submit">Search</button>
                         </form>
                         <div className="storefront__actions">

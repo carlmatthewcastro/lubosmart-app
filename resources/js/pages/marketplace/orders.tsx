@@ -1,4 +1,4 @@
-import { Badge, buttonClass, Card, Empty, inputClass, money, Page, Pager, type Pagination } from '@/components/marketplace-ui';
+import { Badge, buttonClass, Card, Empty, money, Page, Pager, Textarea, type Pagination } from '@/components/marketplace-ui';
 import { Link, useForm } from '@inertiajs/react';
 import { Check, MapPin, MessageCircle, Package, Truck } from 'lucide-react';
 
@@ -143,7 +143,7 @@ function OrderCard({ order, messages, role }: { order: SellerOrder; messages: Me
                 </details>
             )}
             {order.status === 'completed' && (
-                <p className="mt-5 flex items-center gap-2 text-sm text-emerald-700">
+                <p className="text-success mt-5 flex items-center gap-2 text-sm">
                     <Check className="size-4" />
                     Delivered successfully
                 </p>
@@ -173,10 +173,10 @@ function OrderCard({ order, messages, role }: { order: SellerOrder; messages: Me
                                 message.post(`/orders/${order.id}/messages`, { preserveScroll: true, onSuccess: () => message.reset() });
                             }}
                         >
-                            <label className="min-w-0 flex-1 text-sm">
-                                Your message
-                                <textarea
-                                    className={`${inputClass} mt-2`}
+                            <div className="min-w-0 flex-1">
+                                <Textarea
+                                    label="Your message"
+                                    error={message.errors.body}
                                     required
                                     maxLength={2000}
                                     rows={2}
@@ -184,9 +184,9 @@ function OrderCard({ order, messages, role }: { order: SellerOrder; messages: Me
                                     value={message.data.body}
                                     onChange={(e) => message.setData('body', e.target.value)}
                                 />
-                            </label>
+                            </div>
                             <button className={buttonClass} disabled={message.processing}>
-                                Send
+                                {message.processing ? 'Sending…' : 'Send'}
                             </button>
                         </form>
                     )}

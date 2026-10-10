@@ -136,17 +136,30 @@ export default function Reports({
                             {records.total.toLocaleString('en-PH')} {records.total === 1 ? 'parcel' : 'parcels'}
                         </span>
                     </div>
-                    <div className="overflow-x-auto">
+                    <div
+                        role="region"
+                        aria-label="Completed deliveries table"
+                        tabIndex={0}
+                        className="focus-visible:outline-ring overflow-x-auto rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4"
+                    >
                         <table className="w-full min-w-[560px] text-left text-sm">
                             <caption className="sr-only">Completed deliveries and their financial totals</caption>
                             <thead>
                                 <tr className="text-muted-foreground border-b">
-                                    <th className="pb-4 font-medium">Parcel & Store</th>
-                                    <th className="pb-4 text-right font-medium">{financial ? 'Product Sales' : 'COD Value'}</th>
+                                    <th scope="col" className="pb-4 font-medium">
+                                        Parcel & Store
+                                    </th>
+                                    <th scope="col" className="pb-4 text-right font-medium">
+                                        {financial ? 'Product Sales' : 'COD Value'}
+                                    </th>
                                     {financial && (
                                         <>
-                                            <th className="pb-4 text-right font-medium">Commission</th>
-                                            <th className="pb-4 text-right font-medium">Seller Proceeds</th>
+                                            <th scope="col" className="pb-4 text-right font-medium">
+                                                Commission
+                                            </th>
+                                            <th scope="col" className="pb-4 text-right font-medium">
+                                                Seller Proceeds
+                                            </th>
                                         </>
                                     )}
                                 </tr>

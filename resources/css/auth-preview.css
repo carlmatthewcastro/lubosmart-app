@@ -60,6 +60,9 @@
 
 .storefront__nav-link,
 .storefront__text-button {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
     padding: 8px 0;
     border: 0;
     color: var(--store-ink);
@@ -206,7 +209,7 @@
 
 .storefront__search:focus-within {
     border-color: var(--store-purple);
-    box-shadow: 0 0 0 3px rgb(91 42 134 / 10%);
+    box-shadow: 0 0 0 3px var(--store-purple);
 }
 
 .storefront__search input {
@@ -217,7 +220,7 @@
     color: var(--store-ink);
     background: transparent;
     font: inherit;
-    font-size: 0.88rem;
+    font-size: 1rem;
 }
 
 .storefront__search button {
@@ -613,7 +616,7 @@
     }
 
     .storefront__button--small {
-        min-height: 39px;
+        min-height: 44px;
         padding-inline: 12px;
         font-size: 0.78rem;
     }

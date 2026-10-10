@@ -7,9 +7,9 @@ export default function AuthFeedback({ message, id }: { message?: string; id?: s
         <p
             id={id}
             role="alert"
-            className="border-primary/15 bg-accent/60 text-foreground flex items-start gap-2 rounded-lg border px-3 py-2.5 text-xs leading-5"
+            className="border-destructive/30 bg-destructive/5 text-destructive flex items-start gap-2 rounded-xl border px-3 py-2.5 text-sm leading-relaxed"
         >
-            <CircleAlert className="text-primary mt-0.5 size-4 shrink-0" aria-hidden="true" />
+            <CircleAlert className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
             <span>{message}</span>
         </p>
     );

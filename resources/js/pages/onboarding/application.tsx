@@ -226,12 +226,14 @@ export default function ApplicationPage({
                 id={key}
                 name={key}
                 className="min-h-11"
+                aria-invalid={!!form.errors[key]}
+                aria-describedby={form.errors[key] ? `${key}-error` : undefined}
                 type={type}
                 value={form.data[key]}
                 required={required}
                 onChange={(event) => form.setData(key, event.target.value)}
             />
-            <InputError message={form.errors[key]} />
+            <InputError id={`${key}-error`} message={form.errors[key]} />
         </div>
     );
     const select = (
@@ -251,7 +253,9 @@ export default function ApplicationPage({
                 value={form.data[key]}
                 disabled={disabled}
                 required
-                className="bg-background min-h-11 w-full rounded-xl border px-3 text-sm"
+                className="bg-background border-input aria-invalid:border-destructive min-h-11 w-full rounded-xl border px-3 text-base md:text-sm"
+                aria-invalid={!!form.errors[key]}
+                aria-describedby={form.errors[key] ? `${key}-error` : undefined}
                 onChange={(event) => {
                     form.setData(key, event.target.value);
                     if (key === 'province_code') {
@@ -268,7 +272,7 @@ export default function ApplicationPage({
                     </option>
                 ))}
             </select>
-            <InputError message={form.errors[key]} />
+            <InputError id={`${key}-error`} message={form.errors[key]} />
         </div>
     );
     const locationOptions = (items: Location[]) => items.map((item) => ({ value: item.code, label: item.name }));

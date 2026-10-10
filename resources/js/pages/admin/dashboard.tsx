@@ -125,7 +125,7 @@ export default function AdminDashboard({
                 <span
                     className={
                         'inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium ' +
-                        (attentionTotal ? 'border-primary/15 bg-card text-primary' : 'border-emerald-100 bg-emerald-50 text-emerald-700')
+                        (attentionTotal ? 'border-primary/15 bg-card text-primary' : 'border-success/30 bg-success/5 text-success')
                     }
                 >
                     <CheckCheck className="size-4" />
@@ -177,8 +177,8 @@ export default function AdminDashboard({
                                 ))}
                             </div>
                         ) : (
-                            <div className="mt-5 flex items-start gap-3 rounded-xl bg-emerald-50/70 p-4">
-                                <CheckCheck className="mt-0.5 size-5 shrink-0 text-emerald-600" />
+                            <div className="bg-success/5 mt-5 flex items-start gap-3 rounded-xl p-4">
+                                <CheckCheck className="text-success mt-0.5 size-5 shrink-0" />
                                 <div>
                                     <p className="text-sm font-medium">Nothing is waiting for review</p>
                                     <p className="text-muted-foreground mt-1 text-xs leading-relaxed">

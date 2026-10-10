@@ -126,7 +126,7 @@ export default function AuthModal({ initialTab, initialRole, onClose }: { initia
 
     return (
         <div className="auth-modal is-open" onKeyDown={handleKeyDown}>
-            <button className="auth-modal__backdrop" type="button" aria-label="Close authentication dialog" onClick={onClose} />
+            <button className="auth-modal__backdrop" type="button" tabIndex={-1} aria-label="Close authentication dialog" onClick={onClose} />
             <section ref={dialogRef} className="auth-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title">
                 <header className="auth-modal__header">
                     <button className="auth-modal__close" type="button" aria-label="Close dialog" onClick={onClose}>

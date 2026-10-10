@@ -1,5 +1,5 @@
 import InputError from '@/components/input-error';
-import { roleLabel } from '@/components/marketplace-ui';
+import { inputClass, roleLabel } from '@/components/marketplace-ui';
 import { ReasonConfirmation } from '@/components/reason-confirmation';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -164,14 +164,16 @@ export default function Review({
                         <Label htmlFor="decision">Decision</Label>
                         <select
                             id="decision"
-                            className="bg-background h-10 rounded-md border px-3"
+                            className={inputClass}
+                            aria-invalid={!!form.errors.decision}
+                            aria-describedby={form.errors.decision ? 'review-decision-error' : undefined}
                             value={form.data.decision}
                             onChange={(event) => form.setData('decision', event.target.value)}
                         >
                             <option value="approved">Approve</option>
                             <option value="rejected">Request changes / reject</option>
                         </select>
-                        <InputError message={form.errors.decision} />
+                        <InputError id="review-decision-error" message={form.errors.decision} />
                         {override && (
                             <p className="text-muted-foreground text-sm">
                                 You are overriding this courier’s sorting center. Record the reason for your decision.
@@ -180,7 +182,9 @@ export default function Review({
                         <Label htmlFor="reason">Reason {override ? '(required for Admin override)' : '(required for rejection)'}</Label>
                         <select
                             id="reason"
-                            className="bg-background min-h-11 rounded-xl border px-3 text-sm"
+                            className={inputClass}
+                            aria-invalid={!!form.errors.reason}
+                            aria-describedby={form.errors.reason ? 'review-reason-error' : undefined}
                             required={form.data.decision === 'rejected' || override}
                             value={form.data.reason}
                             onChange={(event) => form.setData('reason', event.target.value)}
@@ -198,7 +202,7 @@ export default function Review({
                                 <option key={reason}>{reason}</option>
                             ))}
                         </select>
-                        <InputError message={form.errors.reason} />
+                        <InputError id="review-reason-error" message={form.errors.reason} />
                         <Button disabled={form.processing}>{form.processing ? 'Saving…' : 'Save decision'}</Button>
                     </form>
                 )}
