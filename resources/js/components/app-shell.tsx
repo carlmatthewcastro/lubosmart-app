@@ -1,3 +1,4 @@
+import { SkipLink } from '@/components/skip-link';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import type { SharedData } from '@/types';
 import { usePage } from '@inertiajs/react';
@@ -21,7 +22,12 @@ export function AppShell({ children, variant = 'header' }: AppShellProps) {
     };
 
     if (variant === 'header') {
-        return <div className="flex min-h-screen w-full flex-col">{children}</div>;
+        return (
+            <div className="flex min-h-screen w-full flex-col">
+                <SkipLink />
+                {children}
+            </div>
+        );
     }
 
     return (
@@ -31,6 +37,7 @@ export function AppShell({ children, variant = 'header' }: AppShellProps) {
             open={isOpen}
             onOpenChange={handleSidebarChange}
         >
+            <SkipLink />
             {children}
         </SidebarProvider>
     );

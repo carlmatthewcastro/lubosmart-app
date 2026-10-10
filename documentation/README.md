@@ -24,7 +24,7 @@ Follow the order journey first, then platform administration:
 
 ## Development Standards
 
-Frontend changes follow [UI/UX rules](standards/UI_UX_RULES.md).
+Frontend changes follow [UI/UX rules](standards/UI_UX_RULES.md). The [page audit](standards/UI_UX_AUDIT.md) records improvements and remaining verification.
 
 Branching, commits, and GitHub pushes follow [Git workflow rules](standards/GIT_WORKFLOW_RULES.md).
 

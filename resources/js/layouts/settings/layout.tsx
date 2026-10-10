@@ -19,11 +19,14 @@ const sidebarNavItems: NavItem[] = [
 ];
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
-    const { auth } = usePage<SharedData>().props;
-    const currentPath = window.location.pathname;
+    const {
+        props: { auth },
+        url,
+    } = usePage<SharedData>();
+    const currentPath = url.split('?')[0];
 
     return (
-        <div className="px-4 py-6">
+        <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-9">
             <Heading
                 title={auth.user.role === 'admin' ? 'My Account' : 'Settings'}
                 description={auth.user.role === 'admin' ? 'Profile and sign-in security.' : 'Manage your profile and account settings'}

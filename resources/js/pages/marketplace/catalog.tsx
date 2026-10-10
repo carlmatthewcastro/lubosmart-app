@@ -2,6 +2,8 @@ import { buttonClass, Card, Empty, Field, money, Page, Pager, secondaryClass, Se
 import { type SharedData } from '@/types';
 import { Link, useForm, usePage } from '@inertiajs/react';
 
+import { useState } from 'react';
+
 export type Product = {
     weight_grams?: number | null;
     id: number;
@@ -29,6 +31,7 @@ export default function Catalog({
     const { auth } = usePage<SharedData>().props;
     const search = useForm({ search: filters.search ?? '', category: filters.category ?? '' });
     const cart = useForm({ quantity: 1, add: true });
+    const [addingProduct, setAddingProduct] = useState<number | null>(null);
     const filtered = Boolean(filters.search || filters.category);
     const selectedCategory = categories.find((category) => String(category.id) === String(filters.category));
     return (
@@ -58,7 +61,7 @@ export default function Catalog({
                             label="Search products"
                             name="search"
                             type="search"
-                            maxLength={160}
+                            maxLength={100}
                             disabled={search.processing}
                             value={search.data.search}
                             onChange={(e) => search.setData('search', e.target.value)}
@@ -111,6 +114,8 @@ export default function Catalog({
                                         alt={product.name}
                                         loading="lazy"
                                         decoding="async"
+                                        width={400}
+                                        height={300}
                                         className="h-full w-full object-cover"
                                     />
                                 ) : (
@@ -123,7 +128,7 @@ export default function Catalog({
                                 <h2 className="mt-2 leading-relaxed font-semibold break-words">{product.name}</h2>
                                 {product.description && (
                                     <details className="mt-2 text-xs">
-                                        <summary className="text-primary min-h-8 cursor-pointer content-center">Details</summary>
+                                        <summary className="text-primary min-h-11 cursor-pointer content-center">Details</summary>
                                         <p className="text-muted-foreground mt-2 leading-relaxed whitespace-pre-wrap">{product.description}</p>
                                     </details>
                                 )}
@@ -138,9 +143,16 @@ export default function Catalog({
                                         <button
                                             className={`${buttonClass} w-full`}
                                             disabled={!product.stock || cart.processing}
-                                            onClick={() => cart.put(`/cart/${product.id}`, { preserveScroll: true })}
+                                            aria-label={`Add ${product.name} to bag`}
+                                            onClick={() =>
+                                                cart.put(`/cart/${product.id}`, {
+                                                    preserveScroll: true,
+                                                    onStart: () => setAddingProduct(product.id),
+                                                    onFinish: () => setAddingProduct(null),
+                                                })
+                                            }
                                         >
-                                            {product.stock ? 'Add to bag' : 'Sold out'}
+                                            {addingProduct === product.id ? 'Adding...' : product.stock ? 'Add to bag' : 'Sold out'}
                                         </button>
                                     ) : auth.user?.role === 'buyer' ? (
                                         <Link href="/application" className={`${secondaryClass} w-full`}>

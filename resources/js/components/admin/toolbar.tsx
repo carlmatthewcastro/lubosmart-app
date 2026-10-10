@@ -4,7 +4,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
 import { UserMenuContent } from '@/components/user-menu-content';
-import { useAppearance } from '@/hooks/use-appearance';
 import type { SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { Bell, CircleUserRound, ClipboardCheck, MessageCircle, MessageSquareWarning, Search, ShieldCheck } from 'lucide-react';
@@ -13,10 +12,6 @@ import { useEffect, useState } from 'react';
 type Result = { id: number; kind: 'account' | 'registration' | 'conversation'; label: string; detail: string; url?: string };
 export function AdminToolbar() {
     const { auth, adminWorkspace } = usePage<SharedData>().props;
-    const { appearance, updateAppearance } = useAppearance();
-    useEffect(() => {
-        if (appearance !== 'light') updateAppearance('light');
-    }, [appearance, updateAppearance]);
     const alerts = [
         { key: 'registrations', label: 'Registrations', description: 'Applications waiting for review', url: '/reviews', icon: ClipboardCheck },
         { key: 'compliance', label: 'Seller Compliance', description: 'Blocked or mismatched listings', url: '/admin/compliance', icon: ShieldCheck },
@@ -71,7 +66,7 @@ export function AdminToolbar() {
         <div className="flex items-center gap-1 sm:gap-2">
             <button
                 type="button"
-                className="text-muted-foreground hover:text-foreground hover:bg-accent lg:bg-background flex min-h-10 items-center gap-2 rounded-xl p-2 lg:border lg:px-3"
+                className="text-muted-foreground hover:text-foreground hover:bg-accent lg:bg-background flex min-h-11 items-center gap-2 rounded-xl p-2 lg:border lg:px-3"
                 aria-label="Search Admin Workspace"
                 onClick={() => close(true)}
             >
@@ -83,7 +78,7 @@ export function AdminToolbar() {
                     type="button"
                     onClick={() => window.dispatchEvent(new Event('admin-messages:open'))}
                     aria-label={`Messages, ${adminWorkspace.badges.messages ?? 0} unread`}
-                    className="hover:bg-accent relative flex size-10 items-center justify-center rounded-xl"
+                    className="hover:bg-accent relative flex size-11 items-center justify-center rounded-xl"
                 >
                     <MessageCircle className="size-5" />
                     {!!adminWorkspace.badges.messages && (
@@ -98,7 +93,7 @@ export function AdminToolbar() {
                     <button
                         type="button"
                         aria-label={'Notifications, ' + alertCount + ' items need attention'}
-                        className="hover:bg-accent relative flex size-10 items-center justify-center rounded-xl"
+                        className="hover:bg-accent relative flex size-11 items-center justify-center rounded-xl"
                     >
                         <Bell className="size-5" />
                         {!!alertCount && (
@@ -133,7 +128,7 @@ export function AdminToolbar() {
                 <DropdownMenuTrigger asChild>
                     <button
                         type="button"
-                        className="bg-accent/60 text-primary hover:bg-accent focus-visible:ring-primary flex size-10 items-center justify-center rounded-xl transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                        className="bg-accent/60 text-primary hover:bg-accent focus-visible:ring-primary flex size-11 items-center justify-center rounded-xl transition-colors focus-visible:ring-2 focus-visible:outline-none"
                         aria-label="Open account menu"
                         title="My Account"
                     >
@@ -169,7 +164,10 @@ export function AdminToolbar() {
                     ) : query.trim().length < 2 ? (
                         <p className="text-muted-foreground text-sm">Type a name, email address, or conversation subject.</p>
                     ) : results === null ? (
-                        <Skeleton className="h-32 w-full" />
+                        <div role="status" aria-label="Searching workspace">
+                            <span className="sr-only">Searching workspace...</span>
+                            <Skeleton className="h-32 w-full" />
+                        </div>
                     ) : !results.length ? (
                         <p className="text-muted-foreground text-sm">No matching items found.</p>
                     ) : (

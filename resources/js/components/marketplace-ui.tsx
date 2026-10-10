@@ -1,18 +1,34 @@
 import AuthFeedback from '@/components/auth-feedback';
+import { SkipLink } from '@/components/skip-link';
+import { buttonVariants } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
+import { cn } from '@/lib/utils';
 import { type SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, useId } from 'react';
+import { type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes, useId } from 'react';
 
 export const money = (value: string | number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(Number(value));
 const roleLabels: Record<string, string> = { buyer: 'Buyer', seller: 'Seller', courier: 'Courier', sorting_center: 'Sorting Center', admin: 'Admin' };
 export const roleLabel = (role: string | null | undefined) => (role ? (roleLabels[role] ?? role.replaceAll('_', ' ')) : 'No Role Selected');
-export const buttonClass =
-    'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:ring-2 focus-visible:ring-primary/25 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50';
-export const secondaryClass =
-    'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border bg-card px-4 py-2 text-sm font-medium transition-colors hover:border-primary/30 hover:bg-accent/50 focus-visible:ring-2 focus-visible:ring-primary/25 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50';
+export const buttonClass = buttonVariants();
+export const secondaryClass = buttonVariants({ variant: 'outline' });
 export const inputClass =
-    'min-h-11 w-full min-w-0 rounded-xl border bg-background px-3.5 py-2.5 text-sm transition-colors placeholder:text-muted-foreground/65 focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/15 focus-visible:outline-none aria-invalid:border-primary disabled:cursor-not-allowed disabled:opacity-60';
+    'min-h-11 w-full min-w-0 rounded-xl border border-input bg-background px-3.5 py-2.5 text-base transition-colors placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:outline-none aria-invalid:border-destructive disabled:cursor-not-allowed disabled:opacity-60 md:text-sm';
+
+export function Notice({ children, tone = 'success' }: { children: ReactNode; tone?: 'success' | 'error' | 'warning' }) {
+    return (
+        <div
+            role={tone === 'error' ? 'alert' : 'status'}
+            className={cn('rounded-xl border px-4 py-3 text-sm leading-relaxed', {
+                'border-success/30 bg-success/5 text-success': tone === 'success',
+                'border-destructive/30 bg-destructive/5 text-destructive': tone === 'error',
+                'border-warning/30 bg-warning/5 text-warning': tone === 'warning',
+            })}
+        >
+            {children}
+        </div>
+    );
+}
 export function Page({
     title,
     description,
@@ -37,19 +53,15 @@ export function Page({
                 </div>
                 {action}
             </div>
-            {status && (
-                <div role="status" className="border-primary/15 bg-accent/60 rounded-xl border px-4 py-3 text-sm leading-relaxed">
-                    {status}
-                </div>
-            )}
+            {status && <Notice>{status}</Notice>}
             {Object.keys(errors).length > 0 && (
-                <div role="alert" className="border-primary/15 bg-accent/60 rounded-xl border px-4 py-3 text-sm leading-relaxed">
+                <Notice tone="error">
                     {[...new Set(Object.values(errors))].map((error, i) => (
                         <p key={i} className={i ? 'mt-1' : ''}>
                             {error}
                         </p>
                     ))}
-                </div>
+                </Notice>
             )}
             {children}
         </div>
@@ -59,6 +71,7 @@ export function Page({
         <AppLayout breadcrumbs={[{ title, href: '#' }]}>{content}</AppLayout>
     ) : (
         <>
+            <SkipLink />
             <header className="bg-card border-b">
                 <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
                     <Link href="/" className="flex items-center gap-2 font-semibold">
@@ -75,7 +88,9 @@ export function Page({
                     </nav>
                 </div>
             </header>
-            <main>{content}</main>
+            <main id="main-content" tabIndex={-1}>
+                {content}
+            </main>
         </>
     );
 }
@@ -99,7 +114,7 @@ export function Badge({ status, label }: { status: string; label?: string }) {
     const good = ['completed', 'delivered', 'approved', 'active', 'reconciled'].includes(status);
     return (
         <span
-            className={`inline-flex rounded-full px-3 py-1 text-xs font-medium capitalize ${good ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300' : ['cancelled', 'rejected', 'suspended', 'deactivated', 'blocked', 'failed', 'hidden'].includes(status) ? 'bg-destructive/10 text-destructive' : 'bg-accent text-primary'}`}
+            className={`inline-flex rounded-full px-3 py-1 text-xs font-medium capitalize ${good ? 'bg-success/10 text-success' : ['cancelled', 'rejected', 'suspended', 'deactivated', 'blocked', 'failed', 'hidden'].includes(status) ? 'bg-destructive/10 text-destructive' : 'bg-accent text-primary'}`}
         >
             {label ?? status.replaceAll('_', ' ')}
         </span>
@@ -107,6 +122,7 @@ export function Badge({ status, label }: { status: string; label?: string }) {
 }
 export type Pagination<T> = { data: T[]; links: { url: string | null; label: string; active: boolean }[]; total: number };
 export function Pager({ links }: { links: Pagination<unknown>['links'] }) {
+    if (links.length <= 3) return null;
     return (
         <nav aria-label="Pagination" className="flex flex-wrap justify-center gap-2">
             {links.length > 3 &&
@@ -130,7 +146,13 @@ export function Pager({ links }: { links: Pagination<unknown>['links'] }) {
         </nav>
     );
 }
-export function Field({ label, error, ...props }: InputHTMLAttributes<HTMLInputElement> & { label: string; error?: string }) {
+export function Field({
+    label,
+    error,
+    hint,
+    className,
+    ...props
+}: InputHTMLAttributes<HTMLInputElement> & { label: string; error?: string; hint?: string }) {
     const generatedId = useId();
     const id = props.id ?? generatedId;
     return (
@@ -139,17 +161,22 @@ export function Field({ label, error, ...props }: InputHTMLAttributes<HTMLInputE
                 {label}
             </label>
             <input
-                className={inputClass}
+                className={cn(inputClass, className)}
                 {...props}
                 id={id}
-                aria-invalid={!!error}
-                aria-describedby={error ? `${id}-error` : props['aria-describedby']}
+                aria-invalid={error ? true : props['aria-invalid']}
+                aria-describedby={[props['aria-describedby'], hint && `${id}-hint`, error && `${id}-error`].filter(Boolean).join(' ') || undefined}
             />
+            {hint && (
+                <p id={`${id}-hint`} className="text-muted-foreground text-sm leading-relaxed">
+                    {hint}
+                </p>
+            )}
             <AuthFeedback id={`${id}-error`} message={error} />
         </div>
     );
 }
-export function Select({ label, children, error, ...props }: SelectHTMLAttributes<HTMLSelectElement> & { label: string; error?: string }) {
+export function Select({ label, children, error, className, ...props }: SelectHTMLAttributes<HTMLSelectElement> & { label: string; error?: string }) {
     const generatedId = useId();
     const id = props.id ?? generatedId;
     return (
@@ -158,14 +185,34 @@ export function Select({ label, children, error, ...props }: SelectHTMLAttribute
                 {label}
             </label>
             <select
-                className={inputClass}
+                className={cn(inputClass, className)}
                 {...props}
                 id={id}
-                aria-invalid={!!error}
-                aria-describedby={error ? `${id}-error` : props['aria-describedby']}
+                aria-invalid={error ? true : props['aria-invalid']}
+                aria-describedby={[props['aria-describedby'], error && `${id}-error`].filter(Boolean).join(' ') || undefined}
             >
                 {children}
             </select>
+            <AuthFeedback id={`${id}-error`} message={error} />
+        </div>
+    );
+}
+
+export function Textarea({ label, error, className, ...props }: TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string; error?: string }) {
+    const generatedId = useId();
+    const id = props.id ?? generatedId;
+    return (
+        <div className="grid gap-2">
+            <label htmlFor={id} className="text-sm font-medium">
+                {label}
+            </label>
+            <textarea
+                {...props}
+                id={id}
+                className={cn(inputClass, 'resize-y', className)}
+                aria-invalid={error ? true : props['aria-invalid']}
+                aria-describedby={[props['aria-describedby'], error && `${id}-error`].filter(Boolean).join(' ') || undefined}
+            />
             <AuthFeedback id={`${id}-error`} message={error} />
         </div>
     );

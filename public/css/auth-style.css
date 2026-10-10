@@ -107,7 +107,7 @@
 .auth-modal__intro {
     margin: 8px 0 16px;
     color: rgb(255 255 255 / 78%);
-    font-size: 0.94rem;
+    font-size: 1rem;
     line-height: 1.5;
 }
 
@@ -241,7 +241,14 @@
 
 .auth-modal__field::placeholder,
 .auth-modal__textarea::placeholder {
-    color: #a39aa9;
+    color: #71677a;
+}
+
+.auth-modal__field,
+.auth-modal__select,
+.auth-modal__textarea {
+    border-color: #8b8292;
+    font-size: 1rem;
 }
 
 .auth-modal__field:focus,
@@ -249,7 +256,9 @@
 .auth-modal__textarea:focus {
     border-color: var(--auth-purple);
     outline: none;
-    box-shadow: 0 0 0 3px rgb(91 42 134 / 13%);
+    box-shadow:
+        0 0 0 2px #fff,
+        0 0 0 4px var(--auth-purple);
 }
 
 .auth-modal__field[aria-invalid='true'],

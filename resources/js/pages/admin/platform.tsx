@@ -101,7 +101,7 @@ function ContentEditor({ content, onClose }: { content?: Content; onClose: () =>
                                 </label>
                                 <textarea
                                     id="platform-content-body"
-                                    className={inputClass + ' h-48 resize-none'}
+                                    className={inputClass + ' min-h-48 resize-y'}
                                     required
                                     maxLength={20000}
                                     value={form.data.body}
@@ -114,7 +114,11 @@ function ContentEditor({ content, onClose }: { content?: Content; onClose: () =>
                                             : 'Explain what is happening, who is affected, and any action users need to take.'
                                     }
                                 />
-                                <div id="platform-content-help" className="text-muted-foreground flex justify-between gap-3 text-xs">
+                                <div
+                                    id="platform-content-help"
+                                    role={form.errors.body ? 'alert' : undefined}
+                                    className="text-muted-foreground flex flex-wrap justify-between gap-3 text-sm"
+                                >
                                     <span>{form.errors.body || 'Use clear paragraphs and include relevant dates.'}</span>
                                     <span className="shrink-0 tabular-nums">{form.data.body.length.toLocaleString()} / 20,000</span>
                                 </div>

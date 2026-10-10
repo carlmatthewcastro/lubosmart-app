@@ -34,7 +34,7 @@ export default function Commission({ settings }: { settings: { platform_commissi
                             <p className="text-muted-foreground text-xs font-medium">Current Commission</p>
                             <p className="mt-1 text-3xl font-semibold tracking-tight tabular-nums">{current}%</p>
                         </div>
-                        <span className="ml-auto rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700">Active</span>
+                        <span className="bg-success/10 text-success ml-auto rounded-full px-3 py-1 text-xs font-medium">Active</span>
                     </div>
                     <form
                         className="space-y-6 p-6"
