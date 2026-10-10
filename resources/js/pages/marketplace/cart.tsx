@@ -2,7 +2,7 @@ import { Card, Empty, Field, Page, Select, buttonClass, money, secondaryClass } 
 import { type SharedData } from '@/types';
 import { Link, router, useForm, usePage } from '@inertiajs/react';
 import { Minus, Plus, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { type Product } from './catalog';
 
 type Address = { id: number; label: string; recipient_name: string; line1: string; barangay: string; city: string; province: string; phone: string };
@@ -10,17 +10,24 @@ export default function Cart({
     items,
     addresses,
     shippingFee,
+    logisticsPricing,
 }: {
     items: { id: number; quantity: number; product: Product }[];
     addresses: Address[];
     shippingFee: string;
+    logisticsPricing: boolean;
 }) {
     const { auth } = usePage<SharedData>().props;
     const canCheckout = auth.user.status === 'approved' && !!auth.user.email_verified_at;
     const [addingAddress, setAddingAddress] = useState(addresses.length === 0);
     const [updating, setUpdating] = useState(false);
     const [checkoutKey] = useState(() => crypto.randomUUID());
-    const checkout = useForm({ address_id: addresses[0]?.id.toString() ?? '', checkout_key: checkoutKey });
+    const checkout = useForm({
+        address_id: addresses[0]?.id.toString() ?? '',
+        checkout_key: checkoutKey,
+        sorting_center_id: '',
+        expected_shipping_total: '',
+    });
     const address = useForm({
         label: 'Home',
         recipient_name: '',
@@ -35,7 +42,37 @@ export default function Cart({
     });
     const subtotal = items.reduce((total, item) => total + Math.round(Number(item.product.price) * 100) * item.quantity, 0) / 100;
     const stores = new Set(items.map((item) => item.product.store_id)).size;
-    const shipping = stores * Number(shippingFee);
+    const [quotes, setQuotes] = useState<{ id: number; name: string; total: number; parcels: { weight_grams: number; fee_cents: number }[] }[]>([]);
+    const [quoteAddress, setQuoteAddress] = useState('');
+    const [quoteError, setQuoteError] = useState('');
+    const itemKey = items.map((item) => item.id + ':' + item.quantity + ':' + item.product.price).join(',');
+    useEffect(() => {
+        if (!logisticsPricing || !checkout.data.address_id) return;
+        const controller = new AbortController();
+        fetch('/cart/shipping-quote?address_id=' + checkout.data.address_id, {
+            headers: { Accept: 'application/json' },
+            signal: controller.signal,
+            cache: 'no-store',
+        })
+            .then(async (response) => {
+                if (!response.ok) throw new Error('Shipping quotes could not be loaded. Refresh to try again.');
+                return response.json();
+            })
+            .then((data) => {
+                if (!controller.signal.aborted) {
+                    setQuotes(data.options);
+                    setQuoteAddress(checkout.data.address_id + ':' + itemKey);
+                    setQuoteError('');
+                }
+            })
+            .catch((error: Error) => {
+                if (!controller.signal.aborted) setQuoteError(error.message);
+            });
+        return () => controller.abort();
+    }, [logisticsPricing, checkout.data.address_id, itemKey]);
+    const quotesReady = quoteAddress === checkout.data.address_id + ':' + itemKey;
+    const selectedQuote = quotesReady ? quotes.find((quote) => quote.id.toString() === checkout.data.sorting_center_id) : undefined;
+    const shipping = logisticsPricing ? (selectedQuote?.total ?? 0) : stores * Number(shippingFee);
     const update = (product: number, quantity: number) =>
         router.put(`/cart/${product}`, { quantity }, { preserveScroll: true, onStart: () => setUpdating(true), onFinish: () => setUpdating(false) });
     return (
@@ -205,15 +242,53 @@ export default function Cart({
                                 </span>
                                 {money(shipping)}
                             </div>
-                            <p className="text-muted-foreground text-xs">{money(shippingFee)} per store. Each store sends a separate parcel.</p>
+                            {logisticsPricing ? (
+                                <div className="space-y-3">
+                                    <Select
+                                        label="Logistics provider"
+                                        value={checkout.data.sorting_center_id}
+                                        disabled={!quotesReady}
+                                        onChange={(event) => checkout.setData('sorting_center_id', event.target.value)}
+                                        error={checkout.errors.sorting_center_id}
+                                    >
+                                        <option value="">Choose a provider</option>
+                                        {(quotesReady ? quotes : []).map((quote) => (
+                                            <option key={quote.id} value={quote.id}>
+                                                {quote.name} / {money(quote.total)}
+                                            </option>
+                                        ))}
+                                    </Select>
+                                    <p className="text-muted-foreground text-xs">
+                                        {quoteError ||
+                                            (!checkout.data.address_id
+                                                ? 'Choose a delivery address to see shipping quotes.'
+                                                : !quotesReady
+                                                  ? 'Loading available providers...'
+                                                  : !quotes.length
+                                                    ? 'No provider can currently serve every parcel. Check address coverage and ask sellers to add packed weights.'
+                                                    : 'Rates include a destination base fee and extra weight charges. Each store sends a separate parcel.')}
+                                    </p>
+                                    {selectedQuote?.parcels.map((parcel, index) => (
+                                        <p key={index} className="text-muted-foreground text-xs">
+                                            Parcel {index + 1}: {(parcel.weight_grams / 1000).toFixed(2)} kg / {money(parcel.fee_cents / 100)}
+                                        </p>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p className="text-muted-foreground text-xs">{money(shippingFee)} per store. Each store sends a separate parcel.</p>
+                            )}
                             <div className="flex justify-between border-t pt-4 text-base font-semibold">
                                 <span>Total</span>
-                                {money(subtotal + shipping)}
+                                {logisticsPricing && !selectedQuote ? 'Choose shipping' : money(subtotal + shipping)}
                             </div>
                         </div>
                         <form
                             onSubmit={(e) => {
                                 e.preventDefault();
+                                checkout.transform((data) => ({
+                                    ...data,
+                                    expected_shipping_total: logisticsPricing && selectedQuote ? selectedQuote.total.toFixed(2) : '',
+                                }));
                                 checkout.post('/checkout');
                             }}
                         >
@@ -222,7 +297,13 @@ export default function Cart({
                             </Select>
                             <button
                                 className={`${buttonClass} mt-5 w-full`}
-                                disabled={!canCheckout || checkout.processing || updating || !checkout.data.address_id}
+                                disabled={
+                                    !canCheckout ||
+                                    checkout.processing ||
+                                    updating ||
+                                    !checkout.data.address_id ||
+                                    (logisticsPricing && !selectedQuote)
+                                }
                             >
                                 {checkout.processing ? 'Placing order…' : 'Place COD order'}
                             </button>

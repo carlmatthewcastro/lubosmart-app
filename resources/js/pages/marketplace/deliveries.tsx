@@ -5,7 +5,10 @@ import { useForm } from '@inertiajs/react';
 import { MapPin, Truck } from 'lucide-react';
 import { type SellerOrder } from './orders';
 
-type Delivery = {
+export type Delivery = {
+    pickup_approved_at: string | null;
+    received_at: string | null;
+    sorted_at: string | null;
     id: number;
     status: string;
     sorting_center_id: number | null;
@@ -13,11 +16,11 @@ type Delivery = {
     rider: { name: string } | null;
     seller_order: SellerOrder;
 };
-type Collection = { amount: string; status: string };
-type Option = { id: number; name: string };
-type Rider = Option & { sorting_center_id: number; service_area_ids: number[] };
-type Area = Option & { sorting_center_id: number };
-function Parcel({
+export type Collection = { amount: string; status: string };
+export type Option = { id: number; name: string };
+export type Rider = Option & { sorting_center_id: number; service_area_ids: number[] };
+export type Area = Option & { sorting_center_id: number };
+export function Parcel({
     parcel,
     role,
     centers,
@@ -46,6 +49,7 @@ function Parcel({
         form.post(`/deliveries/${parcel.id}`, { preserveScroll: true, forceFormData: true });
     };
     const order = parcel.seller_order;
+    const pickup = order.shipping_quote?.pickup_address ?? order.store.pickup_address;
     return (
         <Card>
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -55,7 +59,23 @@ function Parcel({
                 </div>
                 <Badge status={parcel.status} />
             </div>
-            {!available && (
+            {pickup && (
+                <div className="mt-4 rounded-xl border p-4">
+                    <p className="text-primary text-xs font-medium">Seller Pickup Address</p>
+                    <p className="mt-2 text-sm">
+                        {pickup.line1}, {pickup.barangay}, {pickup.city}, {pickup.province}
+                    </p>
+                    <a href={'tel:' + pickup.phone} className="text-primary mt-2 block text-xs">
+                        {pickup.phone}
+                    </a>
+                </div>
+            )}
+            {order.shipping_weight_grams && (
+                <p className="text-muted-foreground mt-3 text-xs">
+                    Packed weight: {(order.shipping_weight_grams / 1000).toFixed(2)} kg / Shipping: {money(order.shipping_fee)}
+                </p>
+            )}
+            {
                 <>
                     <div className="bg-background mt-5 rounded-xl p-4">
                         <p className="flex items-center gap-2 text-sm font-medium">
@@ -84,7 +104,7 @@ function Parcel({
                         ))}
                     </ul>
                 </>
-            )}
+            }
             {available && (
                 <form
                     className="mt-5 flex flex-wrap items-end gap-3"
@@ -106,57 +126,98 @@ function Parcel({
                         ))}
                     </Select>
                     <button className={buttonClass} disabled={form.processing}>
-                        Receive parcel
+                        Accept Pickup Request
                     </button>
                 </form>
             )}
-            {role === 'sorting_center' && !available && parcel.status === 'unassigned' && (
-                <form
-                    className="flex flex-wrap items-end gap-3"
-                    onSubmit={(e) => {
-                        e.preventDefault();
-                        send('assign');
-                    }}
-                >
-                    <Select
-                        label="Delivery area"
-                        value={form.data.service_area_id}
-                        onChange={(event) => {
-                            form.setData('service_area_id', event.target.value);
-                            form.setData('rider_id', '');
+            {role === 'sorting_center' && !available && (
+                <div className="mb-5 space-y-3">
+                    {parcel.status === 'unassigned' && !parcel.pickup_approved_at && order.status === 'shipped' && (
+                        <button className={buttonClass} disabled={form.processing} onClick={() => send('approve_pickup')}>
+                            Approve Pickup Request
+                        </button>
+                    )}
+                    {['picked_up', 'in_transit'].includes(parcel.status) && !parcel.received_at && (
+                        <button className={buttonClass} disabled={form.processing} onClick={() => send('receive')}>
+                            Confirm Center Receipt
+                        </button>
+                    )}
+                    {['picked_up', 'in_transit'].includes(parcel.status) && parcel.received_at && !parcel.sorted_at && (
+                        <button className={buttonClass} disabled={form.processing} onClick={() => send('sort')}>
+                            Confirm Sorted for Destination
+                        </button>
+                    )}
+                    <div className="text-muted-foreground flex flex-wrap gap-2 text-xs">
+                        {[
+                            ['Pickup Approved', parcel.pickup_approved_at],
+                            ['Received', parcel.received_at],
+                            ['Sorted', parcel.sorted_at],
+                        ].map(([label, date]) => (
+                            <span key={label} className="bg-background rounded-lg px-3 py-2">
+                                {label}: {date ? new Date(date).toLocaleString('en-PH') : 'Pending'}
+                            </span>
+                        ))}
+                    </div>
+                </div>
+            )}
+            {role === 'sorting_center' &&
+                !available &&
+                ((parcel.status === 'unassigned' &&
+                    (parcel.pickup_approved_at || !(order as SellerOrder & { shipping_quote?: { basis: string } }).shipping_quote)) ||
+                    (['picked_up', 'in_transit'].includes(parcel.status) && parcel.sorted_at)) && (
+                    <form
+                        className="flex flex-wrap items-end gap-3"
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                            send('assign');
                         }}
-                        required
                     >
-                        <option value="">Choose the destination barangay</option>
-                        {areas
-                            .filter((area) => area.sorting_center_id === parcel.sorting_center_id)
-                            .map((area) => (
-                                <option key={area.id} value={area.id}>
-                                    {area.name}
-                                </option>
-                            ))}
-                    </Select>
-                    <InputError message={form.errors.service_area_id || form.errors.rider_id} />
-                    <Select label="Approved courier" value={form.data.rider_id} onChange={(e) => form.setData('rider_id', e.target.value)} required>
-                        <option value="">Choose a courier</option>
-                        {riders
-                            .filter(
-                                (rider) =>
-                                    rider.sorting_center_id === parcel.sorting_center_id &&
-                                    rider.service_area_ids.includes(Number(form.data.service_area_id)),
-                            )
-                            .map((rider) => (
-                                <option key={rider.id} value={rider.id}>
-                                    {rider.name}
-                                </option>
-                            ))}
-                    </Select>
-                    <button className={buttonClass} disabled={form.processing || !riders.length}>
-                        Assign courier
-                    </button>
-                    {!riders.length && <p className="text-muted-foreground text-xs">Approve a courier for this center before assigning parcels.</p>}
-                </form>
-            )}
+                        <Select
+                            label="Delivery area"
+                            value={form.data.service_area_id}
+                            onChange={(event) => {
+                                form.setData('service_area_id', event.target.value);
+                                form.setData('rider_id', '');
+                            }}
+                            required
+                        >
+                            <option value="">Choose the destination barangay</option>
+                            {areas
+                                .filter((area) => area.sorting_center_id === parcel.sorting_center_id)
+                                .map((area) => (
+                                    <option key={area.id} value={area.id}>
+                                        {area.name}
+                                    </option>
+                                ))}
+                        </Select>
+                        <InputError message={form.errors.service_area_id || form.errors.rider_id} />
+                        <Select
+                            label="Approved courier"
+                            value={form.data.rider_id}
+                            onChange={(e) => form.setData('rider_id', e.target.value)}
+                            required
+                        >
+                            <option value="">Choose a courier</option>
+                            {riders
+                                .filter(
+                                    (rider) =>
+                                        rider.sorting_center_id === parcel.sorting_center_id &&
+                                        rider.service_area_ids.includes(Number(form.data.service_area_id)),
+                                )
+                                .map((rider) => (
+                                    <option key={rider.id} value={rider.id}>
+                                        {rider.name}
+                                    </option>
+                                ))}
+                        </Select>
+                        <button className={buttonClass} disabled={form.processing || !riders.length}>
+                            {parcel.status === 'unassigned' ? 'Assign Pickup Rider' : 'Assign Delivery Rider'}
+                        </button>
+                        {!riders.length && (
+                            <p className="text-muted-foreground text-xs">Approve a courier for this center before assigning parcels.</p>
+                        )}
+                    </form>
+                )}
             {role === 'courier' && ['assigned', 'picked_up', 'in_transit', 'out_for_delivery'].includes(parcel.status) && (
                 <div className="space-y-4">
                     {parcel.status === 'out_for_delivery' && (
@@ -175,7 +236,11 @@ function Parcel({
                     )}
                     <button
                         className={buttonClass}
-                        disabled={form.processing || (parcel.status === 'out_for_delivery' && !form.data.proof)}
+                        disabled={
+                            form.processing ||
+                            (parcel.status === 'out_for_delivery' && !form.data.proof) ||
+                            (parcel.status === 'picked_up' && order.shipping_quote?.basis === 'destination_and_weight' && !parcel.sorted_at)
+                        }
                         onClick={() =>
                             send(
                                 { assigned: 'picked_up', picked_up: 'in_transit', in_transit: 'out_for_delivery', out_for_delivery: 'delivered' }[
@@ -194,6 +259,11 @@ function Parcel({
                             }[parcel.status]
                         }
                     </button>
+                    {parcel.status === 'picked_up' && order.shipping_quote?.basis === 'destination_and_weight' && !parcel.sorted_at && (
+                        <p className="text-muted-foreground text-xs">
+                            Return the parcel to the center. Dispatch becomes available after receipt and sorting.
+                        </p>
+                    )}
                     {form.progress && <p className="text-muted-foreground text-xs">Uploading {form.progress.percentage}%</p>}
                 </div>
             )}

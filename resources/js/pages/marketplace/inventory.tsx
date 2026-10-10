@@ -23,6 +23,7 @@ function ProductForm({ product, categories, close }: { product: Product | null; 
         description: product?.description ?? '',
         price: product?.price ?? '',
         stock: product?.stock ?? 0,
+        weight_grams: product?.weight_grams?.toString() ?? '',
         category_id: product?.category_id.toString() ?? '',
         status: product?.status ?? 'active',
         image: null as File | null,
@@ -77,6 +78,19 @@ function ProductForm({ product, categories, close }: { product: Product | null; 
                     onChange={(e) => form.setData('price', e.target.value)}
                     error={form.errors.price}
                 />
+                <Field
+                    label="Packed weight per item (grams)"
+                    type="number"
+                    min="1"
+                    max="50000"
+                    step="1"
+                    value={form.data.weight_grams}
+                    onChange={(e) => form.setData('weight_grams', e.target.value)}
+                    error={form.errors.weight_grams}
+                />
+                <p className="text-muted-foreground text-xs sm:col-span-2">
+                    Include packaging in the weight. Required for logistics shipping quotes.
+                </p>
                 <Field
                     label="Available stock"
                     type="number"

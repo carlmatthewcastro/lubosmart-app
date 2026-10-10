@@ -11,6 +11,7 @@ use App\Models\CommerceSetting;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
+use App\Services\Logistics\ShippingQuotes;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -38,7 +39,18 @@ class MarketplaceController extends Controller
         abort_unless($request->user()->role === 'buyer', 403);
         $cart = Cart::query()->with('items.product.store:id,name')->where('user_id', $request->user()->id)->first();
 
-        return Inertia::render('marketplace/cart', ['items' => $cart?->items ?? [], 'addresses' => Address::query()->where('user_id', $request->user()->id)->orderByDesc('is_default')->latest('id')->get(), 'shippingFee' => CommerceSetting::query()->findOrFail(1)->shipping_fee_per_seller_order]);
+        return Inertia::render('marketplace/cart', ['items' => $cart?->items ?? [], 'addresses' => Address::query()->where('user_id', $request->user()->id)->orderByDesc('is_default')->latest('id')->get(), 'shippingFee' => CommerceSetting::query()->findOrFail(1)->shipping_fee_per_seller_order, 'logisticsPricing' => app(ShippingQuotes::class)->enabled()]);
+    }
+
+    public function shippingQuote(Request $request, ShippingQuotes $quotes)
+    {
+        $data = $request->validate(['address_id' => 'required|integer']);
+        $address = Address::query()->where('user_id', $request->user()->id)->whereKey($data['address_id'])->firstOrFail();
+        $cart = Cart::query()->with('items.product.store:id,user_id')->where('user_id', $request->user()->id)->first();
+        $items = $cart?->items ?? collect();
+        $products = $items->pluck('product')->filter()->keyBy('id');
+
+        return response()->json(['options' => $items->isNotEmpty() && $products->count() === $items->count() ? $quotes->options($address, $items, $products) : []])->header('Cache-Control', 'private, no-store');
     }
 
     public function updateCart(Request $request, Product $product)
@@ -79,14 +91,14 @@ class MarketplaceController extends Controller
     public function checkout(Request $request, CreateOrderFromCart $checkout)
     {
         abort_unless($request->user()->role === 'buyer', 403);
-        $data = $request->validate(['address_id' => 'required|integer', 'checkout_key' => 'required|uuid']);
+        $data = $request->validate(['address_id' => 'required|integer', 'checkout_key' => 'required|uuid', 'sorting_center_id' => 'nullable|integer', 'expected_shipping_total' => [app(ShippingQuotes::class)->enabled() ? 'required' : 'nullable', 'numeric', 'decimal:0,2', 'min:0']]);
         $order = DB::transaction(function () use ($request, $data, $checkout) {
             User::query()->whereKey($request->user()->id)->lockForUpdate()->firstOrFail();
             $existing = Order::query()->where('buyer_id', $request->user()->id)->where('checkout_key', $data['checkout_key'])->first();
             if ($existing) {
                 return $existing;
             }
-            $order = $checkout->handle($request->user(), $data['address_id']);
+            $order = $checkout->handle($request->user(), $data['address_id'], $data['sorting_center_id'] ?? null, isset($data['expected_shipping_total']) ? (int) round((float) $data['expected_shipping_total'] * 100) : null);
             $order->forceFill(['checkout_key' => $data['checkout_key']])->save();
 
             return $order;

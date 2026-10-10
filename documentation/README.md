@@ -1,49 +1,37 @@
-# LubosMart documentation
+# LubosMart Documentation
 
-[Website](https://lubosmart.app) · [Project overview](../README.md)
+Read the guides in this order to understand the platform, its implementation and how to run it.
 
-Choose a topic below. Start with **User flows** to understand the system or **Local setup** to run it on your computer.
+| Order | Guide | What It Explains |
+| --- | --- | --- |
+| 1 | [Tech Stack](tech-stack/README.md) | Technologies and their purpose |
+| 2 | [Functions](#functions) | What each user role can do |
+| 3 | [Front End](front-end/README.md) | React/Inertia pages, forms, state and builds |
+| 4 | [Backend](backend/README.md) | Laravel structure, authentication, approvals and business rules |
+| 5 | [Database](database/README.md) | Tables, relationships and data rules |
+| 6 | [API](api/README.md) | Planned REST API, Sanctum and migration checklist |
+| 7 | [Deployment](deployment/README.md) | Local setup, email/Google configuration and production releases |
 
-## Product
+## Functions
 
-Marketplace rules, product categories, and the requirements behind the system.
+Follow the order journey first, then platform administration:
 
-- [Business rules](product/business-rules.md) — COD, commission, and order policies.
-- [Product categories](product/erp-categories.md) — Departments and subcategories.
-- [Source requirements](product/source-requirements.md) — Reference documents and design assumptions.
+1. [Buyer](functions/buyer/README.md) — Shopping, checkout and order tracking.
+2. [Seller](functions/seller/README.md) — Inventory and order preparation.
+3. [Rider / Courier](functions/rider/README.md) — Pickup, delivery and COD collection.
+4. [Sorting Center](functions/sorting-center/README.md) — Parcel processing, dispatch and cash handovers.
+5. [Admin](functions/admin/README.md) — Account reviews, compliance and platform oversight.
 
-## Accounts
+## Development Standards
 
-Registration, verification, and approval.
+Frontend changes follow [UI/UX rules](standards/UI_UX_RULES.md).
 
-- [Account approval and security](accounts/account-security.md) — Current status flow, admin approvals, Google linking, email codes, and transactional mail setup.
+Branching, commits, and GitHub pushes follow [Git workflow rules](standards/GIT_WORKFLOW_RULES.md).
 
-- [Registration and authentication](accounts/registration-authentication.md) — Roles, access, and account states.
-- [Onboarding decisions](accounts/onboarding-design-decisions.md) — Signup and saved application progress.
-- [Google sign-in](accounts/google-oauth.md) — OAuth configuration and troubleshooting.
-- [Gmail SMTP on localhost](accounts/local-email-setup.md) — Private credentials, SMTP checks, queues, and verification links across devices.
+## Status and Sources
 
-## Design
+**Current** describes inspected source/configuration, not live acceptance. **Planned** identifies the REST API/Sanctum migration. Live Azure and Cloudflare settings remain unverified.
 
-- [User flows](design/ui-workflow.md) — Connected pages, role journeys, and the UI theme.
+Baseline: `feat/logistics-workspace`, commit `3c39dc099de78b19be1a5272c663153861951526`, reviewed 2026-10-11. Each guide lists relevant repository sources. The supplied five-page `ERP-Components.pdf` provides role requirements; a formally identified official SRS was not found. Features beyond the implementation are labelled accordingly.
 
-## Architecture
-
-- [Database schema](architecture/core-schema-erd.md) — Relationships, snapshots, and migration notes.
-
-## Development
-
-- [Local setup](development/local-setup.md) — Installation, environment setup, and startup commands.
-- [Testing workflow](development/testing-workflow.md) — Branches, checks, and local testing.
-- [Coding guidelines](development/coding-guidelines.md) — Backend and frontend conventions.
-
-## Operations
-
-- [Admin workspace](operations/admin-workspace.md) — Functions, permissions, and a local testing checklist.
-- [Deployment](operations/deployment.md) — Updating the Azure VM and Docker application.
-- [Release checklist](operations/release-readiness.md) — Acceptance checks and recovery.
-- [Sorting centers](operations/sorting-center.md) — Parcel custody and dispatch rules.
-
-## Keeping guides current
-
-Update the relevant guide when behavior changes. Mark planned features clearly. Private testing credentials remain in the local `storage/app/private/local-test-accounts.md` file and are excluded from GitHub.
+[Project README](../README.md)

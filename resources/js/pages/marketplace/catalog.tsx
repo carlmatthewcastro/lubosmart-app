@@ -3,6 +3,7 @@ import { type SharedData } from '@/types';
 import { Link, useForm, usePage } from '@inertiajs/react';
 
 export type Product = {
+    weight_grams?: number | null;
     id: number;
     name: string;
     description: string | null;

@@ -10,6 +10,11 @@ class Delivery extends Model
     protected $fillable = [
         'seller_order_id',
         'rider_id',
+        'sorting_center_id',
+        'service_area_id',
+        'pickup_approved_at',
+        'received_at',
+        'sorted_at',
         'status',
         'proof_photo_path',
         'picked_up_at',
@@ -20,6 +25,9 @@ class Delivery extends Model
     {
         return [
             'picked_up_at' => 'datetime',
+            'pickup_approved_at' => 'datetime',
+            'received_at' => 'datetime',
+            'sorted_at' => 'datetime',
             'delivered_at' => 'datetime',
         ];
     }

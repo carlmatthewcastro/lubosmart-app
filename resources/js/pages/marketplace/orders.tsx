@@ -4,6 +4,12 @@ import { Check, MapPin, MessageCircle, Package, Truck } from 'lucide-react';
 
 type Message = { id: number; body: string; name: string; created_at: string };
 export type SellerOrder = {
+    shipping_quote?: {
+        basis: string;
+        provider?: string;
+        pickup_address?: { line1: string; barangay: string; city: string; province: string; phone: string };
+    };
+    shipping_weight_grams?: number | null;
     id: number;
     order_id: number;
     status: string;
@@ -11,7 +17,7 @@ export type SellerOrder = {
     shipping_fee: string;
     seller_proceeds: string;
     commission_amount: string;
-    store: { name: string };
+    store: { name: string; pickup_address?: { line1: string; barangay: string; city: string; province: string; phone: string } | null };
     items: { id: number; product_name: string; quantity: number; price_each: string }[];
     delivery: { id: number; status: string; proof_photo_path: string | null } | null;
     order: {

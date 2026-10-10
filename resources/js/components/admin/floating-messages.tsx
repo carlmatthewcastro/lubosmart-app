@@ -16,7 +16,7 @@ type Message = { id: number; body: string; author: { id: number; name: string };
 type Thread = { case: Conversation; messages: { data: Message[]; next_page_url: string | null } };
 export function AdminFloatingMessages() {
     const { auth, adminWorkspace } = usePage<SharedData>().props;
-    const enabled = auth.user.role === 'admin' && auth.user.status === 'approved';
+    const enabled = ['admin', 'sorting_center'].includes(auth.user.role) && auth.user.status === 'approved';
     const [open, setOpen] = useState(false);
     const [creating, setCreating] = useState(false);
     const [selected, setSelected] = useState<number | null>(null);

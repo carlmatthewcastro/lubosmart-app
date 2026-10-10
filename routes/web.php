@@ -10,6 +10,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeliveryController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\LocationController;
+use App\Http\Controllers\Logistics\ShippingRateController;
 use App\Http\Controllers\MarketplaceController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PlatformContentController;
@@ -44,6 +45,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('admin/search', AdminSearchController::class)->middleware(['role:admin', 'throttle:60,1'])->name('admin.search');
             Route::get('admin/audit-log', [AuditLogController::class, 'index'])->middleware('role:admin')->middleware('admin.permission:audit')->name('audit.index');
             Route::get('cart', [MarketplaceController::class, 'cart'])->middleware('role:buyer')->name('cart');
+            Route::get('cart/shipping-quote', [MarketplaceController::class, 'shippingQuote'])->middleware('role:buyer')->name('cart.shipping-quote');
             Route::put('cart/{product}', [MarketplaceController::class, 'updateCart'])->middleware('role:buyer')->name('cart.update');
             Route::post('addresses', [MarketplaceController::class, 'address'])->middleware('role:buyer')->name('addresses.store');
             Route::post('checkout', [MarketplaceController::class, 'checkout'])->middleware('throttle:10,1')->middleware('role:buyer')->name('checkout');
@@ -55,6 +57,11 @@ Route::middleware(['auth'])->group(function () {
             Route::get('orders/{sellerOrder}/waybill', [OrderController::class, 'waybill'])->middleware('role:seller,admin')->middleware('admin.permission:operations')->name('orders.waybill');
             Route::patch('orders/{sellerOrder}', [OrderController::class, 'prepare'])->middleware('role:seller')->name('orders.prepare');
             Route::post('orders/{sellerOrder}/messages', [OrderController::class, 'message'])->middleware('throttle:30,1')->middleware('role:buyer,seller')->name('orders.message');
+            Route::get('logistics/conversation-options', [SupportCaseController::class, 'options'])->middleware(['role:sorting_center', 'throttle:60,1'])->name('logistics.conversation-options');
+            Route::get('logistics/reports/export', [App\Http\Controllers\Logistics\ReportController::class, 'export'])->middleware('role:sorting_center')->name('logistics.reports.export');
+            Route::get('logistics/shipping-rates', [ShippingRateController::class, 'index'])->middleware('role:sorting_center')->name('logistics.shipping-rates');
+            Route::post('logistics/shipping-rates', [ShippingRateController::class, 'store'])->middleware('role:sorting_center')->name('logistics.shipping-rates.store');
+            Route::patch('logistics/shipping-rates/{rate}', [ShippingRateController::class, 'update'])->middleware('role:sorting_center')->name('logistics.shipping-rates.update');
             Route::get('deliveries', [DeliveryController::class, 'index'])->middleware('role:courier,sorting_center,admin')->middleware('admin.permission:operations')->name('deliveries.index');
             Route::post('rider-service-areas', [RiderServiceAreaController::class, 'store'])->middleware('role:sorting_center')->name('rider-service-areas.store');
             Route::post('deliveries/{delivery}', [DeliveryController::class, 'update'])->middleware('role:courier,sorting_center,admin')->middleware('admin.permission:operations')->name('deliveries.update');

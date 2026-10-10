@@ -23,6 +23,7 @@ class Product extends Model
         'description',
         'price',
         'stock',
+        'weight_grams',
         'image_path',
         'status',
     ];
@@ -32,6 +33,7 @@ class Product extends Model
         return [
             'price' => 'decimal:2',
             'stock' => 'integer',
+            'weight_grams' => 'integer',
         ];
     }
 

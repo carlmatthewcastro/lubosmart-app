@@ -61,7 +61,7 @@ test('only the owning logistics operator and admin can open rider documents', fu
     $this->actingAs($rider)->get(URL::temporarySignedRoute('registration-documents.show', now()->addMinutes(5), ['document' => $document->id]))->assertForbidden();
 });
 
-test('sorting centers deactivate own couriers while Admin handles reactivation', function () {
+test('sorting centers restore their own deactivated riders but cannot undo admin restrictions', function () {
     Notification::fake();
     $rider = User::factory()->create(['role' => 'courier']);
     $center = linkRiderToApprovedCenter($rider);
@@ -72,7 +72,10 @@ test('sorting centers deactivate own couriers while Admin handles reactivation',
     $this->actingAs($operator)->patch('/accounts/'.$rider->id, ['status' => 'deactivated', 'reason' => 'No longer delivering'])->assertSessionHasNoErrors();
     $this->patch('/accounts/'.$otherRider->id, ['status' => 'deactivated', 'reason' => 'Cross-center attempt'])->assertForbidden();
     $this->get('/accounts')->assertInertia(fn (Assert $page) => $page->has('accounts.data', 1)->where('accounts.data.0.id', $rider->id));
-    $this->patch('/accounts/'.$rider->id, ['status' => 'approved', 'reason' => 'Back on duty'])->assertSessionHasErrors('status');
+    $this->patch('/accounts/'.$rider->id, ['status' => 'approved', 'reason' => 'Back on duty'])->assertSessionHasNoErrors();
+    $admin = User::factory()->create(['role' => 'admin']);
+    $this->actingAs($admin)->patch('/accounts/'.$rider->id, ['status' => 'deactivated', 'reason' => 'Admin restriction'])->assertSessionHasNoErrors();
+    $this->actingAs($operator)->patch('/accounts/'.$rider->id, ['status' => 'approved', 'reason' => 'Bypass admin'])->assertSessionHasErrors('status');
     $this->actingAs(User::factory()->create(['role' => 'admin']))->patch('/accounts/'.$rider->id, ['status' => 'approved', 'reason' => 'Back on duty'])->assertSessionHasNoErrors();
     expect($rider->fresh()->status)->toBe('approved');
     Notification::assertSentTo($rider, AccountStatusChanged::class, fn ($notice) => $notice->status === 'deactivated');

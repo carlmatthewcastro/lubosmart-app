@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 
 type Location = { code: string; name: string };
 type Option = { id: number; name: string };
-function useLocations(query: string | null) {
+export function useLocations(query: string | null) {
     const [items, setItems] = useState<Location[]>([]);
     const [loadedQuery, setLoadedQuery] = useState<string | null>(null);
     const [error, setError] = useState('');

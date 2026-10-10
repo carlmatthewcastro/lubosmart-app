@@ -30,7 +30,7 @@ class InventoryController extends Controller
         $store = $request->user()->store;
         abort_unless($request->user()->role === 'seller' && $store?->status === 'approved', 403);
         abort_if($product && $product->store_id !== $store->id, 403);
-        $data = $request->validate(['name' => 'required|string|max:160', 'description' => 'nullable|string|max:5000', 'category_id' => ['required', 'integer', Rule::exists('categories', 'id')], 'price' => 'required|numeric|decimal:0,2|min:0.01|max:999999.99', 'stock' => 'required|integer|min:0|max:1000000', 'status' => ['required', Rule::in(['active', 'hidden'])], 'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120']);
+        $data = $request->validate(['name' => 'required|string|max:160', 'description' => 'nullable|string|max:5000', 'category_id' => ['required', 'integer', Rule::exists('categories', 'id')], 'price' => 'required|numeric|decimal:0,2|min:0.01|max:999999.99', 'stock' => 'required|integer|min:0|max:1000000', 'weight_grams' => 'nullable|integer|min:1|max:50000', 'status' => ['required', Rule::in(['active', 'hidden'])], 'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120']);
         if (! $this->categories($store->business_category_id)->whereKey($data['category_id'])->exists()) {
             throw ValidationException::withMessages(['category_id' => 'Choose an active category within your registered department.']);
         }
