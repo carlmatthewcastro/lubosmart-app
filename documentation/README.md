@@ -22,6 +22,12 @@ Follow the order journey first, then platform administration:
 4. [Sorting Center](functions/sorting-center/README.md) — Parcel processing, dispatch and cash handovers.
 5. [Admin](functions/admin/README.md) — Account reviews, compliance and platform oversight.
 
+## Development Standards
+
+Frontend changes follow [UI/UX rules](standards/UI_UX_RULES.md).
+
+Branching, commits, and GitHub pushes follow [Git workflow rules](standards/GIT_WORKFLOW_RULES.md).
+
 ## Status and Sources
 
 **Current** describes inspected source/configuration, not live acceptance. **Planned** identifies the REST API/Sanctum migration. Live Azure and Cloudflare settings remain unverified.
