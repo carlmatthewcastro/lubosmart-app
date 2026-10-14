@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Services\Admin\AdminPermissions;
 use App\Services\EmailVerificationLinks;
+use App\Support\AccountRules;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
@@ -46,7 +47,17 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'remember_token',
         'bank_account',
+        'email_normalized',
+        'phone_normalized',
     ];
+
+    protected static function booted(): void
+    {
+        static::saving(function (User $user) {
+            $user->email_normalized = AccountRules::email($user->email);
+            $user->phone_normalized = AccountRules::validPhone($user->phone) ? AccountRules::phone($user->phone) : null;
+        });
+    }
 
     /**
      * Get the attributes that should be cast.
@@ -58,6 +69,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'logistics_company_id' => 'integer',
             'bank_account' => 'encrypted',
         ];
     }
@@ -75,6 +87,13 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getEmailVerifiedAttribute(): bool
     {
         return $this->hasVerifiedEmail();
+    }
+
+    public function scopeManagedRiders(Builder $query, User $actor): void
+    {
+        if ($actor->role === 'sorting_center') {
+            $query->where(fn ($q) => $q->whereNull('logistics_company_id')->orWhere('logistics_company_id', $actor->id));
+        }
     }
 
     public function sendEmailVerificationNotification(): void
@@ -105,12 +124,23 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function sortingCenters(): BelongsToMany
     {
-        return $this->belongsToMany(SortingCenter::class)->withPivot('granted_by')->withTimestamps();
+        $relation = $this->belongsToMany(SortingCenter::class)->withPivot('granted_by')->withTimestamps();
+        if ($this->role === 'sorting_center') {
+            $relation->where(fn ($q) => $q->whereNull('sorting_centers.company_user_id')->orWhere('sorting_centers.company_user_id', $this->id));
+        }
+
+        return $relation;
     }
 
     public function logisticsCenter(): BelongsTo
     {
         return $this->belongsTo(SortingCenter::class, 'sorting_center_id');
+    }
+
+    public function riderCreationCenters(): BelongsToMany
+    {
+        return $this->sortingCenters()->operational()->where(fn ($centers) => $centers->where('company_user_id', $this->id)
+            ->orWhere(fn ($legacy) => $legacy->whereNull('company_user_id')->whereHas('users', fn ($users) => $users->where('role', 'sorting_center'), '=', 1)));
     }
 
     public function adminPermissions(): array

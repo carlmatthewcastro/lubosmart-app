@@ -47,7 +47,7 @@ test('disabling a logistics owner immediately blocks its riders without changing
     $this->assertDatabaseHas('audit_events', ['actor_id' => $admin->id, 'subject_id' => $operator->id, 'action' => 'reactivated']);
 })->with(['suspended', 'deactivated']);
 
-test('only the owning logistics operator and admin can open rider documents', function () {
+test('only the owning logistics operator can open rider documents', function () {
     Storage::fake('local');
     $rider = User::factory()->create(['role' => 'courier', 'status' => 'pending']);
     $center = linkRiderToApprovedCenter($rider);
@@ -57,11 +57,11 @@ test('only the owning logistics operator and admin can open rider documents', fu
     $this->actingAs($center->users()->where('role', 'sorting_center')->firstOrFail())->get(URL::temporarySignedRoute('registration-documents.show', now()->addMinutes(5), ['document' => $document->id]))->assertOk()->assertHeader('Content-Type', 'application/pdf');
     $this->actingAs(User::factory()->create(['role' => 'sorting_center']))->get(URL::temporarySignedRoute('registration-documents.show', now()->addMinutes(5), ['document' => $document->id]))->assertForbidden();
     $this->get('/reviews/'.$application->id)->assertForbidden();
-    $this->actingAs(User::factory()->create(['role' => 'admin']))->get(URL::temporarySignedRoute('registration-documents.show', now()->addMinutes(5), ['document' => $document->id]))->assertOk()->assertHeader('Content-Type', 'application/pdf');
+    $this->actingAs(User::factory()->create(['role' => 'admin']))->get(URL::temporarySignedRoute('registration-documents.show', now()->addMinutes(5), ['document' => $document->id]))->assertForbidden();
     $this->actingAs($rider)->get(URL::temporarySignedRoute('registration-documents.show', now()->addMinutes(5), ['document' => $document->id]))->assertForbidden();
 });
 
-test('sorting centers restore their own deactivated riders but cannot undo admin restrictions', function () {
+test('logistics manages rider restrictions while admins and other centers are denied', function () {
     Notification::fake();
     $rider = User::factory()->create(['role' => 'courier']);
     $center = linkRiderToApprovedCenter($rider);
@@ -74,9 +74,9 @@ test('sorting centers restore their own deactivated riders but cannot undo admin
     $this->get('/accounts')->assertInertia(fn (Assert $page) => $page->has('accounts.data', 1)->where('accounts.data.0.id', $rider->id));
     $this->patch('/accounts/'.$rider->id, ['status' => 'approved', 'reason' => 'Back on duty'])->assertSessionHasNoErrors();
     $admin = User::factory()->create(['role' => 'admin']);
-    $this->actingAs($admin)->patch('/accounts/'.$rider->id, ['status' => 'deactivated', 'reason' => 'Admin restriction'])->assertSessionHasNoErrors();
-    $this->actingAs($operator)->patch('/accounts/'.$rider->id, ['status' => 'approved', 'reason' => 'Bypass admin'])->assertSessionHasErrors('status');
-    $this->actingAs(User::factory()->create(['role' => 'admin']))->patch('/accounts/'.$rider->id, ['status' => 'approved', 'reason' => 'Back on duty'])->assertSessionHasNoErrors();
+    $this->actingAs($admin)->patch('/accounts/'.$rider->id, ['status' => 'deactivated', 'reason' => 'Admin restriction'])->assertForbidden();
+    $this->actingAs($operator)->patch('/accounts/'.$rider->id, ['status' => 'suspended', 'reason' => 'Company review'])->assertSessionHasNoErrors();
+    $this->patch('/accounts/'.$rider->id, ['status' => 'approved', 'reason' => 'Review completed'])->assertSessionHasNoErrors();
     expect($rider->fresh()->status)->toBe('approved');
     Notification::assertSentTo($rider, AccountStatusChanged::class, fn ($notice) => $notice->status === 'deactivated');
 });

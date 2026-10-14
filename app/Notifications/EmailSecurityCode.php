@@ -19,6 +19,7 @@ class EmailSecurityCode extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new LubosMartMailMessage($notifiable))->mailer(config('mail.security_mailer'))
+            ->presentation($this->purpose === 'password' ? 'Reset your password' : 'Confirm your account change', '🔒', $this->code, 10)
             ->subject($this->purpose === 'password' ? 'Your LubosMart password code' : 'Confirm your LubosMart account change')
             ->line($this->purpose === 'password' ? 'Use this code to change your password.' : 'Use this code to confirm a sensitive account change.')
             ->line('Your code: '.$this->code)

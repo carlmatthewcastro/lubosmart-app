@@ -10,6 +10,7 @@ use App\Models\SupportCase;
 use App\Models\User;
 use App\Notifications\SellerComplianceNotice;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
@@ -227,6 +228,33 @@ test('sales and commission exports respect delivery dates and preserve commissio
     $this->get('/reports?from=2026-10-09&to=2026-10-07')->assertSessionHasErrors('to');
 });
 
+test('admin dashboard charts use completed sales delivery dates and stored commission', function () {
+    $this->travelTo(Carbon::parse('2026-10-14 12:00:00'));
+    $recent = adminTestParcel($this);
+    $recent->update(['status' => 'completed', 'commission_amount' => '20.00']);
+    $recent->delivery->forceFill(['status' => 'delivered', 'delivered_at' => '2026-10-08 00:00:00'])->save();
+    $old = adminTestParcel($this);
+    $old->update(['status' => 'completed', 'commission_amount' => '50.00']);
+    $old->delivery->forceFill(['status' => 'delivered', 'delivered_at' => '2026-10-07 23:59:59', 'created_at' => '2026-10-07 10:00:00'])->save();
+    $unfinished = adminTestParcel($this);
+    $unfinished->delivery->forceFill(['delivered_at' => now()])->save();
+
+    $this->actingAs($this->admin)->get('/dashboard/admin')->assertInertia(fn (Assert $page) => $page
+        ->component('admin/dashboard')
+        ->where('analytics.from', '2026-10-08')->where('analytics.to', '2026-10-14')
+        ->where('analytics.sales', 200)->where('analytics.commission', 20)->where('analytics.completedParcels', 1)
+        ->has('analytics.series', 7)->where('analytics.series.0.sales', 200)->where('analytics.series.6.sales', 0)
+        ->where('analytics.deliveryStatuses', fn ($rows) => collect($rows)->sum('total') === 2));
+    $this->actingAs($this->buyer)->get('/dashboard/admin')->assertForbidden();
+    $this->travelBack();
+});
+
+test('admin dashboard charts show a complete zero series when there are no parcels', function () {
+    $this->actingAs($this->admin)->get('/dashboard/admin')->assertInertia(fn (Assert $page) => $page
+        ->where('analytics.sales', 0)->where('analytics.commission', 0)->where('analytics.completedParcels', 0)
+        ->has('analytics.series', 7)->has('analytics.deliveryStatuses', 0));
+});
+
 test('support records prevent accidental account deletion', function () {
     $this->actingAs($this->buyer)->post('/support', ['kind' => 'message', 'subject' => 'Help', 'body' => 'Need help.']);
     $this->delete('/settings/profile', ['password' => 'password'])->assertSessionHasErrors('password');
@@ -299,6 +327,9 @@ test('modal conversation creation returns to the inbox', function () {
 test('registration review from a modal returns to its original page', function () {
     $applicant = User::factory()->create(['role' => 'buyer', 'status' => 'pending']);
     $application = RegistrationApplication::query()->create(['user_id' => $applicant->id, 'requested_role' => 'buyer', 'status' => 'submitted', 'submitted_at' => now()]);
+    Storage::fake('local');
+    Storage::disk('local')->put('registration/buyer-id.pdf', 'test ID');
+    $application->documents()->create(['kind' => 'identity', 'disk' => 'local', 'path' => 'registration/buyer-id.pdf', 'mime_type' => 'application/pdf', 'size_bytes' => 7]);
     $this->actingAs($this->admin)->from('/accounts')->patch('/reviews/'.$application->id, ['_modal' => true, 'decision' => 'approved'])->assertSessionHasNoErrors()->assertRedirect('/accounts');
     expect($applicant->fresh()->status)->toBe('approved');
 });
@@ -307,4 +338,38 @@ test('pending account details direct admins to registration instead of access ch
     $applicant = User::factory()->create(['role' => 'buyer', 'status' => 'pending']);
     $application = RegistrationApplication::query()->create(['user_id' => $applicant->id, 'requested_role' => 'buyer', 'status' => 'submitted']);
     $this->actingAs($this->admin)->getJson('/accounts/'.$applicant->id)->assertOk()->assertJsonPath('allowedStatuses', [])->assertJsonPath('applicationId', $application->id)->assertJsonPath('courier', null);
+});
+
+test('admin account summaries exclude riders and sorting remains scoped to matching accounts', function () {
+    $rider = User::factory()->create(['role' => 'courier', 'name' => 'Excluded rider']);
+    $this->actingAs($this->admin)->get('/accounts?sort=newest')->assertInertia(fn (Assert $page) => $page
+        ->where('summary.total', 2)->where('summary.approved', 2)
+        ->where('accounts.data', fn ($accounts) => ! collect($accounts)->contains('id', $rider->id)));
+    $this->get('/accounts?role=seller')->assertInertia(fn (Assert $page) => $page->where('summary.total', 1)->where('accounts.data.0.id', $this->seller->id));
+    $this->getJson('/accounts/'.$rider->id)->assertForbidden();
+    $this->get('/accounts?sort=invalid')->assertSessionHasErrors('sort');
+    $this->get('/accounts?role=courier')->assertSessionHasErrors('role');
+    $this->getJson('/admin/search?search=Excluded')->assertOk()->assertJsonCount(0, 'results');
+});
+
+test('notification counts refresh and exclude rider applications', function () {
+    $application = RegistrationApplication::create(['user_id' => $this->buyer->id, 'requested_role' => 'buyer', 'status' => 'submitted']);
+    $rider = User::factory()->create(['role' => 'courier']);
+    RegistrationApplication::create(['user_id' => $rider->id, 'requested_role' => 'courier', 'status' => 'submitted']);
+
+    $this->actingAs($this->admin)->getJson('/admin/notifications')
+        ->assertOk()->assertHeader('Cache-Control', 'no-store, private')->assertJsonPath('badges.registrations', 1);
+    $application->update(['status' => 'approved']);
+    $this->getJson('/admin/notifications')->assertOk()->assertJsonPath('badges.registrations', 0);
+    $this->actingAs($this->buyer)->getJson('/admin/notifications')->assertForbidden();
+});
+
+test('buyer review documents exclude seller and logistics requirements', function () {
+    $application = RegistrationApplication::create(['user_id' => $this->buyer->id, 'requested_role' => 'buyer', 'status' => 'submitted']);
+    foreach (['identity', 'bir_2303', 'sec_certificate'] as $kind) {
+        $application->documents()->create(['kind' => $kind, 'disk' => 'local', 'path' => 'registration/'.$kind.'.pdf', 'mime_type' => 'application/pdf', 'size_bytes' => 7]);
+    }
+
+    $this->actingAs($this->admin)->getJson('/reviews/'.$application->id)
+        ->assertOk()->assertJsonCount(1, 'documents')->assertJsonPath('documents.0.kind', 'identity');
 });

@@ -26,6 +26,7 @@ class VerificationEmailController extends Controller
             $oldEmail = $user->email;
             $user->forceFill(['email' => $data['email'], 'email_verified_at' => null])->save();
             DB::table('email_verification_tokens')->where('user_id', $user->id)->delete();
+            DB::table('registration_email_codes')->where('user_id', $user->id)->delete();
             DB::table('email_security_codes')->where('user_id', $user->id)->delete();
             DB::table('password_reset_tokens')->where('email', $oldEmail)->delete();
             $request->user()->setRawAttributes($user->getAttributes(), true);

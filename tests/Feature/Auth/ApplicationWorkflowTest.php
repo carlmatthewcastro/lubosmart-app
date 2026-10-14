@@ -51,7 +51,7 @@ test('review status filters preserve role and sorting center authorization', fun
     $otherRider->application->update(['sorting_center_id' => $otherCenter->id]);
     $otherRider->forceFill(['sorting_center_id' => $otherCenter->id])->save();
     $admin = User::factory()->create(['role' => 'admin']);
-    $this->actingAs($admin)->get('/reviews?status=approved')->assertInertia(fn (Assert $page) => $page->has('applications.data', 3)->where('applications.data.0.id', $seller->application->id)->where('filters.status', 'approved'));
+    $this->actingAs($admin)->get('/reviews?status=approved')->assertInertia(fn (Assert $page) => $page->has('applications.data', 1)->where('applications.data.0.id', $seller->application->id)->where('filters.status', 'approved'));
     $logistics = User::factory()->create(['role' => 'sorting_center']);
     $logistics->sortingCenters()->attach($center->id, ['granted_by' => $admin->id]);
     $this->actingAs($logistics)->get('/reviews?status=approved')->assertInertia(fn (Assert $page) => $page->has('applications.data', 1)->where('applications.data.0.id', $rider->application->id));
@@ -74,7 +74,7 @@ test('buyer submits validated details and private ID for review', function () {
     $document = $user->fresh()->application->documents->sole();
     Storage::disk('local')->assertExists($document->path);
     $this->actingAs(User::factory()->create(['role' => 'admin']))->get('/reviews/'.$user->fresh()->application->id)
-        ->assertInertia(fn (Assert $page) => $page->where('profile.age', Carbon::parse('1995-04-12')->age));
+        ->assertOk()->assertInertia(fn (Assert $page) => $page->where('profile.age', Carbon::parse('1995-04-12')->age));
     Http::assertSent(fn ($request) => $request->url() === 'https://psgc.gitlab.io/api/cities-municipalities/043404000/barangays/');
 });
 
@@ -160,7 +160,10 @@ test('a submitted application cannot be changed or submitted twice', function ()
 
 test('admin approval activates buyer and queues decision mail', function () {
     Notification::fake();
+    Storage::fake('local');
     $user = applicationApplicant('buyer', 'submitted');
+    Storage::disk('local')->put('registration/buyer-id.pdf', 'test ID');
+    $user->application->documents()->create(['kind' => 'identity', 'disk' => 'local', 'path' => 'registration/buyer-id.pdf', 'mime_type' => 'application/pdf', 'size_bytes' => 7]);
     $admin = User::factory()->create(['role' => 'admin']);
     $this->actingAs($admin)->patch(route('reviews.update', $user->application->id), ['decision' => 'approved'])->assertRedirect(route('reviews.index'));
     expect($user->fresh()->status)->toBe('approved');
@@ -201,13 +204,13 @@ test('buyer and seller cannot review applications', function (string $role) {
     expect($user->fresh()->status)->toBe('pending');
 })->with(['buyer', 'seller', 'courier']);
 
-test('admin courier override requires an audit reason', function () {
+test('admin cannot override Logistics rider approval even for a legacy application', function () {
     Notification::fake();
     $user = applicationApplicant('courier', 'submitted');
     $center = SortingCenter::query()->create(['code' => 'ADMIN-REVIEW', 'name' => 'Review center', 'address' => 'Synthetic address']);
     $user->application->update(['sorting_center_id' => $center->id]);
-    $this->actingAs(User::factory()->create(['role' => 'admin']))->get(route('reviews.show', $user->application->id))->assertOk();
-    $this->patch(route('reviews.update', $user->application->id), ['decision' => 'approved'])->assertSessionHasErrors('reason');
+    $this->actingAs(User::factory()->create(['role' => 'admin']))->get(route('reviews.show', $user->application->id))->assertForbidden();
+    $this->patch(route('reviews.update', $user->application->id), ['decision' => 'approved'])->assertForbidden();
     expect($user->fresh()->status)->toBe('pending');
     Notification::assertNothingSent();
 });

@@ -30,6 +30,7 @@ class AccountStatusChanged extends Notification implements ShouldQueue
     {
         $status = $this->status === 'approved' ? 'reactivated' : $this->status;
         $message = (new LubosMartMailMessage($notifiable))
+            ->presentation('Your account was '.$status, $this->status === 'approved' ? '✓' : '!')
             ->subject('Your LubosMart account was '.$status)
             ->line('Your LubosMart account was '.$status.'.')
             ->line('Reason: '.$this->reason);

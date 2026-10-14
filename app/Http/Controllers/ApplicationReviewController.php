@@ -8,12 +8,17 @@ use App\Models\SortingCenter;
 use App\Models\User;
 use App\Notifications\ApplicationReviewed;
 use App\Services\Admin\AuditLogger;
+use App\Services\LogisticsApplicationDetails;
+use App\Services\SellerApplicationDetails;
+use App\Support\LogisticsRules;
+use App\Support\SellerRules;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -29,13 +34,17 @@ class ApplicationReviewController extends Controller
         $filters = $request->validate(['status' => ['nullable', Rule::in(['submitted', 'approved', 'rejected'])]]);
         $status = $filters['status'] ?? 'submitted';
         $query = RegistrationApplication::query()->where('status', $status);
+        if ($user->role === 'admin') {
+            $query->adminReviewable();
+        }
         if ($user->role === 'sorting_center') {
+            $query->whereHas('user', fn ($users) => $users->managedRiders($user));
             $query->where('requested_role', 'courier')->whereIn('sorting_center_id', $user->sortingCenters()->operational()->pluck('sorting_centers.id'))
                 ->whereHas('user', fn ($users) => $users->where('role', 'courier')->whereColumn('users.sorting_center_id', 'registration_applications.sorting_center_id'));
         }
 
         return Inertia::render('management/registrations/index', ['filters' => ['status' => $status], 'applications' => $query->with('user')->orderBy('submitted_at')->orderBy('id')->paginate(15)->withQueryString()->through(fn ($application) => [
-            ...$application->only(['id', 'status', 'requested_role', 'submitted_at', 'reviewed_at']), 'name' => $application->user->name, 'email' => $application->user->email,
+            ...$application->only(['id', 'status', 'requested_role', 'submitted_at', 'reviewed_at']), 'name' => in_array($application->requested_role, ['seller', 'sorting_center'], true) && filled($application->business_name) ? $application->business_name : $application->user->name, 'email' => $application->user->email,
         ])]);
     }
 
@@ -46,10 +55,17 @@ class ApplicationReviewController extends Controller
         if ($profile?->birthday) {
             $profile->age = Carbon::parse($profile->birthday)->age;
         }
+        $documentKinds = match ($application->requested_role) {
+            'buyer' => ['identity'],
+            'seller' => SellerRules::documents($application->seller_type ?? ''),
+            'sorting_center' => LogisticsRules::DOCUMENTS,
+            'courier' => ['identity', 'license', 'vehicle_registration'],
+            default => [],
+        };
 
         $data = [
             'canReview' => Gate::allows('review', $application),
-            'application' => $application->only(['id', 'status', 'requested_role', 'business_name', 'rejection_reason', 'submitted_at', 'reviewed_at']),
+            'application' => $application->only(['id', 'status', 'requested_role', 'business_name', 'rejection_reason', 'submitted_at', 'reviewed_at', 'seller_type', 'tin', 'region_code', 'sec_number', 'position', 'service_regions', 'service_region_names']),
             'reviewer' => User::query()->find($application->reviewer_id)?->only(['name']),
             'applicant' => $application->user->only(['name', 'email', 'phone', 'status', 'email_verified_at']),
             'profile' => $profile,
@@ -57,7 +73,7 @@ class ApplicationReviewController extends Controller
             'store' => $application->user->store?->load('businessCategory'),
             'bankAccount' => $application->user->role === 'seller' ? $application->user->store?->bank_account : $application->user->bank_account,
             'courier' => DB::table('rider_profiles')->where('user_id', $application->user_id)->first(),
-            'documents' => $application->documents->map(fn ($document) => [
+            'documents' => $application->documents()->whereIn('kind', $documentKinds)->orderByDesc('id')->get()->unique('kind')->values()->map(fn ($document) => [
                 'id' => $document->id, 'kind' => $document->kind, 'mime_type' => $document->mime_type,
                 'url' => URL::temporarySignedRoute('registration-documents.show', now()->addMinutes(5), ['document' => $document->id]),
             ]),
@@ -71,9 +87,9 @@ class ApplicationReviewController extends Controller
         Gate::authorize('review', $application);
         $data = $request->validate([
             'decision' => ['required', Rule::in(['approved', 'rejected'])],
-            'reason' => [Rule::requiredIf($request->input('decision') === 'rejected' || ($request->user()->role === 'admin' && $application->requested_role === 'courier')), 'nullable', 'string', 'max:2000'],
+            'reason' => [Rule::requiredIf($request->input('decision') === 'rejected'), 'nullable', 'string', 'max:2000'],
         ]);
-        DB::transaction(function () use ($request, $application, $data) {
+        $recipient = DB::transaction(function () use ($request, $application, $data) {
             // Match the submission lock order to serialize resubmission and review.
             $user = User::query()->whereKey($application->user_id)->lockForUpdate()->firstOrFail();
             $application = RegistrationApplication::query()->whereKey($application->id)->lockForUpdate()->firstOrFail();
@@ -82,6 +98,16 @@ class ApplicationReviewController extends Controller
                 throw ValidationException::withMessages(['decision' => 'This application is no longer eligible for review. Refresh the page.']);
             }
             $approved = $data['decision'] === 'approved';
+            if ($approved) {
+                if ($application->requested_role === 'buyer') {
+                    $identity = $application->documents()->where('kind', 'identity')->latest('id')->first();
+                    if (! $identity || ! Storage::disk($identity->disk)->exists($identity->path)) {
+                        throw ValidationException::withMessages(['decision' => 'The buyer identity document is missing. Request corrections before approval.']);
+                    }
+                }
+                app(SellerApplicationDetails::class)->assertReviewable($application);
+                app(LogisticsApplicationDetails::class)->assertReviewable($application);
+            }
             if ($approved && $user->role === 'courier' && ! SortingCenter::query()->operational()->whereKey($application->sorting_center_id)->exists()) {
                 throw ValidationException::withMessages(['decision' => 'The courier needs an active sorting center before approval.']);
             }
@@ -94,6 +120,9 @@ class ApplicationReviewController extends Controller
                 $address = Address::query()->findOrFail($application->address_id);
                 $center = $user->sortingCenters()->first() ?? new SortingCenter(['code' => 'APP-'.$application->id]);
                 $center->fill(['is_active' => true, 'name' => $application->business_name, 'address' => implode(', ', [$address->line1, $address->barangay, $address->city, $address->province]), 'phone' => $user->phone])->save();
+                if ($application->registration_contract === 'logistics-2026-10') {
+                    $center->forceFill(['company_user_id' => $user->id])->save();
+                }
                 $user->sortingCenters()->syncWithoutDetaching([$center->id => ['granted_by' => $request->user()->id]]);
             }
             if ($approved && $user->role === 'courier') {
@@ -105,13 +134,24 @@ class ApplicationReviewController extends Controller
                 'action' => $data['decision'], 'old_status' => 'pending', 'new_status' => $data['decision'], 'reason' => $data['reason'] ?? null,
                 'changes' => json_encode(['from' => 'pending', 'to' => $data['decision'], 'reason' => $data['reason'] ?? null, 'user_id' => $user->id]), 'occurred_at' => now(),
             ]);
-            $user->notify(new ApplicationReviewed($data['decision'], $application->rejection_reason));
+
+            return $user;
         });
 
-        if ($request->boolean('_modal')) {
-            return back()->with('status', 'Application '.$data['decision'].'. Email notification queued.');
+        // Deliver only after the decision commits, without depending on a worker.
+        $notification = new ApplicationReviewed($data['decision'], $application->fresh()->rejection_reason);
+        $deliveryStatus = 'Email notification sent.';
+        try {
+            $recipient->notifyNow($notification);
+        } catch (\Throwable $exception) {
+            report($exception);
+            $deliveryStatus = 'Email delivery failed. The decision was saved; please check mail configuration.';
         }
 
-        return to_route('reviews.index')->with('status', 'Application '.$data['decision'].'. Email notification queued.');
+        if ($request->boolean('_modal')) {
+            return back()->with('status', 'Application '.$data['decision'].'. '.$deliveryStatus);
+        }
+
+        return to_route('reviews.index')->with('status', 'Application '.$data['decision'].'. '.$deliveryStatus);
     }
 }

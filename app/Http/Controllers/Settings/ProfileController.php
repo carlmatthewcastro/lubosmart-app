@@ -73,6 +73,7 @@ class ProfileController extends Controller
                     $emailChanged = true;
                     $user->email_verified_at = null;
                     DB::table('email_verification_tokens')->where('user_id', $user->id)->delete();
+                    DB::table('registration_email_codes')->where('user_id', $user->id)->delete();
                     DB::table('email_security_codes')->where('user_id', $user->id)->delete();
                 }
                 if ($request->has('phone') && $user->isDirty('phone') && $user->role === 'buyer' && $user->status === 'approved' && blank($user->phone)) {
@@ -92,7 +93,7 @@ class ProfileController extends Controller
                     }
                 }
                 if ($plateChanged) {
-                    DB::table('rider_profiles')->where('user_id', $user->id)->update(['plate_number' => $request->validated('plate_number'), 'updated_at' => now()]);
+                    DB::table('rider_profiles')->where('user_id', $user->id)->update(['plate_number' => $request->validated('plate_number'), 'plate_normalized' => strtoupper(trim($request->validated('plate_number'))), 'updated_at' => now()]);
                 }
                 if ($important && in_array($user->role, ['buyer', 'seller', 'courier', 'sorting_center'], true)) {
                     $user->status = 'pending';

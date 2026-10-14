@@ -11,6 +11,7 @@ use App\Models\Store;
 use App\Models\User;
 use App\Services\Admin\AdminWorkspace;
 use App\Services\Admin\AuditLogger;
+use App\Services\Admin\DashboardAnalytics;
 use App\Services\Logistics\LogisticsWorkspace;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -43,6 +44,7 @@ class DashboardController extends Controller
         $stats = [];
         $records = collect();
         $adminOverview = null;
+        $analytics = null;
         if ($role === 'sorting_center') {
             return Inertia::render('logistics/dashboard', app(LogisticsWorkspace::class)->data($user));
         }
@@ -66,9 +68,12 @@ class DashboardController extends Controller
             $records = $deliveries->latest('id')->limit(10)->get(['id', 'status'])->map(fn ($row) => ['id' => $row->id, 'label' => 'Delivery #'.$row->id, 'status' => $row->status, 'detail' => 'Assigned parcel']);
         } else {
             $workspace = app(AdminWorkspace::class)->data($user);
+            if ($user->canAdmin('reports')) {
+                $analytics = app(DashboardAnalytics::class)->data();
+            }
             $stats = [];
             if ($user->canAdmin('accounts')) {
-                $stats['Accounts'] = User::query()->nonAdmin()->count();
+                $stats['Accounts'] = User::query()->nonAdmin()->where(fn ($query) => $query->whereNull('role')->orWhere('role', '!=', 'courier'))->count();
             }
             if ($user->canAdmin('registrations')) {
                 $stats['Pending review'] = $workspace['badges']['registrations'];
@@ -77,7 +82,7 @@ class DashboardController extends Controller
                 $stats['Approved stores'] = Store::query()->where('status', 'approved')->count();
             }
             $adminOverview = [
-                'applications' => $user->canAdmin('registrations') ? RegistrationApplication::query()->where('status', 'submitted')->with('user:id,name')->orderBy('submitted_at')->orderBy('id')->limit(5)->get(['id', 'user_id', 'requested_role', 'submitted_at'])->map(fn ($application) => [
+                'applications' => $user->canAdmin('registrations') ? RegistrationApplication::query()->adminReviewable()->where('status', 'submitted')->with('user:id,name')->orderBy('submitted_at')->orderBy('id')->limit(5)->get(['id', 'user_id', 'requested_role', 'submitted_at'])->map(fn ($application) => [
                     'id' => $application->id, 'name' => $application->user->name, 'role' => $application->requested_role, 'submittedAt' => $application->submitted_at?->toIso8601String(),
                 ]) : [],
                 'openComplaints' => $workspace['badges']['disputes'] ?? null,
@@ -98,6 +103,6 @@ class DashboardController extends Controller
             ]);
         }
 
-        return Inertia::render($role === 'admin' ? 'admin/dashboard' : 'workspace/dashboard', ['role' => $role, 'stats' => $stats, 'records' => $records, 'storeStatus' => $user->store?->status, 'adminOverview' => $adminOverview]);
+        return Inertia::render($role === 'admin' ? 'admin/dashboard' : 'workspace/dashboard', ['role' => $role, 'stats' => $stats, 'records' => $records, 'storeStatus' => $user->store?->status, 'adminOverview' => $adminOverview, 'analytics' => $analytics, 'companyName' => $role === 'courier' ? $user->logisticsCenter?->name : null]);
     }
 }

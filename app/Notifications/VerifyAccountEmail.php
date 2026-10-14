@@ -8,7 +8,7 @@ use Illuminate\Notifications\Notification;
 
 class VerifyAccountEmail extends Notification
 {
-    public function __construct(public string $url) {}
+    public function __construct(public string $code) {}
 
     public function via(object $notifiable): array
     {
@@ -17,11 +17,16 @@ class VerifyAccountEmail extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
-        return (new LubosMartMailMessage($notifiable))->mailer(config('mail.security_mailer'))
+        $message = (new LubosMartMailMessage($notifiable))->mailer(config('mail.security_mailer'))
+            ->presentation('Verify your email address', '✓', $this->code, 5)
             ->subject('Verify your LubosMart email')
-            ->line('You received this email because a LubosMart account was created with this email address. Please verify your email to continue.')
-            ->action('Verify email', $this->url)
-            ->line('This link expires in 24 hours and can only be used once.')
+            ->line('Use the verification code below to verify your email address and continue your registration.');
+        if ($this->code !== null) {
+            $message->line('Your verification code is '.$this->code.'. It expires in five minutes.')
+                ->line('Enter it on the verification page. Do not share this code.');
+        }
+
+        return $message
             ->line('If you did not create this account, you can ignore this email.');
     }
 }

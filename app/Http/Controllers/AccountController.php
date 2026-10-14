@@ -21,19 +21,29 @@ class AccountController extends Controller
     {
         $actor = $request->user();
         abort_unless(in_array($actor->role, ['admin', 'sorting_center'], true), 403);
-        $filters = $request->validate(['search' => 'nullable|string|max:160', 'role' => ['nullable', Rule::in(['buyer', 'seller', 'courier', 'sorting_center', 'unassigned'])], 'status' => ['nullable', Rule::in(['unverified', 'incomplete', 'pending', 'approved', 'rejected', 'suspended', 'deactivated'])]]);
+        $filters = $request->validate(['search' => 'nullable|string|max:160', 'role' => ['nullable', Rule::in($actor->role === 'admin' ? ['buyer', 'seller', 'sorting_center', 'unassigned'] : ['courier'])], 'status' => ['nullable', Rule::in(['unverified', 'incomplete', 'pending', 'approved', 'rejected', 'suspended', 'deactivated'])]]);
         $query = User::query()->nonAdmin();
+        $filters += $request->validate(['sort' => ['nullable', Rule::in(['name', 'newest', 'oldest'])]]);
+        if ($actor->role === 'admin') {
+            $query->where(fn ($query) => $query->whereNull('role')->orWhere('role', '!=', 'courier'));
+        }
         $query->when($filters['search'] ?? null, fn ($q, $search) => $q->where(fn ($q) => $q->where('name', 'like', '%'.$search.'%')->orWhere('email', 'like', '%'.$search.'%')));
         $query->when($filters['role'] ?? null, fn ($q, $role) => $role === 'unassigned' ? $q->whereNull('role') : $q->where('role', $role));
         $query->when($filters['status'] ?? null, fn ($q, $status) => $q->where('status', $status));
         if ($actor->role === 'sorting_center') {
+            $query->where(fn ($q) => $q->whereNull('logistics_company_id')->orWhere('logistics_company_id', $actor->id));
             $query->whereIn('status', ['approved', 'suspended', 'deactivated']);
             $query->where('role', 'courier')->whereIn('sorting_center_id', $actor->sortingCenters()->operational()->pluck('sorting_centers.id'))->whereHas('application', fn ($query) => $query->where('status', 'approved'));
         }
 
+        $counts = (clone $query)->selectRaw('status, COUNT(*) as total')->groupBy('status')->toBase()->get()->pluck('total', 'status');
+        $sort = $filters['sort'] ?? 'name';
+        $sort === 'name' ? $query->orderBy('name')->orderBy('id') : $query->orderBy('created_at', $sort === 'newest' ? 'desc' : 'asc')->orderBy('id', $sort === 'newest' ? 'desc' : 'asc');
+
         return Inertia::render('management/accounts', [
-            'accounts' => $query->orderBy('name')->orderBy('id')->paginate(20, ['id', 'name', 'email', 'role', 'status'])->withQueryString(), 'filters' => $filters,
-            'allowedStatuses' => $actor->role === 'admin' ? ['approved', 'suspended', 'deactivated'] : ['approved', 'deactivated'],
+            'accounts' => $query->with('application:id,user_id,status,submitted_at,reviewed_at')->paginate(20, ['id', 'name', 'email', 'role', 'status', 'created_at', 'email_verified_at'])->withQueryString(), 'filters' => $filters,
+            'summary' => ['total' => (int) $counts->sum(), 'approved' => (int) $counts->get('approved', 0), 'incomplete' => (int) $counts->get('incomplete', 0) + (int) $counts->get('unverified', 0), 'suspended' => (int) $counts->get('suspended', 0)],
+            'allowedStatuses' => ['approved', 'suspended', 'deactivated'],
         ]);
     }
 
@@ -49,7 +59,7 @@ class AccountController extends Controller
             'courier' => $user->role === 'courier' ? DB::table('rider_profiles')->where('user_id', $user->id)->first() : null,
             'centers' => $user->role === 'sorting_center' ? $user->sortingCenters()->get(['sorting_centers.id', 'name']) : [],
             'assignedCenter' => $user->role === 'courier' ? $user->logisticsCenter?->name : null,
-            'allowedStatuses' => in_array($user->status, ['approved', 'suspended', 'deactivated'], true) ? ($request->user()->role === 'admin' ? ['approved', 'suspended', 'deactivated'] : ($user->status === 'approved' ? ['deactivated'] : ($this->canReactivate($request->user(), $user) ? ['approved'] : []))) : [],
+            'allowedStatuses' => in_array($user->status, ['approved', 'suspended', 'deactivated'], true) ? ['approved', 'suspended', 'deactivated'] : [],
             'applicationId' => $user->application?->id,
             'history' => DB::table('audit_events')->leftJoin('users as actor', 'actor.id', '=', 'audit_events.actor_id')->where(fn ($query) => $query->where('subject_type', 'user')->where('subject_id', $user->id))
                 ->orWhere(fn ($query) => $query->where('subject_type', 'registration_application')->where('subject_id', $user->application?->id ?? 0))
@@ -62,19 +72,13 @@ class AccountController extends Controller
     public function update(Request $request, User $user): RedirectResponse
     {
         Gate::authorize('updateStatus', $user);
-        $allowed = $request->user()->role === 'admin' ? ['approved', 'suspended', 'deactivated'] : ['approved', 'deactivated'];
+        $allowed = ['approved', 'suspended', 'deactivated'];
         $data = $request->validate(['status' => ['required', Rule::in($allowed)], 'reason' => ['required', 'string', 'max:1000']]);
         DB::transaction(function () use ($request, $user, $data) {
             $user = User::query()->whereKey($user->id)->lockForUpdate()->firstOrFail();
             Gate::forUser($request->user()->fresh())->authorize('updateStatus', $user);
             if (! in_array($user->status, ['approved', 'suspended', 'deactivated'], true) || ($data['status'] === 'approved' && (! $user->hasVerifiedEmail() || $user->application?->status !== 'approved'))) {
                 throw ValidationException::withMessages(['status' => 'Review and approve this application before activating the account.']);
-            }
-            if ($request->user()->role === 'sorting_center' && $data['status'] === 'approved' && ! $this->canReactivate($request->user(), $user)) {
-                throw ValidationException::withMessages(['status' => 'Only the admin can restore an account restricted by the admin.']);
-            }
-            if ($request->user()->role === 'sorting_center' && $data['status'] === 'deactivated' && $user->status !== 'approved') {
-                throw ValidationException::withMessages(['status' => 'Only active riders can be deactivated by logistics. Admin restrictions cannot be changed.']);
             }
             $previous = $user->status;
             abort_if($previous === $data['status'], 409, 'This account already has that status.');
@@ -87,16 +91,5 @@ class AccountController extends Controller
         });
 
         return back()->with('status', 'Account status updated.');
-    }
-
-    private function canReactivate(User $actor, User $user): bool
-    {
-        if ($user->status !== 'deactivated') {
-            return false;
-        }
-        $event = DB::table('audit_events')->where('subject_type', 'user')->where('subject_id', $user->id)
-            ->whereIn('action', ['deactivated', 'suspended', 'reactivated'])->orderByDesc('id')->first();
-
-        return $event && $event->action === 'deactivated' && (int) $event->actor_id === $actor->id;
     }
 }

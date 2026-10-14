@@ -25,7 +25,11 @@ class ChooseRoleController extends Controller
             $user = User::query()->whereKey($request->user()->id)->lockForUpdate()->firstOrFail();
             abort_unless($user->role === null && $user->status === 'incomplete', 403);
             $user->forceFill(['role' => $data['role']])->save();
-            $user->application()->create(['requested_role' => $data['role']]);
+            $user->application()->create(['requested_role' => $data['role'], 'registration_contract' => match ($data['role']) {
+                'sorting_center' => 'logistics-2026-10',
+                'courier' => 'self-service-rider-2026-10',
+                default => null,
+            }]);
             $request->user()->setRawAttributes($user->getAttributes(), true);
         });
 

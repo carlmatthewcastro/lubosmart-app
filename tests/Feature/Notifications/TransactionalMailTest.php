@@ -37,27 +37,36 @@ test('transactional emails deliver branded HTML and plain text with consistent h
     expect($email->getFrom()[0]->getAddress())->toBe('sender@example.com');
     expect($email->getReplyTo()[0]->getAddress())->toBe('support@example.com');
     expect($email->getTo()[0]->getAddress())->toBe('recipient@example.com');
-    expect($email->getHtmlBody())->toContain(
-        'Hello, Maria!', 'LubosMart logo', 'https://lubosmart.app/email-logo.png',
-        'The LubosMart Team', '© '.date('Y').' LubosMart. All rights reserved.',
-        'This is an automated message. Please do not reply.',
-    )->not->toContain('Laravel Logo', 'laravel.com', 'Regards, Laravel', 'localhost', '${');
-    expect($email->getTextBody())->toContain(
-        'Hello, Maria!', 'The LubosMart Team', '© '.date('Y').' LubosMart. All rights reserved.',
-        'This is an automated message. Please do not reply.', ...$content,
-    )->not->toContain('<table', '<img', '<br', 'localhost');
+    expect($email->getHtmlBody())->toContain('Hello, Maria!', 'LubosMart')
+        ->not->toContain('Laravel Logo', 'laravel.com', 'Regards, Laravel', 'localhost', '<img', '&#9993;', 'email-logo.png');
+    expect($email->getTextBody())->toContain('Hello, Maria!', 'LubosMart', ...$content)
+        ->not->toContain('<table', '<img', '<br', 'localhost');
 })->with([
-    'verification' => [fn () => new VerifyAccountEmail(route('verification.verify', ['token' => str_repeat('a', 64)])), 'Verify your LubosMart email', ['24 hours', 'If you did not create this account, you can ignore this email.']],
+    'verification' => [fn () => new VerifyAccountEmail('012345'), 'Verify your LubosMart email', ['012345', '5 minutes', 'If you did not request it, ignore this email.']],
     'approved' => [fn () => new ApplicationReviewed('approved', null), 'Your LubosMart application was approved', ['approved', 'https://lubosmart.app/dashboard/seller']],
     'rejected' => [fn () => new ApplicationReviewed('rejected', 'Please upload a clearer ID.'), 'Your LubosMart application was rejected', ['Reason: Please upload a clearer ID.', 'submit it again', 'https://lubosmart.app/application']],
     'suspended' => [fn () => new AccountStatusChanged('suspended', 'Please contact us about your documents.'), 'Your LubosMart account was suspended', ['access is currently restricted', 'support@example.com', 'Reason: Please contact us about your documents.']],
     'deactivated' => [fn () => new AccountStatusChanged('deactivated', 'Requested by the account owner.'), 'Your LubosMart account was deactivated', ['access is currently restricted', 'support@example.com']],
     'reactivated' => [fn () => new AccountStatusChanged('approved', 'Review completed.'), 'Your LubosMart account was reactivated', ['use your account again', 'https://lubosmart.app/dashboard/seller']],
-    'password code' => [fn () => new EmailSecurityCode('012345', 'password'), 'Your LubosMart password code', ['Your code: 012345', '10 minutes', 'If you did not request this, ignore this email.']],
-    'profile code' => [fn () => new EmailSecurityCode('123456', 'profile'), 'Confirm your LubosMart account change', ['sensitive account change', '10 minutes', 'If you did not request this, ignore this email.']],
+    'password code' => [fn () => new EmailSecurityCode('012345', 'password'), 'Your LubosMart password code', ['Verification code: 012345', '10 minutes', 'If you did not request it, ignore this email.']],
+    'profile code' => [fn () => new EmailSecurityCode('123456', 'profile'), 'Confirm your LubosMart account change', ['Confirm your account change', '10 minutes', 'If you did not request it, ignore this email.']],
     'delivery update' => [fn () => new OrderDeliveryUpdated(12, 34, 'in_transit'), 'LubosMart order #12 delivery update', ['in transit', 'https://lubosmart.app/orders']],
     'listing review' => [fn () => new SellerComplianceNotice('Rice', 'blocked', 'Please update the description.'), 'LubosMart listing review', ['Rice', 'Please update the description.']],
 ]);
+
+test('code emails use the shared panel and keep expiry and verification rules', function () {
+    $user = User::factory()->make(['name' => 'Carl Cruz']);
+    $registration = (string) (new VerifyAccountEmail('012345'))->toMail($user)->render();
+    $password = (string) (new EmailSecurityCode('513488', 'password'))->toMail($user)->render();
+    expect($registration)->toContain('YOUR VERIFICATION CODE', '012345', 'Expires in 5 minutes')->not->toContain('/verify-email/link/');
+    expect($password)->toContain('Reset your password', '513488', 'Expires in 10 minutes');
+});
+
+test('decision emails escape submitted reasons in the shared design', function () {
+    $user = User::factory()->make();
+    $html = (string) (new ApplicationReviewed('rejected', '<script>alert(1)</script>'))->toMail($user)->render();
+    expect($html)->toContain('&lt;script&gt;')->not->toContain('<script>');
+});
 
 test('approval button and fallback links open the recipients role dashboard', function (string $role) {
     $user = User::factory()->make(['role' => $role]);

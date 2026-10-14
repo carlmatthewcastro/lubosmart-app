@@ -28,7 +28,7 @@ class OrderDeliveryUpdated extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
-        return (new LubosMartMailMessage($notifiable))->subject('LubosMart order #'.$this->orderId.' delivery update')
+        return (new LubosMartMailMessage($notifiable))->presentation('Your delivery update', '→')->subject('LubosMart order #'.$this->orderId.' delivery update')
             ->line('The parcel for order #'.$this->orderId.' is now '.str_replace('_', ' ', $this->status).'.')
             ->action('View orders', route('orders.index'));
     }
