@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-13",
+  "workbookSha256": "8A278796710E939E25192C75A9D602AE102CEB1E78D3DA3778BD6049CA1BBCF9",
+  "files": [
+    {
+      "file": "account-creation-qa-final.junit.xml",
+      "sha256": "e9e9759cd5e7c332b6c398d4cc76a2df7484cd6545e64a1a730dd6d9ee8b87c2"
+    },
+    {
+      "file": "account-creation-qa-initial.junit.xml",
+      "sha256": "b4057bcf8af48ac7d3b5380384c5dd365c7aa3dbfd63e41a6e054e63fd11ea5d"
+    },
+    {
+      "file": "account-creation-qa-corrections.junit.xml",
+      "sha256": "cbea683aae80b96c386a657aecbea60e4fcd36cbe9df89a2c63dea459eb0eac5"
+    },
+    {
+      "file": "account-creation-frontend.junit.xml",
+      "sha256": "e28834fb9e26705c0f193e1c427a2990bbea152ac8ad8b57ccfa720ba5086d61"
+    },
+    {
+      "file": "account-creation-qa-execution.json",
+      "sha256": "d04c554a34762a13503bc084e565c75be9fc40182de1b14faa2199d7006db4bc"
+    },
+    {
+      "file": "account-creation-frontend-execution.json",
+      "sha256": "92092078344b23e947e261e738370dce6c3c937a71625f19d7b4cc926a4e3c1a"
+    },
+    {
+      "file": "account-creation-case-results.json",
+      "sha256": "8d5495a1bb0e8266083184dc08bbab32c44215f84855eb54ea9e91282e8612fb"
+    }
+  ]
+}
