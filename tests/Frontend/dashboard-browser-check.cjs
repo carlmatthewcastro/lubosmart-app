@@ -238,19 +238,11 @@ async function until(predicate, label) {
                     true,
                 );
                 assert.equal(
-                    await evaluate('[...document.querySelectorAll(".product-card img")].every(img=>getComputedStyle(img).objectFit==="contain")'),
+                    await evaluate('[...document.querySelectorAll(".product-card img")].every(img=>getComputedStyle(img).objectFit==="cover")'),
                     true,
                 );
                 await screenshot('product-cards-desktop');
-                await click('.product-card h2 button');
-                await until(
-                    () => evaluate('document.querySelector("[role=dialog]")?.textContent.includes("Synthetic product details")'),
-                    'product details modal',
-                );
-                await cdp('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 });
-
-                await until(() => evaluate('!document.querySelector("[role=dialog]")'), 'close product details');
-                await delay(250);
+                assert.equal(await evaluate('!!document.querySelector(".product-card h2 button")'), false);
                 await click('.product-card button[aria-label^="Save "]');
                 await until(
                     () => evaluate('!!document.querySelector(' + JSON.stringify('.product-card button[aria-pressed="true"]') + ')'),
