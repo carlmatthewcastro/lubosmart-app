@@ -29,17 +29,17 @@ class ApplicationReviewed extends Notification implements ShouldQueue
     public function toMail(object $notifiable): MailMessage
     {
         $message = (new LubosMartMailMessage($notifiable))
+            ->presentation($this->decision === 'approved' ? 'Application approved' : 'Application needs changes')
             ->subject('Your LubosMart application was '.$this->decision);
 
         if ($this->decision === 'approved') {
             return $message->line('Your application was approved. Welcome to LubosMart!')
-                ->line('Sign in to your dashboard to get started.')
                 ->action('Open your dashboard', route('dashboard.role', ['role' => $notifiable->role]));
         }
 
-        return $message->line('Your application was rejected and needs changes before we can approve it.')
+        return $message->line('Your application needs changes before approval.')
             ->line('Reason: '.($this->reason ?: 'Please review your application details.'))
-            ->line('Open your application, update the details or documents mentioned above, and submit it again.')
+            ->line('Update your application and submit it again.')
             ->action('Update your application', route('application.edit'));
     }
 }

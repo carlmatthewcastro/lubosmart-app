@@ -25,7 +25,7 @@ class RiderServiceAreaController extends Controller
         DB::transaction(function () use ($request, $data, $address) {
             $operator = User::query()->whereKey($request->user()->id)->lockForUpdate()->firstOrFail();
             abort_unless($operator->canOperate() && $operator->sortingCenters()->operational()->where('sorting_centers.id', $data['sorting_center_id'])->exists(), 403);
-            $rider = User::query()->whereKey($data['rider_id'])->where('role', 'courier')->where('sorting_center_id', $data['sorting_center_id'])->where('status', 'approved')->whereNotNull('email_verified_at')->lockForUpdate()->firstOrFail();
+            $rider = User::query()->managedRiders($operator)->whereKey($data['rider_id'])->where('role', 'courier')->where('sorting_center_id', $data['sorting_center_id'])->where('status', 'approved')->whereNotNull('email_verified_at')->lockForUpdate()->firstOrFail();
             $area = DB::table('service_areas')->where('sorting_center_id', $data['sorting_center_id'])->where('barangay_code', $data['barangay_code'])->lockForUpdate()->first();
             $areaId = $area?->id ?? DB::table('service_areas')->insertGetId([
                 'sorting_center_id' => $data['sorting_center_id'], 'code' => (string) Str::uuid(),

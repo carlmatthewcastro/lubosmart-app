@@ -11,7 +11,10 @@ class EnsureOnboardingAccess
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
-        if (! $user || $request->routeIs('verification.*', 'logout')) {
+        if ($user?->logistics_company_id && $user->status === 'unverified' && $user->application?->registration_contract === 'company-rider-2026-10' && ! $request->routeIs('logout')) {
+            abort(403, 'Activate your rider account through the company invitation.');
+        }
+        if (! $user || $request->routeIs('verification.*', 'logout', 'registration.options')) {
             return $next($request);
         }
         if (! $user->hasVerifiedEmail()) {

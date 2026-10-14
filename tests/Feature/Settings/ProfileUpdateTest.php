@@ -183,3 +183,15 @@ test('empty contact fields do not erase an existing admin contact when saving a 
 
     $this->assertDatabaseHas('users', ['id' => $admin->id, 'name' => 'Owner Admin', 'phone' => '09171234567']);
 });
+
+test('profile names enforce length and allowed characters without changing saved data', function (string $name) {
+    $user = User::factory()->create(['name' => 'Original Name']);
+    $this->actingAs($user)->patch('/settings/profile', ['name' => $name, 'email' => $user->email])->assertSessionHasErrors('name');
+    expect($user->fresh()->name)->toBe('Original Name');
+})->with(['one letter' => 'A', 'letter and punctuation' => 'A.', 'too long' => str_repeat('a', 161), 'numbers' => 'John123', 'symbols' => 'John@Cruz']);
+
+test('profile names accept supported Filipino names and trim surrounding spaces', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user)->patch('/settings/profile', ['name' => "  Ni\u{00F1}o Dela-Cruz O'Neil Jr.  ", 'email' => $user->email])->assertSessionHasNoErrors();
+    expect($user->fresh()->name)->toBe("Ni\u{00F1}o Dela-Cruz O'Neil Jr.");
+});

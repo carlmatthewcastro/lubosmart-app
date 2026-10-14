@@ -50,7 +50,7 @@ class DeliveryController extends Controller
             $store->setAttribute('pickup_address', $store->user?->addresses->first()?->only(['line1', 'barangay', 'city', 'province', 'phone']));
             $store->unsetRelation('user');
         }
-        $riders = $user->role === 'sorting_center' ? User::query()->where('role', 'courier')->where('status', 'approved')->whereNotNull('email_verified_at')
+        $riders = $user->role === 'sorting_center' ? User::query()->managedRiders($user)->where('role', 'courier')->where('status', 'approved')->whereNotNull('email_verified_at')
             ->whereIn('sorting_center_id', $centers->pluck('id'))->get(['id', 'name', 'sorting_center_id']) : collect();
         $areaLinks = DB::table('rider_service_area')->whereIn('rider_id', $riders->pluck('id'))->get()->groupBy('rider_id');
         $riders->each(fn ($rider) => $rider->setAttribute('service_area_ids', ($areaLinks->get($rider->id) ?? collect())->pluck('service_area_id')));
@@ -106,7 +106,7 @@ class DeliveryController extends Controller
                     if (! $area || strcasecmp($area->province_name ?? '', $order->shipping_province) !== 0 || strcasecmp($area->city_name ?? '', $order->shipping_city) !== 0 || strcasecmp($area->barangay_name ?? '', $order->shipping_barangay) !== 0) {
                         throw ValidationException::withMessages(['service_area_id' => 'Choose an active service area matching the delivery address.']);
                     }
-                    $rider = User::query()->whereKey($data['rider_id'] ?? null)->where('role', 'courier')->where('status', 'approved')->whereNotNull('email_verified_at')->where('sorting_center_id', $delivery->sorting_center_id)->lockForUpdate()->first();
+                    $rider = User::query()->managedRiders($user)->whereKey($data['rider_id'] ?? null)->where('role', 'courier')->where('status', 'approved')->whereNotNull('email_verified_at')->where('sorting_center_id', $delivery->sorting_center_id)->lockForUpdate()->first();
                     if (! $rider) {
                         throw ValidationException::withMessages(['rider_id' => 'Choose an approved rider assigned to this sorting center.']);
                     }

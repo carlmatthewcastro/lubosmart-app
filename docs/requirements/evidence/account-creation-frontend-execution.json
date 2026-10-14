@@ -1,0 +1,58 @@
+﻿[
+    {
+        "name":  "TC-SEL-027: changing address parents clears descendants in the actual component handler",
+        "status":  "PASS"
+    },
+    {
+        "name":  "TC-LOG-027: changing address parents clears descendants in the actual component handler",
+        "status":  "PASS"
+    },
+    {
+        "name":  "TC-SEL-023: individual renders exactly the required document slots",
+        "status":  "PASS"
+    },
+    {
+        "name":  "TC-SEL-023: sole_proprietorship renders exactly the required document slots",
+        "status":  "PASS"
+    },
+    {
+        "name":  "TC-SEL-023: corporation renders exactly the required document slots",
+        "status":  "PASS"
+    },
+    {
+        "name":  "TC-BUY-020: password component state toggles masked/revealed/masked",
+        "status":  "PASS"
+    },
+    {
+        "name":  "TC-SEL-018: password component state toggles masked/revealed/masked",
+        "status":  "PASS"
+    },
+    {
+        "name":  "TC-LOG-018: password component state toggles masked/revealed/masked",
+        "status":  "PASS"
+    },
+    {
+        "name":  "TC-BUY-002: empty signup reaches backend for all required-field errors",
+        "status":  "PASS"
+    },
+    {
+        "name":  "TC-BUY-002: processing signup prevents a second submission",
+        "status":  "PASS"
+    },
+    {
+        "name":  "TC-SEL-002: empty signup reaches backend for all required-field errors",
+        "status":  "PASS"
+    },
+    {
+        "name":  "TC-SEL-002: processing signup prevents a second submission",
+        "status":  "PASS"
+    },
+    {
+        "name":  "TC-LOG-002: empty signup reaches backend for all required-field errors",
+        "status":  "PASS"
+    },
+    {
+        "name":  "TC-LOG-002: processing signup prevents a second submission",
+        "status":  "PASS"
+    }
+]

@@ -20,18 +20,18 @@ Laravel handles authentication, approvals, products, checkout, delivery operatio
 
 Public roles are `buyer`, `seller`, `courier` and `sorting_center`. Admin accounts are provisioned with `php artisan lubosmart:create-admin`.
 
-Password signup follows **unverified → incomplete → pending → approved or rejected**. Email verification opens the application; submission requests approval. Rejected applicants can correct and resubmit. Suspension/deactivation blocks existing sessions as well as new access.
+Rider password signup follows **unverified → incomplete → pending → approved or rejected**. Email verification opens the Rider application; submission requests Logistics approval. Current Buyer password signup activates after email verification. Complete Seller/Logistics registrations become pending after verification for Admin review. Legacy/Google onboarding can require completing an application first. Rejected applicants can correct and resubmit. Suspension/deactivation blocks existing sessions as well as new access.
 
 | Role | Reviewer | Required documents |
 | --- | --- | --- |
 | Buyer | Admin | ID |
 | Seller | Admin | ID and business permit |
-| Courier / Rider | Selected sorting center; reasoned Admin override | ID, driver's license and OR/CR |
+| Courier / Rider | Selected Logistics company / sorting center | ID, driver's license and OR/CR |
 | Sorting Center | Admin | ID and business/DTI permit |
 
 `User::canOperate()` checks approval/verification and courier center eligibility. Middleware, Policies/Gates and ownership checks protect operations. An inactive center or unapproved center operator blocks affiliated couriers.
 
-Google signup requires a verified provider email and still requires application approval. Google login does not create unknown accounts. Linking preserves existing roles and approval decisions. Signup currently does not require a consent checkbox; do not claim consent was recorded unless submitted.
+Google signup requires a verified provider email and still follows application approval for the selected role. Google login does not create unknown accounts. Linking preserves existing roles and approval decisions. Email/password signup requires Terms and Privacy Policy acceptance; application submission also requires consent to review the submitted details and documents.
 
 ## Security and business rules
 

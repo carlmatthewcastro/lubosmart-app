@@ -17,7 +17,7 @@ class AdminWorkspace
         }
         $badges = [];
         if ($user->canAdmin('registrations')) {
-            $badges['registrations'] = RegistrationApplication::query()->where('status', 'submitted')->count();
+            $badges['registrations'] = RegistrationApplication::query()->adminReviewable()->where('status', 'submitted')->count();
         }
         if ($user->canAdmin('disputes')) {
             $badges['disputes'] = SupportCase::query()->where('kind', 'complaint')->where('status', '!=', 'resolved')->count();

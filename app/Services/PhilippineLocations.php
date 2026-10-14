@@ -8,9 +8,16 @@ use Illuminate\Validation\ValidationException;
 
 class PhilippineLocations
 {
-    public function provinces(): array
+    public function regions(): array
     {
-        return [...$this->fetch('provinces'), ['code' => '130000000', 'name' => 'Metro Manila (NCR)', 'regionCode' => '130000000']];
+        return $this->fetch('regions');
+    }
+
+    public function provinces(?string $region = null): array
+    {
+        $items = [...$this->fetch('provinces'), ['code' => '130000000', 'name' => 'Metro Manila (NCR)', 'regionCode' => '130000000']];
+
+        return $region ? array_values(array_filter($items, fn ($item) => ($item['regionCode'] ?? null) === $region)) : $items;
     }
 
     public function cities(string $province): array
@@ -25,12 +32,12 @@ class PhilippineLocations
         return $this->fetch('cities-municipalities/'.$city.'/barangays');
     }
 
-    public function resolve(string $provinceCode, string $cityCode, string $barangayCode): array
+    public function resolve(string $provinceCode, string $cityCode, string $barangayCode, ?string $regionCode = null): array
     {
         $province = collect($this->provinces())->firstWhere('code', $provinceCode);
         $city = collect($this->cities($provinceCode))->firstWhere('code', $cityCode);
         $barangay = $city ? collect($this->barangays($cityCode))->firstWhere('code', $barangayCode) : null;
-        if (! $province || ! $city || ! $barangay) {
+        if (! $province || ! $city || ! $barangay || ($regionCode && (! collect($this->regions())->firstWhere('code', $regionCode) || ($province['regionCode'] ?? null) !== $regionCode || ($city['regionCode'] ?? null) !== $regionCode))) {
             throw ValidationException::withMessages(['barangay_code' => 'Choose a valid province, city or municipality, and barangay.']);
         }
 

@@ -8,8 +8,16 @@ use Illuminate\Support\Facades\DB;
 
 class LubosMartMailMessage extends MailMessage
 {
+    public function presentation(string $title, string $symbol = '✓', ?string $code = null, ?int $minutes = null): static
+    {
+        $this->viewData = array_merge($this->viewData, ['mailTitle' => $title, 'mailSymbol' => $symbol, 'verificationCode' => $code, 'expiryMinutes' => $minutes]);
+
+        return $this;
+    }
+
     public function __construct(object $notifiable)
     {
+        $this->view(['html' => 'mail.transactional', 'text' => 'mail.transactional-text']);
         $firstName = $notifiable->first_name ?? null;
 
         // Registration stores structured names in user_profiles, rather than users.

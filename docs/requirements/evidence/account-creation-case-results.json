@@ -1,0 +1,4295 @@
+{
+  "date": "2026-10-13",
+  "timezone": "Asia/Manila",
+  "workbookSha256": "8A278796710E939E25192C75A9D602AE102CEB1E78D3DA3778BD6049CA1BBCF9",
+  "scope": "Backend and isolated component checks; complete browser/inbox acceptance BLOCKED",
+  "cases": [
+    {
+      "id": "TC-BUY-001",
+      "role": "Buyer",
+      "workbookRow": 2,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook successful signup saves an unverified account and sends one OTP with data set \"dataset \"TC-BUY-001\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook successful signup saves an unverified account and sends one OTP with data set \"dataset \"TC-BUY-001\"\"",
+          "assertions": 6,
+          "time": "0.024127",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-BUY-002",
+      "role": "Buyer",
+      "workbookRow": 3,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook empty forms report required fields with data set \"dataset \"TC-BUY-002\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook empty forms report required fields with data set \"dataset \"TC-BUY-002\"\"",
+          "assertions": 11,
+          "time": "0.037514",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": [
+        {
+          "name": "TC-BUY-002: empty signup reaches backend for all required-field errors",
+          "status": "PASS"
+        },
+        {
+          "name": "TC-BUY-002: processing signup prevents a second submission",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "id": "TC-BUY-003",
+      "role": "Buyer",
+      "workbookRow": 4,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook individual required fields cannot be omitted with data set \"dataset \"TC-BUY-003 first_name\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook individual required fields cannot be omitted with data set \"dataset \"TC-BUY-003 first_name\"\"",
+          "assertions": 4,
+          "time": "0.024846",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook individual required fields cannot be omitted with data set \"dataset \"TC-BUY-003 last_name\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook individual required fields cannot be omitted with data set \"dataset \"TC-BUY-003 last_name\"\"",
+          "assertions": 4,
+          "time": "0.026270",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook individual required fields cannot be omitted with data set \"dataset \"TC-BUY-003 email\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook individual required fields cannot be omitted with data set \"dataset \"TC-BUY-003 email\"\"",
+          "assertions": 4,
+          "time": "0.020415",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook individual required fields cannot be omitted with data set \"dataset \"TC-BUY-003 phone\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook individual required fields cannot be omitted with data set \"dataset \"TC-BUY-003 phone\"\"",
+          "assertions": 4,
+          "time": "0.021229",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook individual required fields cannot be omitted with data set \"dataset \"TC-BUY-003 birthday\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook individual required fields cannot be omitted with data set \"dataset \"TC-BUY-003 birthday\"\"",
+          "assertions": 4,
+          "time": "0.020076",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook individual required fields cannot be omitted with data set \"dataset \"TC-BUY-003 password\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook individual required fields cannot be omitted with data set \"dataset \"TC-BUY-003 password\"\"",
+          "assertions": 4,
+          "time": "0.019928",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook individual required fields cannot be omitted with data set \"dataset \"TC-BUY-003 password_confirmation\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook individual required fields cannot be omitted with data set \"dataset \"TC-BUY-003 password_confirmation\"\"",
+          "assertions": 4,
+          "time": "0.024282",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-BUY-004",
+      "role": "Buyer",
+      "workbookRow": 5,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "QA exact workbook phone samples and invalid name pairs return useful errors with data set \"dataset \"TC-BUY-004 exact pair\"\"",
+          "file": "tests\\Feature\\Auth\\AccountCreationAcceptanceTest.php::QA exact workbook phone samples and invalid name pairs return useful errors with data set \"dataset \"TC-BUY-004 exact pair\"\"",
+          "assertions": 5,
+          "time": "0.028984",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-004 digits\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-004 digits\"\"",
+          "assertions": 6,
+          "time": "0.022821",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-004 symbols\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-004 symbols\"\"",
+          "assertions": 6,
+          "time": "0.022111",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-BUY-005",
+      "role": "Buyer",
+      "workbookRow": 6,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "QA exact workbook valid names email and password boundaries persist with data set \"dataset \"TC-BUY-005 exact Filipino\"\"",
+          "file": "tests\\Feature\\Auth\\AccountCreationAcceptanceTest.php::QA exact workbook valid names email and password boundaries persist with data set \"dataset \"TC-BUY-005 exact Filipino\"\"",
+          "assertions": 6,
+          "time": "0.023627",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-BUY-005 Filipino\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-BUY-005 Filipino\"\"",
+          "assertions": 5,
+          "time": "0.034998",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-BUY-006",
+      "role": "Buyer",
+      "workbookRow": 7,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "QA exact workbook valid names email and password boundaries persist with data set \"dataset \"TC-BUY-006 exact fifty\"\"",
+          "file": "tests\\Feature\\Auth\\AccountCreationAcceptanceTest.php::QA exact workbook valid names email and password boundaries persist with data set \"dataset \"TC-BUY-006 exact fifty\"\"",
+          "assertions": 6,
+          "time": "0.025520",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-006 one\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-006 one\"\"",
+          "assertions": 6,
+          "time": "0.019315",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-006 fifty one\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-006 fifty one\"\"",
+          "assertions": 6,
+          "time": "0.021154",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-BUY-006 two\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-BUY-006 two\"\"",
+          "assertions": 5,
+          "time": "0.027977",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-BUY-006 fifty\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-BUY-006 fifty\"\"",
+          "assertions": 5,
+          "time": "0.028020",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-BUY-007",
+      "role": "Buyer",
+      "workbookRow": 8,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-007 under eighteen\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-007 under eighteen\"\"",
+          "assertions": 6,
+          "time": "0.020154",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-BUY-007 eighteen\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-BUY-007 eighteen\"\"",
+          "assertions": 5,
+          "time": "0.025790",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-BUY-007 eighteen plus day\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-BUY-007 eighteen plus day\"\"",
+          "assertions": 5,
+          "time": "0.023701",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-BUY-008",
+      "role": "Buyer",
+      "workbookRow": 9,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-008 future\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-008 future\"\"",
+          "assertions": 6,
+          "time": "0.019063",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-BUY-009",
+      "role": "Buyer",
+      "workbookRow": 10,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-009 no at\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-009 no at\"\"",
+          "assertions": 6,
+          "time": "0.024859",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-009 no user\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-009 no user\"\"",
+          "assertions": 6,
+          "time": "0.020807",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-009 no domain\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-009 no domain\"\"",
+          "assertions": 6,
+          "time": "0.019613",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-009 single label\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-009 single label\"\"",
+          "assertions": 6,
+          "time": "0.019321",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-009 space\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-009 space\"\"",
+          "assertions": 6,
+          "time": "0.019913",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-BUY-010",
+      "role": "Buyer",
+      "workbookRow": 11,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook detects existing identifiers across roles with data set \"dataset \"TC-BUY-010\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook detects existing identifiers across roles with data set \"dataset \"TC-BUY-010\"\"",
+          "assertions": 4,
+          "time": "0.021119",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-BUY-011",
+      "role": "Buyer",
+      "workbookRow": 12,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "QA exact workbook registered identifiers reject uppercase email and international phone with data set \"dataset \"TC-BUY-011 exact duplicate\"\"",
+          "file": "tests\\Feature\\Auth\\AccountCreationAcceptanceTest.php::QA exact workbook registered identifiers reject uppercase email and international phone with data set \"dataset \"TC-BUY-011 exact duplicate\"\"",
+          "assertions": 6,
+          "time": "0.027088",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-BUY-011 uppercase\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-BUY-011 uppercase\"\"",
+          "assertions": 5,
+          "time": "0.024950",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-BUY-012",
+      "role": "Buyer",
+      "workbookRow": 13,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "QA exact workbook valid names email and password boundaries persist with data set \"dataset \"TC-BUY-012 exact trim\"\"",
+          "file": "tests\\Feature\\Auth\\AccountCreationAcceptanceTest.php::QA exact workbook valid names email and password boundaries persist with data set \"dataset \"TC-BUY-012 exact trim\"\"",
+          "assertions": 6,
+          "time": "0.024761",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-BUY-012 spaces\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-BUY-012 spaces\"\"",
+          "assertions": 5,
+          "time": "0.023846",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-BUY-013",
+      "role": "Buyer",
+      "workbookRow": 14,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "QA exact workbook phone samples and invalid name pairs return useful errors with data set \"dataset \"TC-BUY-013 exact 0\"\"",
+          "file": "tests\\Feature\\Auth\\AccountCreationAcceptanceTest.php::QA exact workbook phone samples and invalid name pairs return useful errors with data set \"dataset \"TC-BUY-013 exact 0\"\"",
+          "assertions": 4,
+          "time": "0.018686",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "QA exact workbook phone samples and invalid name pairs return useful errors with data set \"dataset \"TC-BUY-013 exact 1\"\"",
+          "file": "tests\\Feature\\Auth\\AccountCreationAcceptanceTest.php::QA exact workbook phone samples and invalid name pairs return useful errors with data set \"dataset \"TC-BUY-013 exact 1\"\"",
+          "assertions": 4,
+          "time": "0.018903",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "QA exact workbook phone samples and invalid name pairs return useful errors with data set \"dataset \"TC-BUY-013 exact 2\"\"",
+          "file": "tests\\Feature\\Auth\\AccountCreationAcceptanceTest.php::QA exact workbook phone samples and invalid name pairs return useful errors with data set \"dataset \"TC-BUY-013 exact 2\"\"",
+          "assertions": 4,
+          "time": "0.018243",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "QA exact workbook phone samples and invalid name pairs return useful errors with data set \"dataset \"TC-BUY-013 exact 3\"\"",
+          "file": "tests\\Feature\\Auth\\AccountCreationAcceptanceTest.php::QA exact workbook phone samples and invalid name pairs return useful errors with data set \"dataset \"TC-BUY-013 exact 3\"\"",
+          "assertions": 4,
+          "time": "0.022379",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-013 letters\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-013 letters\"\"",
+          "assertions": 6,
+          "time": "0.019287",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-013 prefix\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-013 prefix\"\"",
+          "assertions": 6,
+          "time": "0.019598",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-BUY-014",
+      "role": "Buyer",
+      "workbookRow": 15,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-014 ten\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-014 ten\"\"",
+          "assertions": 6,
+          "time": "0.019710",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-014 twelve\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-014 twelve\"\"",
+          "assertions": 6,
+          "time": "0.018811",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-BUY-014 eleven\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-BUY-014 eleven\"\"",
+          "assertions": 5,
+          "time": "0.025974",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-BUY-015",
+      "role": "Buyer",
+      "workbookRow": 16,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook detects existing identifiers across roles with data set \"dataset \"TC-BUY-015\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook detects existing identifiers across roles with data set \"dataset \"TC-BUY-015\"\"",
+          "assertions": 4,
+          "time": "0.019838",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-BUY-016",
+      "role": "Buyer",
+      "workbookRow": 17,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "QA exact workbook registered identifiers reject uppercase email and international phone with data set \"dataset \"TC-BUY-016 exact duplicate\"\"",
+          "file": "tests\\Feature\\Auth\\AccountCreationAcceptanceTest.php::QA exact workbook registered identifiers reject uppercase email and international phone with data set \"dataset \"TC-BUY-016 exact duplicate\"\"",
+          "assertions": 6,
+          "time": "0.029126",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-BUY-016 international\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-BUY-016 international\"\"",
+          "assertions": 5,
+          "time": "0.025165",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-BUY-017",
+      "role": "Buyer",
+      "workbookRow": 18,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "QA exact workbook valid names email and password boundaries persist with data set \"dataset \"TC-BUY-017 exact eight\"\"",
+          "file": "tests\\Feature\\Auth\\AccountCreationAcceptanceTest.php::QA exact workbook valid names email and password boundaries persist with data set \"dataset \"TC-BUY-017 exact eight\"\"",
+          "assertions": 6,
+          "time": "0.024659",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-017 seven\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-017 seven\"\"",
+          "assertions": 6,
+          "time": "0.019965",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-BUY-017 eight\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-BUY-017 eight\"\"",
+          "assertions": 5,
+          "time": "0.025909",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-BUY-018",
+      "role": "Buyer",
+      "workbookRow": 19,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-018 no upper\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-018 no upper\"\"",
+          "assertions": 6,
+          "time": "0.019893",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-018 no lower\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-018 no lower\"\"",
+          "assertions": 6,
+          "time": "0.019376",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-018 no number\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-018 no number\"\"",
+          "assertions": 6,
+          "time": "0.023129",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-018 no special\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-018 no special\"\"",
+          "assertions": 6,
+          "time": "0.019329",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-BUY-019",
+      "role": "Buyer",
+      "workbookRow": 20,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-019 mismatch\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-019 mismatch\"\"",
+          "assertions": 6,
+          "time": "0.018620",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-BUY-020",
+      "role": "Buyer",
+      "workbookRow": 21,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook password visibility requires manual browser verification with data set \"('TC-BUY-020')\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook password visibility requires manual browser verification with data set \"('TC-BUY-020')\"",
+          "assertions": 0,
+          "time": "0.022161",
+          "status": "NOT RUN",
+          "reason": ""
+        }
+      ],
+      "component": [
+        {
+          "name": "TC-BUY-020: password component state toggles masked/revealed/masked",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "id": "TC-BUY-021",
+      "role": "Buyer",
+      "workbookRow": 22,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-021 unchecked\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-BUY-021 unchecked\"\"",
+          "assertions": 6,
+          "time": "0.019105",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-BUY-022",
+      "role": "Buyer",
+      "workbookRow": 23,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "QA workbook Account 2 repeated signup persists only one account and email with data set \"dataset \"TC-BUY-022 exact Account 2\"\"",
+          "file": "tests\\Feature\\Auth\\AccountCreationAcceptanceTest.php::QA workbook Account 2 repeated signup persists only one account and email with data set \"dataset \"TC-BUY-022 exact Account 2\"\"",
+          "assertions": 5,
+          "time": "0.024303",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook repeated registration persists one account and one OTP with data set \"dataset \"TC-BUY-022\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook repeated registration persists one account and one OTP with data set \"dataset \"TC-BUY-022\"\"",
+          "assertions": 5,
+          "time": "0.028264",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "simultaneous validated registrations create exactly one account and verification delivery with data set \"dataset \"TC-BUY-022 actual concurrency\"\"",
+          "file": "tests\\Feature\\Auth\\ConcurrentRegistrationTest.php::simultaneous validated registrations create exactly one account and verification delivery with data set \"dataset \"TC-BUY-022 actual concurrency\"\"",
+          "assertions": 9,
+          "time": "1.303098",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-BUY-023",
+      "role": "Buyer",
+      "workbookRow": 24,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook correct OTP enters the appropriate operational state with data set \"dataset \"TC-BUY-023\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook correct OTP enters the appropriate operational state with data set \"dataset \"TC-BUY-023\"\"",
+          "assertions": 6,
+          "time": "0.033389",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-BUY-024",
+      "role": "Buyer",
+      "workbookRow": 25,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook OTP rejects wrong malformed and expired codes with data set \"dataset \"TC-BUY-024\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook OTP rejects wrong malformed and expired codes with data set \"dataset \"TC-BUY-024\"\"",
+          "assertions": 7,
+          "time": "0.030380",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-BUY-025",
+      "role": "Buyer",
+      "workbookRow": 26,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook OTP rejects wrong malformed and expired codes with data set \"dataset \"TC-BUY-025\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook OTP rejects wrong malformed and expired codes with data set \"dataset \"TC-BUY-025\"\"",
+          "assertions": 13,
+          "time": "0.044344",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-BUY-026",
+      "role": "Buyer",
+      "workbookRow": 27,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook OTP rejects wrong malformed and expired codes with data set \"dataset \"TC-BUY-026\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook OTP rejects wrong malformed and expired codes with data set \"dataset \"TC-BUY-026\"\"",
+          "assertions": 7,
+          "time": "0.030833",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-BUY-027",
+      "role": "Buyer",
+      "workbookRow": 28,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook resend invalidates old OTP and accepts replacement with data set \"dataset \"TC-BUY-027\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook resend invalidates old OTP and accepts replacement with data set \"dataset \"TC-BUY-027\"\"",
+          "assertions": 8,
+          "time": "0.043512",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-BUY-028",
+      "role": "Buyer",
+      "workbookRow": 29,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook unverified login remains restricted with data set \"dataset \"TC-BUY-028\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook unverified login remains restricted with data set \"dataset \"TC-BUY-028\"\"",
+          "assertions": 7,
+          "time": "0.032248",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-BUY-029",
+      "role": "Buyer",
+      "workbookRow": 30,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "TC-BUY-029 QA workbook buyer login returns the correct displayed name",
+          "file": "tests\\Feature\\Auth\\AccountCreationAcceptanceTest.php::TC-BUY-029 QA workbook buyer login returns the correct displayed name",
+          "assertions": 13,
+          "time": "0.042607",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "TC-BUY-029 verified active buyer logs in and retains the correct name",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::TC-BUY-029 verified active buyer logs in and retains the correct name",
+          "assertions": 8,
+          "time": "0.035574",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-BUY-030",
+      "role": "Buyer",
+      "workbookRow": 31,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook role dashboards deny foreign roles with data set \"dataset \"TC-BUY-030\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook role dashboards deny foreign roles with data set \"dataset \"TC-BUY-030\"\"",
+          "assertions": 4,
+          "time": "0.028907",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-001",
+      "role": "Seller",
+      "workbookRow": 2,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook successful signup saves an unverified account and sends one OTP with data set \"dataset \"TC-SEL-001\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook successful signup saves an unverified account and sends one OTP with data set \"dataset \"TC-SEL-001\"\"",
+          "assertions": 9,
+          "time": "0.042209",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-002",
+      "role": "Seller",
+      "workbookRow": 3,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook empty forms report required fields with data set \"dataset \"TC-SEL-002\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook empty forms report required fields with data set \"dataset \"TC-SEL-002\"\"",
+          "assertions": 21,
+          "time": "0.020682",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": [
+        {
+          "name": "TC-SEL-002: empty signup reaches backend for all required-field errors",
+          "status": "PASS"
+        },
+        {
+          "name": "TC-SEL-002: processing signup prevents a second submission",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "id": "TC-SEL-003",
+      "role": "Seller",
+      "workbookRow": 4,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 first_name\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 first_name\"\"",
+          "assertions": 4,
+          "time": "0.025705",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 last_name\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 last_name\"\"",
+          "assertions": 4,
+          "time": "0.024963",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 email\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 email\"\"",
+          "assertions": 4,
+          "time": "0.023001",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 phone\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 phone\"\"",
+          "assertions": 4,
+          "time": "0.028602",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 password\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 password\"\"",
+          "assertions": 4,
+          "time": "0.028682",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 password_confirmation\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 password_confirmation\"\"",
+          "assertions": 4,
+          "time": "0.025627",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 business_name\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 business_name\"\"",
+          "assertions": 4,
+          "time": "0.022505",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 business_category_id\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 business_category_id\"\"",
+          "assertions": 4,
+          "time": "0.023243",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 seller_type\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 seller_type\"\"",
+          "assertions": 4,
+          "time": "0.022561",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 tin\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 tin\"\"",
+          "assertions": 4,
+          "time": "0.021888",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 region_code\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 region_code\"\"",
+          "assertions": 4,
+          "time": "0.023258",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 province_code\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 province_code\"\"",
+          "assertions": 4,
+          "time": "0.023858",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 city_code\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 city_code\"\"",
+          "assertions": 4,
+          "time": "0.022347",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 barangay_code\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 barangay_code\"\"",
+          "assertions": 4,
+          "time": "0.022658",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 line1\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 line1\"\"",
+          "assertions": 4,
+          "time": "0.022568",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 zip\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 zip\"\"",
+          "assertions": 4,
+          "time": "0.032786",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 identity\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 identity\"\"",
+          "assertions": 4,
+          "time": "0.025084",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 dti_certificate\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 dti_certificate\"\"",
+          "assertions": 4,
+          "time": "0.026082",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 bir_2303\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook individual required fields cannot be omitted with data set \"dataset \"TC-SEL-003 bir_2303\"\"",
+          "assertions": 4,
+          "time": "0.024377",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-004",
+      "role": "Seller",
+      "workbookRow": 5,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "QA exact workbook phone samples and invalid name pairs return useful errors with data set \"dataset \"TC-SEL-004 exact pair\"\"",
+          "file": "tests\\Feature\\Auth\\AccountCreationAcceptanceTest.php::QA exact workbook phone samples and invalid name pairs return useful errors with data set \"dataset \"TC-SEL-004 exact pair\"\"",
+          "assertions": 5,
+          "time": "0.024991",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-004 digits\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-004 digits\"\"",
+          "assertions": 6,
+          "time": "0.021915",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-004 symbols\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-004 symbols\"\"",
+          "assertions": 6,
+          "time": "0.021353",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-005",
+      "role": "Seller",
+      "workbookRow": 6,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "QA exact workbook valid names email and password boundaries persist with data set \"dataset \"TC-SEL-005 exact Filipino\"\"",
+          "file": "tests\\Feature\\Auth\\AccountCreationAcceptanceTest.php::QA exact workbook valid names email and password boundaries persist with data set \"dataset \"TC-SEL-005 exact Filipino\"\"",
+          "assertions": 6,
+          "time": "0.034494",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-SEL-005 Filipino\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-SEL-005 Filipino\"\"",
+          "assertions": 5,
+          "time": "0.037449",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-006",
+      "role": "Seller",
+      "workbookRow": 7,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "QA exact workbook valid names email and password boundaries persist with data set \"dataset \"TC-SEL-006 exact fifty\"\"",
+          "file": "tests\\Feature\\Auth\\AccountCreationAcceptanceTest.php::QA exact workbook valid names email and password boundaries persist with data set \"dataset \"TC-SEL-006 exact fifty\"\"",
+          "assertions": 6,
+          "time": "0.037162",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-006 one\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-006 one\"\"",
+          "assertions": 6,
+          "time": "0.022649",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-006 fifty one\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-006 fifty one\"\"",
+          "assertions": 6,
+          "time": "0.022897",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-SEL-006 two\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-SEL-006 two\"\"",
+          "assertions": 5,
+          "time": "0.039500",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-SEL-006 fifty\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-SEL-006 fifty\"\"",
+          "assertions": 5,
+          "time": "0.056445",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-007",
+      "role": "Seller",
+      "workbookRow": 8,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-007 no at\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-007 no at\"\"",
+          "assertions": 6,
+          "time": "0.021879",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-007 no user\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-007 no user\"\"",
+          "assertions": 6,
+          "time": "0.022447",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-007 no domain\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-007 no domain\"\"",
+          "assertions": 6,
+          "time": "0.022885",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-007 single label\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-007 single label\"\"",
+          "assertions": 6,
+          "time": "0.021630",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-007 space\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-007 space\"\"",
+          "assertions": 6,
+          "time": "0.029424",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-008",
+      "role": "Seller",
+      "workbookRow": 9,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook detects existing identifiers across roles with data set \"dataset \"TC-SEL-008\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook detects existing identifiers across roles with data set \"dataset \"TC-SEL-008\"\"",
+          "assertions": 4,
+          "time": "0.023467",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-009",
+      "role": "Seller",
+      "workbookRow": 10,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "QA exact workbook registered identifiers reject uppercase email and international phone with data set \"dataset \"TC-SEL-009 exact duplicate\"\"",
+          "file": "tests\\Feature\\Auth\\AccountCreationAcceptanceTest.php::QA exact workbook registered identifiers reject uppercase email and international phone with data set \"dataset \"TC-SEL-009 exact duplicate\"\"",
+          "assertions": 6,
+          "time": "0.023588",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-SEL-009 uppercase\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-SEL-009 uppercase\"\"",
+          "assertions": 5,
+          "time": "0.045844",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-010",
+      "role": "Seller",
+      "workbookRow": 11,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "QA exact workbook valid names email and password boundaries persist with data set \"dataset \"TC-SEL-010 exact trim\"\"",
+          "file": "tests\\Feature\\Auth\\AccountCreationAcceptanceTest.php::QA exact workbook valid names email and password boundaries persist with data set \"dataset \"TC-SEL-010 exact trim\"\"",
+          "assertions": 6,
+          "time": "0.036813",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-SEL-010 spaces\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-SEL-010 spaces\"\"",
+          "assertions": 5,
+          "time": "0.043150",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-011",
+      "role": "Seller",
+      "workbookRow": 12,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "QA exact workbook phone samples and invalid name pairs return useful errors with data set \"dataset \"TC-SEL-011 exact 0\"\"",
+          "file": "tests\\Feature\\Auth\\AccountCreationAcceptanceTest.php::QA exact workbook phone samples and invalid name pairs return useful errors with data set \"dataset \"TC-SEL-011 exact 0\"\"",
+          "assertions": 4,
+          "time": "0.022145",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "QA exact workbook phone samples and invalid name pairs return useful errors with data set \"dataset \"TC-SEL-011 exact 1\"\"",
+          "file": "tests\\Feature\\Auth\\AccountCreationAcceptanceTest.php::QA exact workbook phone samples and invalid name pairs return useful errors with data set \"dataset \"TC-SEL-011 exact 1\"\"",
+          "assertions": 4,
+          "time": "0.022286",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "QA exact workbook phone samples and invalid name pairs return useful errors with data set \"dataset \"TC-SEL-011 exact 2\"\"",
+          "file": "tests\\Feature\\Auth\\AccountCreationAcceptanceTest.php::QA exact workbook phone samples and invalid name pairs return useful errors with data set \"dataset \"TC-SEL-011 exact 2\"\"",
+          "assertions": 4,
+          "time": "0.027014",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "QA exact workbook phone samples and invalid name pairs return useful errors with data set \"dataset \"TC-SEL-011 exact 3\"\"",
+          "file": "tests\\Feature\\Auth\\AccountCreationAcceptanceTest.php::QA exact workbook phone samples and invalid name pairs return useful errors with data set \"dataset \"TC-SEL-011 exact 3\"\"",
+          "assertions": 4,
+          "time": "0.027373",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-011 letters\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-011 letters\"\"",
+          "assertions": 6,
+          "time": "0.022368",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-011 prefix\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-011 prefix\"\"",
+          "assertions": 6,
+          "time": "0.025204",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-012",
+      "role": "Seller",
+      "workbookRow": 13,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-012 ten\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-012 ten\"\"",
+          "assertions": 6,
+          "time": "0.023815",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-012 twelve\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-012 twelve\"\"",
+          "assertions": 6,
+          "time": "0.023851",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-SEL-012 eleven\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-SEL-012 eleven\"\"",
+          "assertions": 5,
+          "time": "0.040507",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-013",
+      "role": "Seller",
+      "workbookRow": 14,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook detects existing identifiers across roles with data set \"dataset \"TC-SEL-013\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook detects existing identifiers across roles with data set \"dataset \"TC-SEL-013\"\"",
+          "assertions": 4,
+          "time": "0.023323",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-014",
+      "role": "Seller",
+      "workbookRow": 15,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "QA exact workbook registered identifiers reject uppercase email and international phone with data set \"dataset \"TC-SEL-014 exact duplicate\"\"",
+          "file": "tests\\Feature\\Auth\\AccountCreationAcceptanceTest.php::QA exact workbook registered identifiers reject uppercase email and international phone with data set \"dataset \"TC-SEL-014 exact duplicate\"\"",
+          "assertions": 6,
+          "time": "0.023176",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-SEL-014 international\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-SEL-014 international\"\"",
+          "assertions": 5,
+          "time": "0.041133",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-015",
+      "role": "Seller",
+      "workbookRow": 16,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "QA exact workbook valid names email and password boundaries persist with data set \"dataset \"TC-SEL-015 exact eight\"\"",
+          "file": "tests\\Feature\\Auth\\AccountCreationAcceptanceTest.php::QA exact workbook valid names email and password boundaries persist with data set \"dataset \"TC-SEL-015 exact eight\"\"",
+          "assertions": 6,
+          "time": "0.037050",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-015 seven\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-015 seven\"\"",
+          "assertions": 6,
+          "time": "0.025223",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-SEL-015 eight\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-SEL-015 eight\"\"",
+          "assertions": 5,
+          "time": "0.043681",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-016",
+      "role": "Seller",
+      "workbookRow": 17,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-016 no upper\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-016 no upper\"\"",
+          "assertions": 6,
+          "time": "0.025729",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-016 no lower\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-016 no lower\"\"",
+          "assertions": 6,
+          "time": "0.023575",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-016 no number\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-016 no number\"\"",
+          "assertions": 6,
+          "time": "0.024351",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-016 no special\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-016 no special\"\"",
+          "assertions": 6,
+          "time": "0.022826",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-017",
+      "role": "Seller",
+      "workbookRow": 18,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-017 mismatch\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-017 mismatch\"\"",
+          "assertions": 6,
+          "time": "0.021788",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-018",
+      "role": "Seller",
+      "workbookRow": 19,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook password visibility requires manual browser verification with data set \"('TC-SEL-018')\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook password visibility requires manual browser verification with data set \"('TC-SEL-018')\"",
+          "assertions": 0,
+          "time": "0.015677",
+          "status": "NOT RUN",
+          "reason": ""
+        }
+      ],
+      "component": [
+        {
+          "name": "TC-SEL-018: password component state toggles masked/revealed/masked",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "id": "TC-SEL-019",
+      "role": "Seller",
+      "workbookRow": 20,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-019 unchecked\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-019 unchecked\"\"",
+          "assertions": 6,
+          "time": "0.023454",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-020",
+      "role": "Seller",
+      "workbookRow": 21,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "QA workbook Account 2 repeated signup persists only one account and email with data set \"dataset \"TC-SEL-020 exact Account 2\"\"",
+          "file": "tests\\Feature\\Auth\\AccountCreationAcceptanceTest.php::QA workbook Account 2 repeated signup persists only one account and email with data set \"dataset \"TC-SEL-020 exact Account 2\"\"",
+          "assertions": 5,
+          "time": "0.057313",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook repeated registration persists one account and one OTP with data set \"dataset \"TC-SEL-020\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook repeated registration persists one account and one OTP with data set \"dataset \"TC-SEL-020\"\"",
+          "assertions": 5,
+          "time": "0.036144",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "simultaneous validated registrations create exactly one account and verification delivery with data set \"dataset \"TC-SEL-020 actual concurrency\"\"",
+          "file": "tests\\Feature\\Auth\\ConcurrentRegistrationTest.php::simultaneous validated registrations create exactly one account and verification delivery with data set \"dataset \"TC-SEL-020 actual concurrency\"\"",
+          "assertions": 11,
+          "time": "1.318566",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-021",
+      "role": "Seller",
+      "workbookRow": 22,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook detects existing identifiers across roles with data set \"dataset \"TC-SEL-021\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook detects existing identifiers across roles with data set \"dataset \"TC-SEL-021\"\"",
+          "assertions": 4,
+          "time": "0.022955",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "seller shop and TIN database constraints reject post validation races with data set \"dataset \"TC-SEL-021 database race\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::seller shop and TIN database constraints reject post validation races with data set \"dataset \"TC-SEL-021 database race\"\"",
+          "assertions": 5,
+          "time": "0.035144",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-022",
+      "role": "Seller",
+      "workbookRow": 23,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "TC-SEL-022 QA exact workbook shop name boundary with data set \"('MC', false)\"",
+          "file": "tests\\Feature\\Auth\\AccountCreationAcceptanceTest.php::TC-SEL-022 QA exact workbook shop name boundary with data set \"('MC', false)\"",
+          "assertions": 4,
+          "time": "0.045932",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "TC-SEL-022 QA exact workbook shop name boundary with data set \"('MCH', true)\"",
+          "file": "tests\\Feature\\Auth\\AccountCreationAcceptanceTest.php::TC-SEL-022 QA exact workbook shop name boundary with data set \"('MCH', true)\"",
+          "assertions": 2,
+          "time": "0.044495",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "TC-SEL-022 QA exact workbook shop name boundary with data set \"('Maria Clara Handicrafts Manila', true)\"",
+          "file": "tests\\Feature\\Auth\\AccountCreationAcceptanceTest.php::TC-SEL-022 QA exact workbook shop name boundary with data set \"('Maria Clara Handicrafts Manila', true)\"",
+          "assertions": 2,
+          "time": "0.035627",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "TC-SEL-022 QA exact workbook shop name boundary with data set \"('Maria Clara Handicrafts, Manila', false)\"",
+          "file": "tests\\Feature\\Auth\\AccountCreationAcceptanceTest.php::TC-SEL-022 QA exact workbook shop name boundary with data set \"('Maria Clara Handicrafts, Manila', false)\"",
+          "assertions": 4,
+          "time": "0.030306",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-022 two\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-022 two\"\"",
+          "assertions": 6,
+          "time": "0.030887",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-022 thirty one\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-022 thirty one\"\"",
+          "assertions": 6,
+          "time": "0.023384",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-SEL-022 three\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-SEL-022 three\"\"",
+          "assertions": 5,
+          "time": "0.041977",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-SEL-022 thirty\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-SEL-022 thirty\"\"",
+          "assertions": 5,
+          "time": "0.040744",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-023",
+      "role": "Seller",
+      "workbookRow": 24,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "TC-SEL-023 seller types require exactly their relevant documents with data set \"('individual', ['identity'])\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::TC-SEL-023 seller types require exactly their relevant documents with data set \"('individual', ['identity'])\"",
+          "assertions": 2,
+          "time": "0.033963",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "TC-SEL-023 seller types require exactly their relevant documents with data set \"('sole_proprietorship', ['identity', 'dti_certificate', 'bir_2303'])\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::TC-SEL-023 seller types require exactly their relevant documents with data set \"('sole_proprietorship', ['identity', 'dti_certificate', 'bir_2303'])\"",
+          "assertions": 2,
+          "time": "0.039963",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "TC-SEL-023 seller types require exactly their relevant documents with data set \"('corporation', ['identity', 'sec_certificate', 'bir_2303'])\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::TC-SEL-023 seller types require exactly their relevant documents with data set \"('corporation', ['identity', 'sec_certificate', 'bir_2303'])\"",
+          "assertions": 2,
+          "time": "0.041833",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": [
+        {
+          "name": "TC-SEL-023: individual renders exactly the required document slots",
+          "status": "PASS"
+        },
+        {
+          "name": "TC-SEL-023: sole_proprietorship renders exactly the required document slots",
+          "status": "PASS"
+        },
+        {
+          "name": "TC-SEL-023: corporation renders exactly the required document slots",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "id": "TC-SEL-024",
+      "role": "Seller",
+      "workbookRow": 25,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-024 missing SEC\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-024 missing SEC\"\"",
+          "assertions": 6,
+          "time": "0.021785",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-025",
+      "role": "Seller",
+      "workbookRow": 26,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-025 eleven digits\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-025 eleven digits\"\"",
+          "assertions": 6,
+          "time": "0.021762",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-025 thirteen digits\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-025 thirteen digits\"\"",
+          "assertions": 6,
+          "time": "0.022617",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-025 letters\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-025 letters\"\"",
+          "assertions": 6,
+          "time": "0.022272",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-025 unformatted\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-025 unformatted\"\"",
+          "assertions": 6,
+          "time": "0.024413",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-SEL-025 twelve\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-SEL-025 twelve\"\"",
+          "assertions": 5,
+          "time": "0.043668",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-026",
+      "role": "Seller",
+      "workbookRow": 27,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook detects existing identifiers across roles with data set \"dataset \"TC-SEL-026\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook detects existing identifiers across roles with data set \"dataset \"TC-SEL-026\"\"",
+          "assertions": 4,
+          "time": "0.023666",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "seller shop and TIN database constraints reject post validation races with data set \"dataset \"TC-SEL-026 database race\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::seller shop and TIN database constraints reject post validation races with data set \"dataset \"TC-SEL-026 database race\"\"",
+          "assertions": 5,
+          "time": "0.045263",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-027",
+      "role": "Seller",
+      "workbookRow": 28,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-027 forged region\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-027 forged region\"\"",
+          "assertions": 6,
+          "time": "0.024952",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "TC-SEL-027 region options filter provinces and reject a forged dependent selection",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::TC-SEL-027 region options filter provinces and reject a forged dependent selection",
+          "assertions": 8,
+          "time": "0.026128",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": [
+        {
+          "name": "TC-SEL-027: changing address parents clears descendants in the actual component handler",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "id": "TC-SEL-028",
+      "role": "Seller",
+      "workbookRow": 29,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-028 three\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-028 three\"\"",
+          "assertions": 6,
+          "time": "0.021595",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-028 five\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-028 five\"\"",
+          "assertions": 6,
+          "time": "0.024004",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-028 letters\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook rejects invalid registration without accounts files or email with data set \"dataset \"TC-SEL-028 letters\"\"",
+          "assertions": 6,
+          "time": "0.023332",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-SEL-028 four\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook accepts valid boundaries and normalizes registration with data set \"dataset \"TC-SEL-028 four\"\"",
+          "assertions": 5,
+          "time": "0.044692",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-029",
+      "role": "Seller",
+      "workbookRow": 30,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook seller upload validates content and exact size before creating an account with data set \"dataset \"TC-SEL-029 JPG\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook seller upload validates content and exact size before creating an account with data set \"dataset \"TC-SEL-029 JPG\"\"",
+          "assertions": 4,
+          "time": "0.058996",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook seller upload validates content and exact size before creating an account with data set \"dataset \"TC-SEL-029 PNG\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook seller upload validates content and exact size before creating an account with data set \"dataset \"TC-SEL-029 PNG\"\"",
+          "assertions": 4,
+          "time": "0.061563",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook seller upload validates content and exact size before creating an account with data set \"dataset \"TC-SEL-029 PDF\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook seller upload validates content and exact size before creating an account with data set \"dataset \"TC-SEL-029 PDF\"\"",
+          "assertions": 4,
+          "time": "0.060865",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-030",
+      "role": "Seller",
+      "workbookRow": 31,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook seller upload validates content and exact size before creating an account with data set \"dataset \"TC-SEL-030 DOCX\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook seller upload validates content and exact size before creating an account with data set \"dataset \"TC-SEL-030 DOCX\"\"",
+          "assertions": 5,
+          "time": "0.033295",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook seller upload validates content and exact size before creating an account with data set \"dataset \"TC-SEL-030 GIF\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook seller upload validates content and exact size before creating an account with data set \"dataset \"TC-SEL-030 GIF\"\"",
+          "assertions": 5,
+          "time": "0.028396",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook seller upload validates content and exact size before creating an account with data set \"dataset \"TC-SEL-030 EXE\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook seller upload validates content and exact size before creating an account with data set \"dataset \"TC-SEL-030 EXE\"\"",
+          "assertions": 5,
+          "time": "0.028770",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-031",
+      "role": "Seller",
+      "workbookRow": 32,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook seller upload validates content and exact size before creating an account with data set \"dataset \"TC-SEL-031 below\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook seller upload validates content and exact size before creating an account with data set \"dataset \"TC-SEL-031 below\"\"",
+          "assertions": 4,
+          "time": "0.057636",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook seller upload validates content and exact size before creating an account with data set \"dataset \"TC-SEL-031 exact\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook seller upload validates content and exact size before creating an account with data set \"dataset \"TC-SEL-031 exact\"\"",
+          "assertions": 4,
+          "time": "0.066546",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook seller upload validates content and exact size before creating an account with data set \"dataset \"TC-SEL-031 one byte above\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook seller upload validates content and exact size before creating an account with data set \"dataset \"TC-SEL-031 one byte above\"\"",
+          "assertions": 5,
+          "time": "0.052371",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "workbook seller upload validates content and exact size before creating an account with data set \"dataset \"TC-SEL-031 above\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook seller upload validates content and exact size before creating an account with data set \"dataset \"TC-SEL-031 above\"\"",
+          "assertions": 5,
+          "time": "0.046706",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-032",
+      "role": "Seller",
+      "workbookRow": 33,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook correct OTP enters the appropriate operational state with data set \"dataset \"TC-SEL-032\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook correct OTP enters the appropriate operational state with data set \"dataset \"TC-SEL-032\"\"",
+          "assertions": 7,
+          "time": "0.041975",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-033",
+      "role": "Seller",
+      "workbookRow": 34,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook OTP rejects wrong malformed and expired codes with data set \"dataset \"TC-SEL-033\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook OTP rejects wrong malformed and expired codes with data set \"dataset \"TC-SEL-033\"\"",
+          "assertions": 7,
+          "time": "0.047654",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-034",
+      "role": "Seller",
+      "workbookRow": 35,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook OTP rejects wrong malformed and expired codes with data set \"dataset \"TC-SEL-034\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook OTP rejects wrong malformed and expired codes with data set \"dataset \"TC-SEL-034\"\"",
+          "assertions": 13,
+          "time": "0.051971",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-035",
+      "role": "Seller",
+      "workbookRow": 36,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook OTP rejects wrong malformed and expired codes with data set \"dataset \"TC-SEL-035\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook OTP rejects wrong malformed and expired codes with data set \"dataset \"TC-SEL-035\"\"",
+          "assertions": 7,
+          "time": "0.043923",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-036",
+      "role": "Seller",
+      "workbookRow": 37,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook resend invalidates old OTP and accepts replacement with data set \"dataset \"TC-SEL-036\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook resend invalidates old OTP and accepts replacement with data set \"dataset \"TC-SEL-036\"\"",
+          "assertions": 8,
+          "time": "0.061353",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-037",
+      "role": "Seller",
+      "workbookRow": 38,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook unverified login remains restricted with data set \"dataset \"TC-SEL-037\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook unverified login remains restricted with data set \"dataset \"TC-SEL-037\"\"",
+          "assertions": 7,
+          "time": "0.044636",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-038",
+      "role": "Seller",
+      "workbookRow": 39,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "TC-SEL-038 pending seller cannot operate inventory or orders",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::TC-SEL-038 pending seller cannot operate inventory or orders",
+          "assertions": 13,
+          "time": "0.057016",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-039",
+      "role": "Seller",
+      "workbookRow": 40,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "TC-SEL-039 QA pending list uses the workbook shop name and opens every private document",
+          "file": "tests\\Feature\\Auth\\AccountCreationAcceptanceTest.php::TC-SEL-039 QA pending list uses the workbook shop name and opens every private document",
+          "assertions": 20,
+          "time": "0.062509",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "TC-SEL-039 admin review exposes saved details and private document links",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::TC-SEL-039 admin review exposes saved details and private document links",
+          "assertions": 9,
+          "time": "0.055305",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-040",
+      "role": "Seller",
+      "workbookRow": 41,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "TC-SEL-040 admin approval enables seller operations and sends decision email",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::TC-SEL-040 admin approval enables seller operations and sends decision email",
+          "assertions": 9,
+          "time": "0.058570",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-041",
+      "role": "Seller",
+      "workbookRow": 42,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "TC-SEL-041 TC-SEL-042 QA workbook Account 2 rejection and replacement retain the company type",
+          "file": "tests\\Feature\\Auth\\AccountCreationAcceptanceTest.php::TC-SEL-041 TC-SEL-042 QA workbook Account 2 rejection and replacement retain the company type",
+          "assertions": 24,
+          "time": "0.071216",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "TC-SEL-041 rejection requires reason emails it and blocks operations",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::TC-SEL-041 rejection requires reason emails it and blocks operations",
+          "assertions": 12,
+          "time": "0.059088",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-042",
+      "role": "Seller",
+      "workbookRow": 43,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "TC-SEL-041 TC-SEL-042 QA workbook Account 2 rejection and replacement retain the company type",
+          "file": "tests\\Feature\\Auth\\AccountCreationAcceptanceTest.php::TC-SEL-041 TC-SEL-042 QA workbook Account 2 rejection and replacement retain the company type",
+          "assertions": 24,
+          "time": "0.071216",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "TC-SEL-042 rejected seller replaces document and resubmits without another account",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::TC-SEL-042 rejected seller replaces document and resubmits without another account",
+          "assertions": 15,
+          "time": "0.065986",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-043",
+      "role": "Seller",
+      "workbookRow": 44,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "TC-SEL-043 buyer cannot review approve or reject a seller",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::TC-SEL-043 buyer cannot review approve or reject a seller",
+          "assertions": 10,
+          "time": "0.057761",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-SEL-044",
+      "role": "Seller",
+      "workbookRow": 45,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "workbook role dashboards deny foreign roles with data set \"dataset \"TC-SEL-044\"\"",
+          "file": "tests\\Feature\\Auth\\BuyerSellerRegistrationTest.php::workbook role dashboards deny foreign roles with data set \"dataset \"TC-SEL-044\"\"",
+          "assertions": 4,
+          "time": "0.026255",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-001",
+      "role": "Logistics",
+      "workbookRow": 2,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "TC-LOG-001 full company signup persists every business field and sends one OTP",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::TC-LOG-001 full company signup persists every business field and sends one OTP",
+          "assertions": 7,
+          "time": "0.043220",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-002",
+      "role": "Logistics",
+      "workbookRow": 3,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case reports every mandatory field on an empty form with data set \"dataset \"TC-LOG-002\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case reports every mandatory field on an empty form with data set \"dataset \"TC-LOG-002\"\"",
+          "assertions": 24,
+          "time": "0.025707",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": [
+        {
+          "name": "TC-LOG-002: empty signup reaches backend for all required-field errors",
+          "status": "PASS"
+        },
+        {
+          "name": "TC-LOG-002: processing signup prevents a second submission",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "id": "TC-LOG-003",
+      "role": "Logistics",
+      "workbookRow": 4,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 first_name\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 first_name\"\"",
+          "assertions": 4,
+          "time": "0.022401",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 last_name\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 last_name\"\"",
+          "assertions": 4,
+          "time": "0.021621",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 email\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 email\"\"",
+          "assertions": 4,
+          "time": "0.021508",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 phone\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 phone\"\"",
+          "assertions": 4,
+          "time": "0.022233",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 business_name\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 business_name\"\"",
+          "assertions": 4,
+          "time": "0.021128",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 sec_number\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 sec_number\"\"",
+          "assertions": 4,
+          "time": "0.022004",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 tin\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 tin\"\"",
+          "assertions": 4,
+          "time": "0.022826",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 position\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 position\"\"",
+          "assertions": 4,
+          "time": "0.031373",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 service_regions\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 service_regions\"\"",
+          "assertions": 4,
+          "time": "0.022102",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 region_code\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 region_code\"\"",
+          "assertions": 4,
+          "time": "0.021823",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 province_code\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 province_code\"\"",
+          "assertions": 4,
+          "time": "0.021092",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 city_code\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 city_code\"\"",
+          "assertions": 4,
+          "time": "0.022530",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 barangay_code\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 barangay_code\"\"",
+          "assertions": 4,
+          "time": "0.022212",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 line1\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 line1\"\"",
+          "assertions": 4,
+          "time": "0.021719",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 zip\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 zip\"\"",
+          "assertions": 4,
+          "time": "0.022837",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 identity\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 identity\"\"",
+          "assertions": 4,
+          "time": "0.021805",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 sec_certificate\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 sec_certificate\"\"",
+          "assertions": 4,
+          "time": "0.022190",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 bir_2303\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 bir_2303\"\"",
+          "assertions": 4,
+          "time": "0.022193",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 business_permit\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 business_permit\"\"",
+          "assertions": 4,
+          "time": "0.031957",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 password\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 password\"\"",
+          "assertions": 4,
+          "time": "0.022132",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 password_confirmation\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects each individually omitted mandatory field with data set \"dataset \"TC-LOG-003 password_confirmation\"\"",
+          "assertions": 4,
+          "time": "0.022445",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-004",
+      "role": "Logistics",
+      "workbookRow": 5,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-004 names\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-004 names\"\"",
+          "assertions": 6,
+          "time": "0.022979",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-005",
+      "role": "Logistics",
+      "workbookRow": 6,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case accepts valid boundary values and preserves inputs with data set \"dataset \"TC-LOG-005 Filipino\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case accepts valid boundary values and preserves inputs with data set \"dataset \"TC-LOG-005 Filipino\"\"",
+          "assertions": 4,
+          "time": "0.035149",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-006",
+      "role": "Logistics",
+      "workbookRow": 7,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-006 one\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-006 one\"\"",
+          "assertions": 5,
+          "time": "0.022597",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-006 fifty one\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-006 fifty one\"\"",
+          "assertions": 5,
+          "time": "0.022452",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case accepts valid boundary values and preserves inputs with data set \"dataset \"TC-LOG-006 two\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case accepts valid boundary values and preserves inputs with data set \"dataset \"TC-LOG-006 two\"\"",
+          "assertions": 4,
+          "time": "0.046396",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case accepts valid boundary values and preserves inputs with data set \"dataset \"TC-LOG-006 fifty\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case accepts valid boundary values and preserves inputs with data set \"dataset \"TC-LOG-006 fifty\"\"",
+          "assertions": 4,
+          "time": "0.042838",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-007",
+      "role": "Logistics",
+      "workbookRow": 8,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-007 no at\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-007 no at\"\"",
+          "assertions": 5,
+          "time": "0.022104",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-007 no domain\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-007 no domain\"\"",
+          "assertions": 5,
+          "time": "0.022517",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-007 no name\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-007 no name\"\"",
+          "assertions": 5,
+          "time": "0.021560",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-007 single label\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-007 single label\"\"",
+          "assertions": 5,
+          "time": "0.030622",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-007 space\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-007 space\"\"",
+          "assertions": 5,
+          "time": "0.022140",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-008",
+      "role": "Logistics",
+      "workbookRow": 9,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case detects globally duplicated identifiers with data set \"dataset \"TC-LOG-008\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case detects globally duplicated identifiers with data set \"dataset \"TC-LOG-008\"\"",
+          "assertions": 4,
+          "time": "0.022922",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-009",
+      "role": "Logistics",
+      "workbookRow": 10,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case detects globally duplicated identifiers with data set \"dataset \"TC-LOG-009\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case detects globally duplicated identifiers with data set \"dataset \"TC-LOG-009\"\"",
+          "assertions": 4,
+          "time": "0.022500",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-010",
+      "role": "Logistics",
+      "workbookRow": 11,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case accepts valid boundary values and preserves inputs with data set \"dataset \"TC-LOG-010 trim\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case accepts valid boundary values and preserves inputs with data set \"dataset \"TC-LOG-010 trim\"\"",
+          "assertions": 4,
+          "time": "0.040433",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-011",
+      "role": "Logistics",
+      "workbookRow": 12,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-011 letters\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-011 letters\"\"",
+          "assertions": 5,
+          "time": "0.022860",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-011 symbols\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-011 symbols\"\"",
+          "assertions": 5,
+          "time": "0.022271",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-011 prefix\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-011 prefix\"\"",
+          "assertions": 5,
+          "time": "0.021665",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-011 landline\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-011 landline\"\"",
+          "assertions": 5,
+          "time": "0.022852",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-012",
+      "role": "Logistics",
+      "workbookRow": 13,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-012 ten\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-012 ten\"\"",
+          "assertions": 5,
+          "time": "0.021865",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-012 twelve\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-012 twelve\"\"",
+          "assertions": 5,
+          "time": "0.021365",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case accepts valid boundary values and preserves inputs with data set \"dataset \"TC-LOG-012 eleven\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case accepts valid boundary values and preserves inputs with data set \"dataset \"TC-LOG-012 eleven\"\"",
+          "assertions": 4,
+          "time": "0.041109",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-013",
+      "role": "Logistics",
+      "workbookRow": 14,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case detects globally duplicated identifiers with data set \"dataset \"TC-LOG-013\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case detects globally duplicated identifiers with data set \"dataset \"TC-LOG-013\"\"",
+          "assertions": 4,
+          "time": "0.022628",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-014",
+      "role": "Logistics",
+      "workbookRow": 15,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case detects globally duplicated identifiers with data set \"dataset \"TC-LOG-014\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case detects globally duplicated identifiers with data set \"dataset \"TC-LOG-014\"\"",
+          "assertions": 4,
+          "time": "0.023208",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-015",
+      "role": "Logistics",
+      "workbookRow": 16,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-015 seven\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-015 seven\"\"",
+          "assertions": 5,
+          "time": "0.022523",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case accepts valid boundary values and preserves inputs with data set \"dataset \"TC-LOG-015 eight\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case accepts valid boundary values and preserves inputs with data set \"dataset \"TC-LOG-015 eight\"\"",
+          "assertions": 4,
+          "time": "0.040719",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-016",
+      "role": "Logistics",
+      "workbookRow": 17,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-016 no upper\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-016 no upper\"\"",
+          "assertions": 5,
+          "time": "0.024369",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-016 no lower\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-016 no lower\"\"",
+          "assertions": 5,
+          "time": "0.021896",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-016 no number\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-016 no number\"\"",
+          "assertions": 5,
+          "time": "0.033274",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-016 no special\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-016 no special\"\"",
+          "assertions": 5,
+          "time": "0.024422",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-017",
+      "role": "Logistics",
+      "workbookRow": 18,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-017 mismatch\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-017 mismatch\"\"",
+          "assertions": 5,
+          "time": "0.022035",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-018",
+      "role": "Logistics",
+      "workbookRow": 19,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "TC-LOG-018 password masking requires real browser verification",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::TC-LOG-018 password masking requires real browser verification",
+          "assertions": 0,
+          "time": "0.017768",
+          "status": "NOT RUN",
+          "reason": ""
+        }
+      ],
+      "component": [
+        {
+          "name": "TC-LOG-018: password component state toggles masked/revealed/masked",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "id": "TC-LOG-019",
+      "role": "Logistics",
+      "workbookRow": 20,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-019 terms\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-019 terms\"\"",
+          "assertions": 5,
+          "time": "0.022327",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-020",
+      "role": "Logistics",
+      "workbookRow": 21,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "simultaneous validated registrations create exactly one account and verification delivery with data set \"dataset \"TC-LOG-020 actual concurrency\"\"",
+          "file": "tests\\Feature\\Auth\\ConcurrentRegistrationTest.php::simultaneous validated registrations create exactly one account and verification delivery with data set \"dataset \"TC-LOG-020 actual concurrency\"\"",
+          "assertions": 9,
+          "time": "1.329480",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case repeated creation results in one account and one email generation with data set \"dataset \"TC-LOG-020\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case repeated creation results in one account and one email generation with data set \"dataset \"TC-LOG-020\"\"",
+          "assertions": 4,
+          "time": "0.034679",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-021",
+      "role": "Logistics",
+      "workbookRow": 22,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case detects globally duplicated identifiers with data set \"dataset \"TC-LOG-021\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case detects globally duplicated identifiers with data set \"dataset \"TC-LOG-021\"\"",
+          "assertions": 4,
+          "time": "0.022982",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-022",
+      "role": "Logistics",
+      "workbookRow": 23,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-022 eight digits\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-022 eight digits\"\"",
+          "assertions": 5,
+          "time": "0.023090",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-022 reversed\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-022 reversed\"\"",
+          "assertions": 5,
+          "time": "0.021927",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-022 symbol\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-022 symbol\"\"",
+          "assertions": 5,
+          "time": "0.023095",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-022 no letters\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-022 no letters\"\"",
+          "assertions": 5,
+          "time": "0.022240",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-023",
+      "role": "Logistics",
+      "workbookRow": 24,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case detects globally duplicated identifiers with data set \"dataset \"TC-LOG-023\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case detects globally duplicated identifiers with data set \"dataset \"TC-LOG-023\"\"",
+          "assertions": 4,
+          "time": "0.024133",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-024",
+      "role": "Logistics",
+      "workbookRow": 25,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "TC-LOG-024 three selected service regions persist",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::TC-LOG-024 three selected service regions persist",
+          "assertions": 2,
+          "time": "0.039782",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-025",
+      "role": "Logistics",
+      "workbookRow": 26,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-025 eleven\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-025 eleven\"\"",
+          "assertions": 5,
+          "time": "0.021639",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-025 thirteen\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-025 thirteen\"\"",
+          "assertions": 5,
+          "time": "0.021700",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-025 letter\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-025 letter\"\"",
+          "assertions": 5,
+          "time": "0.022432",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case accepts valid boundary values and preserves inputs with data set \"dataset \"TC-LOG-025 twelve\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case accepts valid boundary values and preserves inputs with data set \"dataset \"TC-LOG-025 twelve\"\"",
+          "assertions": 4,
+          "time": "0.041278",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-026",
+      "role": "Logistics",
+      "workbookRow": 27,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case detects globally duplicated identifiers with data set \"dataset \"TC-LOG-026\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case detects globally duplicated identifiers with data set \"dataset \"TC-LOG-026\"\"",
+          "assertions": 4,
+          "time": "0.022896",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-027",
+      "role": "Logistics",
+      "workbookRow": 28,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-027 forged region\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-027 forged region\"\"",
+          "assertions": 5,
+          "time": "0.032186",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "TC-LOG-027 province options are filtered to the chosen region",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::TC-LOG-027 province options are filtered to the chosen region",
+          "assertions": 4,
+          "time": "0.024674",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": [
+        {
+          "name": "TC-LOG-027: changing address parents clears descendants in the actual component handler",
+          "status": "PASS"
+        }
+      ]
+    },
+    {
+      "id": "TC-LOG-028",
+      "role": "Logistics",
+      "workbookRow": 29,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-028 three\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-028 three\"\"",
+          "assertions": 5,
+          "time": "0.022579",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-028 five\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-028 five\"\"",
+          "assertions": 5,
+          "time": "0.021659",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-028 letter\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-LOG-028 letter\"\"",
+          "assertions": 5,
+          "time": "0.022484",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case accepts valid boundary values and preserves inputs with data set \"dataset \"TC-LOG-028 four\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case accepts valid boundary values and preserves inputs with data set \"dataset \"TC-LOG-028 four\"\"",
+          "assertions": 4,
+          "time": "0.041605",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-029",
+      "role": "Logistics",
+      "workbookRow": 30,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-LOG-029 JPG\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-LOG-029 JPG\"\"",
+          "assertions": 4,
+          "time": "0.053365",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-LOG-029 PNG\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-LOG-029 PNG\"\"",
+          "assertions": 4,
+          "time": "0.049095",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-LOG-029 PDF\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-LOG-029 PDF\"\"",
+          "assertions": 4,
+          "time": "0.058339",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-030",
+      "role": "Logistics",
+      "workbookRow": 31,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-LOG-030 DOCX\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-LOG-030 DOCX\"\"",
+          "assertions": 5,
+          "time": "0.081322",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-LOG-030 GIF\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-LOG-030 GIF\"\"",
+          "assertions": 5,
+          "time": "0.032671",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-LOG-030 EXE\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-LOG-030 EXE\"\"",
+          "assertions": 5,
+          "time": "0.044232",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-031",
+      "role": "Logistics",
+      "workbookRow": 32,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-LOG-031 below\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-LOG-031 below\"\"",
+          "assertions": 4,
+          "time": "0.063951",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-LOG-031 exact\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-LOG-031 exact\"\"",
+          "assertions": 4,
+          "time": "0.070361",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-LOG-031 above\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-LOG-031 above\"\"",
+          "assertions": 5,
+          "time": "0.050449",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-LOG-031 one byte above\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-LOG-031 one byte above\"\"",
+          "assertions": 5,
+          "time": "0.064945",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-032",
+      "role": "Logistics",
+      "workbookRow": 33,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "TC-LOG-032 correct OTP makes logistics pending without operational access",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::TC-LOG-032 correct OTP makes logistics pending without operational access",
+          "assertions": 9,
+          "time": "0.046328",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-033",
+      "role": "Logistics",
+      "workbookRow": 34,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case incorrect malformed or expired company OTP cannot verify with data set \"dataset \"TC-LOG-033\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case incorrect malformed or expired company OTP cannot verify with data set \"dataset \"TC-LOG-033\"\"",
+          "assertions": 4,
+          "time": "0.044117",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-034",
+      "role": "Logistics",
+      "workbookRow": 35,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case incorrect malformed or expired company OTP cannot verify with data set \"dataset \"TC-LOG-034\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case incorrect malformed or expired company OTP cannot verify with data set \"dataset \"TC-LOG-034\"\"",
+          "assertions": 10,
+          "time": "0.050934",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-035",
+      "role": "Logistics",
+      "workbookRow": 36,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case incorrect malformed or expired company OTP cannot verify with data set \"dataset \"TC-LOG-035\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case incorrect malformed or expired company OTP cannot verify with data set \"dataset \"TC-LOG-035\"\"",
+          "assertions": 4,
+          "time": "0.043705",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-036",
+      "role": "Logistics",
+      "workbookRow": 37,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "TC-LOG-036 resending rejects the first OTP and verifies the new one",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::TC-LOG-036 resending rejects the first OTP and verifies the new one",
+          "assertions": 6,
+          "time": "0.053242",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-037",
+      "role": "Logistics",
+      "workbookRow": 38,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "TC-LOG-037 unverified company login remains restricted",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::TC-LOG-037 unverified company login remains restricted",
+          "assertions": 4,
+          "time": "0.045868",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-038",
+      "role": "Logistics",
+      "workbookRow": 39,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "TC-LOG-038 pending company login cannot add riders or operate deliveries",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::TC-LOG-038 pending company login cannot add riders or operate deliveries",
+          "assertions": 11,
+          "time": "0.063366",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-039",
+      "role": "Logistics",
+      "workbookRow": 40,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "TC-LOG-039 admin sees all company details and can open private files",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::TC-LOG-039 admin sees all company details and can open private files",
+          "assertions": 14,
+          "time": "0.065113",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-040",
+      "role": "Logistics",
+      "workbookRow": 41,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "TC-LOG-040 administrator approval creates a company-owned center and allows login",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::TC-LOG-040 administrator approval creates a company-owned center and allows login",
+          "assertions": 11,
+          "time": "0.065004",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-041",
+      "role": "Logistics",
+      "workbookRow": 42,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "TC-LOG-041 rejection emails the reason and prevents logistics access",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::TC-LOG-041 rejection emails the reason and prevents logistics access",
+          "assertions": 20,
+          "time": "0.064045",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-042",
+      "role": "Logistics",
+      "workbookRow": 43,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "TC-LOG-042 rejected company replaces permit and resubmits the same account",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::TC-LOG-042 rejected company replaces permit and resubmits the same account",
+          "assertions": 11,
+          "time": "0.064050",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-043",
+      "role": "Logistics",
+      "workbookRow": 44,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "TC-LOG-043 QA non-admin cannot access list or reject a company",
+          "file": "tests\\Feature\\Auth\\AccountCreationAcceptanceTest.php::TC-LOG-043 QA non-admin cannot access list or reject a company",
+          "assertions": 5,
+          "time": "0.046120",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "TC-LOG-043 non-admin cannot read approve or reject company applications",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::TC-LOG-043 non-admin cannot read approve or reject company applications",
+          "assertions": 6,
+          "time": "0.055738",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-LOG-044",
+      "role": "Logistics",
+      "workbookRow": 45,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case foreign role dashboards are denied with data set \"dataset \"TC-LOG-044\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case foreign role dashboards are denied with data set \"dataset \"TC-LOG-044\"\"",
+          "assertions": 4,
+          "time": "0.026166",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-RID-001",
+      "role": "Rider",
+      "workbookRow": 2,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "TC-RID-001 company creates a pending activation rider with private documents and one email",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::TC-RID-001 company creates a pending activation rider with private documents and one email",
+          "assertions": 20,
+          "time": "0.043507",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-RID-002",
+      "role": "Rider",
+      "workbookRow": 3,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case reports every mandatory field on an empty form with data set \"dataset \"TC-RID-002\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case reports every mandatory field on an empty form with data set \"dataset \"TC-RID-002\"\"",
+          "assertions": 14,
+          "time": "0.024598",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-RID-003",
+      "role": "Rider",
+      "workbookRow": 4,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case rejects each individually omitted mandatory field with data set \"dataset \"TC-RID-003 first_name\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects each individually omitted mandatory field with data set \"dataset \"TC-RID-003 first_name\"\"",
+          "assertions": 4,
+          "time": "0.024400",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects each individually omitted mandatory field with data set \"dataset \"TC-RID-003 last_name\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects each individually omitted mandatory field with data set \"dataset \"TC-RID-003 last_name\"\"",
+          "assertions": 4,
+          "time": "0.022948",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects each individually omitted mandatory field with data set \"dataset \"TC-RID-003 birthday\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects each individually omitted mandatory field with data set \"dataset \"TC-RID-003 birthday\"\"",
+          "assertions": 4,
+          "time": "0.023947",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects each individually omitted mandatory field with data set \"dataset \"TC-RID-003 email\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects each individually omitted mandatory field with data set \"dataset \"TC-RID-003 email\"\"",
+          "assertions": 4,
+          "time": "0.022665",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects each individually omitted mandatory field with data set \"dataset \"TC-RID-003 phone\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects each individually omitted mandatory field with data set \"dataset \"TC-RID-003 phone\"\"",
+          "assertions": 4,
+          "time": "0.022923",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects each individually omitted mandatory field with data set \"dataset \"TC-RID-003 license_number\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects each individually omitted mandatory field with data set \"dataset \"TC-RID-003 license_number\"\"",
+          "assertions": 4,
+          "time": "0.023027",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects each individually omitted mandatory field with data set \"dataset \"TC-RID-003 license_expires_at\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects each individually omitted mandatory field with data set \"dataset \"TC-RID-003 license_expires_at\"\"",
+          "assertions": 4,
+          "time": "0.022176",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects each individually omitted mandatory field with data set \"dataset \"TC-RID-003 vehicle_type\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects each individually omitted mandatory field with data set \"dataset \"TC-RID-003 vehicle_type\"\"",
+          "assertions": 4,
+          "time": "0.023730",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects each individually omitted mandatory field with data set \"dataset \"TC-RID-003 plate_number\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects each individually omitted mandatory field with data set \"dataset \"TC-RID-003 plate_number\"\"",
+          "assertions": 4,
+          "time": "0.022573",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects each individually omitted mandatory field with data set \"dataset \"TC-RID-003 license\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects each individually omitted mandatory field with data set \"dataset \"TC-RID-003 license\"\"",
+          "assertions": 4,
+          "time": "0.022658",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects each individually omitted mandatory field with data set \"dataset \"TC-RID-003 vehicle_registration\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects each individually omitted mandatory field with data set \"dataset \"TC-RID-003 vehicle_registration\"\"",
+          "assertions": 4,
+          "time": "0.031407",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-RID-004",
+      "role": "Rider",
+      "workbookRow": 5,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-004 names\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-004 names\"\"",
+          "assertions": 6,
+          "time": "0.023724",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-RID-005",
+      "role": "Rider",
+      "workbookRow": 6,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-005 one\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-005 one\"\"",
+          "assertions": 5,
+          "time": "0.025468",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-005 fifty one\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-005 fifty one\"\"",
+          "assertions": 5,
+          "time": "0.022611",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case accepts valid boundary values and preserves inputs with data set \"dataset \"TC-RID-005 two\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case accepts valid boundary values and preserves inputs with data set \"dataset \"TC-RID-005 two\"\"",
+          "assertions": 4,
+          "time": "0.036171",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case accepts valid boundary values and preserves inputs with data set \"dataset \"TC-RID-005 fifty\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case accepts valid boundary values and preserves inputs with data set \"dataset \"TC-RID-005 fifty\"\"",
+          "assertions": 4,
+          "time": "0.034816",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-RID-006",
+      "role": "Rider",
+      "workbookRow": 7,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-006 seventeen\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-006 seventeen\"\"",
+          "assertions": 5,
+          "time": "0.023963",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case accepts valid boundary values and preserves inputs with data set \"dataset \"TC-RID-006 eighteen\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case accepts valid boundary values and preserves inputs with data set \"dataset \"TC-RID-006 eighteen\"\"",
+          "assertions": 4,
+          "time": "0.034749",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case accepts valid boundary values and preserves inputs with data set \"dataset \"TC-RID-006 eighteen plus day\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case accepts valid boundary values and preserves inputs with data set \"dataset \"TC-RID-006 eighteen plus day\"\"",
+          "assertions": 4,
+          "time": "0.034404",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-RID-007",
+      "role": "Rider",
+      "workbookRow": 8,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-007 no at\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-007 no at\"\"",
+          "assertions": 5,
+          "time": "0.024886",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-007 no domain\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-007 no domain\"\"",
+          "assertions": 5,
+          "time": "0.023336",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-007 no name\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-007 no name\"\"",
+          "assertions": 5,
+          "time": "0.025335",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-007 single label\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-007 single label\"\"",
+          "assertions": 5,
+          "time": "0.022935",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-007 space\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-007 space\"\"",
+          "assertions": 5,
+          "time": "0.023980",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-RID-008",
+      "role": "Rider",
+      "workbookRow": 9,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case detects globally duplicated identifiers with data set \"dataset \"TC-RID-008\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case detects globally duplicated identifiers with data set \"dataset \"TC-RID-008\"\"",
+          "assertions": 4,
+          "time": "0.023085",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-RID-009",
+      "role": "Rider",
+      "workbookRow": 10,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-009 letters\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-009 letters\"\"",
+          "assertions": 5,
+          "time": "0.034075",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-009 symbols\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-009 symbols\"\"",
+          "assertions": 5,
+          "time": "0.022839",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-009 prefix\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-009 prefix\"\"",
+          "assertions": 5,
+          "time": "0.025231",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-009 landline\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-009 landline\"\"",
+          "assertions": 5,
+          "time": "0.024424",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-RID-010",
+      "role": "Rider",
+      "workbookRow": 11,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-010 ten\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-010 ten\"\"",
+          "assertions": 5,
+          "time": "0.024190",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-010 twelve\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-010 twelve\"\"",
+          "assertions": 5,
+          "time": "0.023000",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case accepts valid boundary values and preserves inputs with data set \"dataset \"TC-RID-010 eleven\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case accepts valid boundary values and preserves inputs with data set \"dataset \"TC-RID-010 eleven\"\"",
+          "assertions": 4,
+          "time": "0.043760",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-RID-011",
+      "role": "Rider",
+      "workbookRow": 12,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case detects globally duplicated identifiers with data set \"dataset \"TC-RID-011\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case detects globally duplicated identifiers with data set \"dataset \"TC-RID-011\"\"",
+          "assertions": 4,
+          "time": "0.023899",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-RID-012",
+      "role": "Rider",
+      "workbookRow": 13,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-012 short\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-012 short\"\"",
+          "assertions": 5,
+          "time": "0.024977",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-012 long\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-012 long\"\"",
+          "assertions": 5,
+          "time": "0.024460",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-012 no letter\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-012 no letter\"\"",
+          "assertions": 5,
+          "time": "0.023403",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-012 ending letter\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-012 ending letter\"\"",
+          "assertions": 5,
+          "time": "0.025446",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-RID-013",
+      "role": "Rider",
+      "workbookRow": 14,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case detects globally duplicated identifiers with data set \"dataset \"TC-RID-013\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case detects globally duplicated identifiers with data set \"dataset \"TC-RID-013\"\"",
+          "assertions": 4,
+          "time": "0.022160",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-RID-014",
+      "role": "Rider",
+      "workbookRow": 15,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-014 yesterday\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case rejects invalid input without account documents or email with data set \"dataset \"TC-RID-014 yesterday\"\"",
+          "assertions": 5,
+          "time": "0.022975",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case accepts valid boundary values and preserves inputs with data set \"dataset \"TC-RID-014 today\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case accepts valid boundary values and preserves inputs with data set \"dataset \"TC-RID-014 today\"\"",
+          "assertions": 4,
+          "time": "0.034495",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case accepts valid boundary values and preserves inputs with data set \"dataset \"TC-RID-014 tomorrow\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case accepts valid boundary values and preserves inputs with data set \"dataset \"TC-RID-014 tomorrow\"\"",
+          "assertions": 4,
+          "time": "0.034637",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-RID-015",
+      "role": "Rider",
+      "workbookRow": 16,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case detects globally duplicated identifiers with data set \"dataset \"TC-RID-015\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case detects globally duplicated identifiers with data set \"dataset \"TC-RID-015\"\"",
+          "assertions": 4,
+          "time": "0.024709",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-RID-016",
+      "role": "Rider",
+      "workbookRow": 17,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-RID-016 JPG\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-RID-016 JPG\"\"",
+          "assertions": 4,
+          "time": "0.043371",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-RID-016 PNG\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-RID-016 PNG\"\"",
+          "assertions": 4,
+          "time": "0.047803",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-RID-016 PDF\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-RID-016 PDF\"\"",
+          "assertions": 4,
+          "time": "0.052734",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-RID-017",
+      "role": "Rider",
+      "workbookRow": 18,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-RID-017 DOCX\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-RID-017 DOCX\"\"",
+          "assertions": 5,
+          "time": "0.064673",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-RID-017 GIF\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-RID-017 GIF\"\"",
+          "assertions": 5,
+          "time": "0.032552",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-RID-017 EXE\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-RID-017 EXE\"\"",
+          "assertions": 5,
+          "time": "0.037304",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-RID-018",
+      "role": "Rider",
+      "workbookRow": 19,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-RID-018 below\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-RID-018 below\"\"",
+          "assertions": 4,
+          "time": "0.048679",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-RID-018 exact\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-RID-018 exact\"\"",
+          "assertions": 4,
+          "time": "0.052153",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-RID-018 above\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-RID-018 above\"\"",
+          "assertions": 5,
+          "time": "0.036965",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-RID-018 one byte above\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case upload MIME extension and actual byte boundaries are enforced before persistence with data set \"dataset \"TC-RID-018 one byte above\"\"",
+          "assertions": 5,
+          "time": "0.038781",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-RID-019",
+      "role": "Rider",
+      "workbookRow": 20,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "simultaneous validated registrations create exactly one account and verification delivery with data set \"dataset \"TC-RID-019 actual concurrency\"\"",
+          "file": "tests\\Feature\\Auth\\ConcurrentRegistrationTest.php::simultaneous validated registrations create exactly one account and verification delivery with data set \"dataset \"TC-RID-019 actual concurrency\"\"",
+          "assertions": 8,
+          "time": "1.266038",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "case repeated creation results in one account and one email generation with data set \"dataset \"TC-RID-019\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case repeated creation results in one account and one email generation with data set \"dataset \"TC-RID-019\"\"",
+          "assertions": 4,
+          "time": "0.033044",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-RID-020",
+      "role": "Rider",
+      "workbookRow": 21,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "TC-RID-020 valid activation sets a hashed password and activates only its rider",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::TC-RID-020 valid activation sets a hashed password and activates only its rider",
+          "assertions": 9,
+          "time": "0.042765",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-RID-021",
+      "role": "Rider",
+      "workbookRow": 22,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "TC-RID-021 invalid activation passwords leave the invitation usable with data set \"('Ride@26')\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::TC-RID-021 invalid activation passwords leave the invitation usable with data set \"('Ride@26')\"",
+          "assertions": 7,
+          "time": "0.039036",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "TC-RID-021 invalid activation passwords leave the invitation usable with data set \"('rider@2026')\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::TC-RID-021 invalid activation passwords leave the invitation usable with data set \"('rider@2026')\"",
+          "assertions": 7,
+          "time": "0.038202",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "TC-RID-021 invalid activation passwords leave the invitation usable with data set \"('RIDER@2026')\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::TC-RID-021 invalid activation passwords leave the invitation usable with data set \"('RIDER@2026')\"",
+          "assertions": 7,
+          "time": "0.038832",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "TC-RID-021 invalid activation passwords leave the invitation usable with data set \"('Rider@abcd')\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::TC-RID-021 invalid activation passwords leave the invitation usable with data set \"('Rider@abcd')\"",
+          "assertions": 7,
+          "time": "0.039471",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "TC-RID-021 invalid activation passwords leave the invitation usable with data set \"('Rider2026')\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::TC-RID-021 invalid activation passwords leave the invitation usable with data set \"('Rider2026')\"",
+          "assertions": 7,
+          "time": "0.039539",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-RID-022",
+      "role": "Rider",
+      "workbookRow": 23,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "TC-RID-022 password mismatch does not activate",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::TC-RID-022 password mismatch does not activate",
+          "assertions": 6,
+          "time": "0.039904",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-RID-023",
+      "role": "Rider",
+      "workbookRow": 24,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "TC-RID-023 expired activation does not expose password setup or activate",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::TC-RID-023 expired activation does not expose password setup or activate",
+          "assertions": 16,
+          "time": "0.042370",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-RID-024",
+      "role": "Rider",
+      "workbookRow": 25,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "TC-RID-024 resend invalidates first link and displays second password setup",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::TC-RID-024 resend invalidates first link and displays second password setup",
+          "assertions": 27,
+          "time": "0.045951",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-RID-025",
+      "role": "Rider",
+      "workbookRow": 26,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "TC-RID-025 consumed activation cannot reset a password",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::TC-RID-025 consumed activation cannot reset a password",
+          "assertions": 19,
+          "time": "0.054512",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-RID-026",
+      "role": "Rider",
+      "workbookRow": 27,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "TC-RID-026 login before activation is denied even if a password was set elsewhere",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::TC-RID-026 login before activation is denied even if a password was set elsewhere",
+          "assertions": 6,
+          "time": "0.038812",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-RID-027",
+      "role": "Rider",
+      "workbookRow": 28,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "TC-RID-027 activated rider logs in and sees its own company",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::TC-RID-027 activated rider logs in and sees its own company",
+          "assertions": 21,
+          "time": "0.049880",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-RID-028",
+      "role": "Rider",
+      "workbookRow": 29,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "TC-RID-028 another company cannot list view modify resend or activate a foreign rider",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::TC-RID-028 another company cannot list view modify resend or activate a foreign rider",
+          "assertions": 21,
+          "time": "0.056755",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-RID-029",
+      "role": "Rider",
+      "workbookRow": 30,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "TC-RID-029 public password Google and role-selection paths cannot create riders",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::TC-RID-029 public password Google and role-selection paths cannot create riders",
+          "assertions": 11,
+          "time": "0.027335",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-RID-030",
+      "role": "Rider",
+      "workbookRow": 31,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "TC-RID-030 buyers and sellers cannot create riders with data set \"('buyer')\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::TC-RID-030 buyers and sellers cannot create riders with data set \"('buyer')\"",
+          "assertions": 4,
+          "time": "0.022710",
+          "status": "PASS",
+          "reason": ""
+        },
+        {
+          "name": "TC-RID-030 buyers and sellers cannot create riders with data set \"('seller')\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::TC-RID-030 buyers and sellers cannot create riders with data set \"('seller')\"",
+          "assertions": 4,
+          "time": "0.021886",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-RID-031",
+      "role": "Rider",
+      "workbookRow": 32,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "TC-RID-031 pending logistics cannot create or invite a rider",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::TC-RID-031 pending logistics cannot create or invite a rider",
+          "assertions": 6,
+          "time": "0.020092",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    },
+    {
+      "id": "TC-RID-032",
+      "role": "Rider",
+      "workbookRow": 33,
+      "fullStatus": "BLOCKED",
+      "backend": [
+        {
+          "name": "case foreign role dashboards are denied with data set \"dataset \"TC-RID-032\"\"",
+          "file": "tests\\Feature\\Auth\\LogisticsRiderRegistrationTest.php::case foreign role dashboards are denied with data set \"dataset \"TC-RID-032\"\"",
+          "assertions": 4,
+          "time": "0.029004",
+          "status": "PASS",
+          "reason": ""
+        }
+      ],
+      "component": []
+    }
+  ]
+}

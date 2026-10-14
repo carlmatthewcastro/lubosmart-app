@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\AdminComplianceController;
+use App\Http\Controllers\AdminNotificationsController;
 use App\Http\Controllers\AdminSearchController;
 use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\ApplicationReviewController;
@@ -10,6 +11,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeliveryController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\LocationController;
+use App\Http\Controllers\Logistics\RiderController;
 use App\Http\Controllers\Logistics\ShippingRateController;
 use App\Http\Controllers\MarketplaceController;
 use App\Http\Controllers\OrderController;
@@ -18,18 +20,27 @@ use App\Http\Controllers\RegistrationDocumentController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\RiderServiceAreaController;
 use App\Http\Controllers\SupportCaseController;
+use App\Http\Controllers\WishlistController;
 use App\Models\Category;
+use App\Models\Product;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', function () {
+// Preserve the image URL used by previously sent emails and existing environments.
+Route::redirect('/email-logo.png', '/images/brand/email-logo.png', 301);
+
+Route::get('/', function (Request $request) {
     return Inertia::render('public/home', ['departments' => Category::query()->whereNull('parent_id')->where('is_active', true)->pluck('id', 'slug'),
+        'favoriteIds' => $request->user()?->role === 'buyer' ? DB::table('product_wishlists')->where('user_id', $request->user()->id)->pluck('product_id') : [],
+        'products' => Product::query()->availableToShoppers()->where('stock', '>', 0)->whereNotNull('image_path')->with(['store:id,name', 'category:id,name'])->latest('id')->limit(4)->get(['id', 'store_id', 'category_id', 'name', 'price', 'stock', 'description', 'image_path']),
         'announcements' => DB::table('platform_contents')->where('kind', 'announcement')->where('published', true)->latest('updated_at')->limit(3)->get(['id', 'title', 'body']),
     ]);
 })->name('home');
 Route::get('shop', [MarketplaceController::class, 'index'])->name('shop');
 Route::get('platform-information', [PlatformContentController::class, 'published'])->name('platform-information');
+Route::get('registration-options', LocationController::class)->middleware('throttle:60,1,registration-options')->name('registration.options');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -41,9 +52,18 @@ Route::middleware(['auth'])->group(function () {
         Route::get('locations', LocationController::class)->middleware('throttle:60,1')->name('locations');
         Route::get('registration-documents/{document}', RegistrationDocumentController::class)->middleware('signed')->name('registration-documents.show');
         Route::middleware('active')->group(function () {
+            Route::middleware('role:sorting_center')->prefix('logistics/riders')->name('logistics.riders.')->group(function () {
+                Route::get('/', [RiderController::class, 'index'])->name('index');
+                Route::get('create', [RiderController::class, 'create'])->name('create');
+                Route::post('/', [RiderController::class, 'store'])->middleware('throttle:10,1')->name('store');
+                Route::post('{rider}/resend', [RiderController::class, 'resend'])->middleware('throttle:6,1')->name('resend');
+            });
             Route::get('admin/conversation-options', [SupportCaseController::class, 'options'])->middleware(['role:admin', 'throttle:60,1'])->name('admin.conversation-options');
             Route::get('admin/search', AdminSearchController::class)->middleware(['role:admin', 'throttle:60,1'])->name('admin.search');
+            Route::get('admin/notifications', AdminNotificationsController::class)->middleware(['role:admin', 'throttle:60,1'])->name('admin.notifications');
             Route::get('admin/audit-log', [AuditLogController::class, 'index'])->middleware('role:admin')->middleware('admin.permission:audit')->name('audit.index');
+            Route::get('wishlist', [MarketplaceController::class, 'index'])->middleware('role:buyer')->name('wishlist.index');
+            Route::post('wishlist/{product}', [WishlistController::class, 'update'])->middleware(['role:buyer', 'throttle:60,1'])->name('wishlist.update');
             Route::get('cart', [MarketplaceController::class, 'cart'])->middleware('role:buyer')->name('cart');
             Route::get('cart/shipping-quote', [MarketplaceController::class, 'shippingQuote'])->middleware('role:buyer')->name('cart.shipping-quote');
             Route::put('cart/{product}', [MarketplaceController::class, 'updateCart'])->middleware('role:buyer')->name('cart.update');

@@ -120,6 +120,6 @@ return [
         'name' => env('MAIL_REPLY_TO_NAME', 'LubosMart Support'),
     ],
 
-    'logo_url' => env('MAIL_LOGO_URL', 'https://lubosmart.app/email-logo.png'),
+    'logo_url' => env('MAIL_LOGO_URL', 'https://lubosmart.app/images/brand/email-logo.png'),
 
 ];

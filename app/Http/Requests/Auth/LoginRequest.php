@@ -58,6 +58,10 @@ class LoginRequest extends FormRequest
     public function authenticate(): void
     {
         $this->ensureIsNotRateLimited();
+        if (User::where('email_normalized', $this->input('email'))->where('status', 'unverified')->whereHas('application', fn ($applications) => $applications->where('registration_contract', 'company-rider-2026-10'))->exists()) {
+            RateLimiter::hit($this->throttleKey());
+            throw ValidationException::withMessages(['email' => 'Activate your rider account using your company invitation first.']);
+        }
 
         if (! Auth::attempt($this->only('email', 'password'), $this->boolean('remember'))) {
             RateLimiter::hit($this->throttleKey());

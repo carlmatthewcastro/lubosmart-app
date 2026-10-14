@@ -77,6 +77,12 @@ when safe. Distinguish zero records from filters returning no matches.
 
 ## Operational surfaces
 
+Accounts and registration management pages use concise result counts instead of
+summary metric card strips, per the user's preference. Do not reintroduce those
+summary cards unless explicitly requested. Registration review handles application
+decisions; account details stay read-only and account access controls handle only
+eligible account status changes.
+
 Tables need captions or accessible names, scoped headers, readable alignment,
 keyboard-accessible overflow, and understandable pagination. Keep critical mobile
 actions visible. Cards group related information rather than every single label.
@@ -117,6 +123,13 @@ reflow, keyboard paths, forms, dialogs, and loading/error/empty states where bro
 access is available. Document limitations and remaining issues in the UI audit.
 
 ## Requirements evidence
+
+For registration, follow the user's 2026-10-14 requirement to retain all fields
+from ERP-Components.pdf. See [registration field coverage](REGISTRATION_REQUIREMENTS.md).
+Sex and birthday are required for every role; middle initial is optional and
+must remain visible. Show calculated age and collect the address and role-specific
+private uploads. Keep field feedback space stable. Unknown Google identities
+choose a role and complete the same requirements using trusted name/email prefill.
 
 The repository source and concise role guides describe implemented behavior. The
 previously supplied five-page ERP components document is a role reference, not an

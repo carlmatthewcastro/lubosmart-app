@@ -19,6 +19,6 @@ class LogisticsContacts
         $ids = $parcels->pluck('order.buyer_id')->merge($parcels->pluck('store.user_id'))->unique();
 
         return User::query()->where('status', 'approved')->whereNotNull('email_verified_at')->where(fn ($query) => $query
-            ->where('role', 'admin')->orWhereIn('id', $ids)->orWhere(fn ($query) => $query->where('role', 'courier')->whereIn('sorting_center_id', $operator->sortingCenters()->operational()->pluck('sorting_centers.id'))));
+            ->where('role', 'admin')->orWhereIn('id', $ids)->orWhere(fn ($query) => $query->managedRiders($operator)->where('role', 'courier')->whereIn('sorting_center_id', $operator->sortingCenters()->operational()->pluck('sorting_centers.id'))));
     }
 }

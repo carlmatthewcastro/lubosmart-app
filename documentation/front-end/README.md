@@ -2,6 +2,8 @@
 
 React and TypeScript provide the interface. Inertia connects pages and forms to Laravel; Blade supplies the initial HTML document.
 
+Start with the [frontend code map](code-map.md) to find each role's dashboard, related screens, sidebar, shared components, and backend data source.
+
 | Location | Purpose |
 | --- | --- |
 | `resources/js/app.tsx` | Starts React/Inertia and resolves pages |

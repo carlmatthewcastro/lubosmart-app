@@ -8,6 +8,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Store extends Model
 {
+    protected static function booted(): void
+    {
+        static::saving(function (Store $store) {
+            $store->name_normalized = mb_strtolower(trim($store->name));
+        });
+    }
+
     protected $hidden = ['bank_account'];
 
     protected function casts(): array

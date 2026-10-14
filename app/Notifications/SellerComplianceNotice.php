@@ -24,7 +24,7 @@ class SellerComplianceNotice extends Notification implements ShouldQueue
 
     public function toMail(object $notifiable): MailMessage
     {
-        return (new LubosMartMailMessage($notifiable))->subject('LubosMart listing review')
+        return (new LubosMartMailMessage($notifiable))->presentation('Your listing review', '!')->subject('LubosMart listing review')
             ->line('Listing: '.$this->product)->line('Action: '.$this->action)->line($this->reason)
             ->action('Open LubosMart', route('dashboard'));
     }

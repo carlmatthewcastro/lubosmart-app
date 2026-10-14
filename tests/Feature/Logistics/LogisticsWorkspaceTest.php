@@ -22,7 +22,7 @@ function logisticsCartFixture(?int $grams = 750, int $quantity = 3): array
     $operator = $center->users()->where('role', 'sorting_center')->firstOrFail();
     $buyer = User::factory()->create();
     $seller = User::factory()->create(['role' => 'seller']);
-    $store = Store::query()->create(['user_id' => $seller->id, 'name' => 'Covered Store', 'status' => 'approved']);
+    $store = Store::query()->create(['user_id' => $seller->id, 'name' => 'Covered Store '.$seller->id, 'status' => 'approved']);
     $category = Category::query()->create(['name' => 'Fixture category']);
     $product = Product::query()->create(['store_id' => $store->id, 'category_id' => $category->id, 'name' => 'Packed item', 'price' => 100, 'stock' => 100, 'status' => 'active', 'weight_grams' => $grams]);
     $addressData = ['label' => 'Home', 'recipient_name' => 'Fixture Name', 'phone' => '09171234567', 'line1' => 'Test street', 'barangay' => 'Test Barangay', 'city' => 'Test City', 'province' => 'Laguna', 'region' => 'CALABARZON', 'zip' => '4000'];
@@ -99,16 +99,16 @@ test('draft-only setup keeps legacy checkout available until the first rate is p
     $this->assertDatabaseHas('commerce_settings', ['id' => 1, 'logistics_shipping_enabled' => true]);
 });
 
-test('logistics cannot turn an admin suspension into its own deactivation to restore a rider', function () {
+test('rider access changes belong to logistics and exclude administrators', function () {
     Notification::fake();
     $f = logisticsCartFixture();
     RegistrationApplication::query()->create(['user_id' => $f['rider']->id, 'requested_role' => 'courier', 'sorting_center_id' => $f['center']->id, 'status' => 'approved']);
     $admin = User::factory()->create(['role' => 'admin']);
-    $this->actingAs($admin)->patch('/accounts/'.$f['rider']->id, ['status' => 'suspended', 'reason' => 'Admin review'])->assertSessionHasNoErrors();
-    $this->actingAs($f['operator'])->patch('/accounts/'.$f['rider']->id, ['status' => 'deactivated', 'reason' => 'Attempt to replace restriction'])->assertSessionHasErrors('status');
-    $this->patch('/accounts/'.$f['rider']->id, ['status' => 'approved', 'reason' => 'Attempt to restore'])->assertSessionHasErrors('status');
-    expect($f['rider']->fresh()->status)->toBe('suspended');
-    $this->getJson('/accounts/'.$f['rider']->id)->assertOk()->assertJsonPath('allowedStatuses', []);
+    $this->actingAs($admin)->patch('/accounts/'.$f['rider']->id, ['status' => 'suspended', 'reason' => 'Admin review'])->assertForbidden();
+    $this->actingAs($f['operator'])->patch('/accounts/'.$f['rider']->id, ['status' => 'deactivated', 'reason' => 'Attempt to replace restriction'])->assertSessionHasNoErrors();
+    $this->patch('/accounts/'.$f['rider']->id, ['status' => 'approved', 'reason' => 'Attempt to restore'])->assertSessionHasNoErrors();
+    expect($f['rider']->fresh()->status)->toBe('approved');
+    $this->getJson('/accounts/'.$f['rider']->id)->assertOk()->assertJsonPath('allowedStatuses', ['approved', 'suspended', 'deactivated']);
 });
 
 test('unprivileged roles cannot open logistics rate controls or delivery exports', function (string $role) {

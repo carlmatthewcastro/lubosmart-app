@@ -23,15 +23,15 @@ class MarketplaceController extends Controller
     {
         $filters = $request->validate(['search' => 'nullable|string|max:100', 'category' => 'nullable|integer']);
         $products = Product::query()->with(['store:id,name', 'category:id,name'])
-            ->where('status', 'active')->whereHas('store', fn ($q) => $q->where('status', 'approved')->whereHas('user', fn ($user) => $user->where('role', 'seller')->where('status', 'approved')->whereNotNull('email_verified_at')))
-            ->whereHas('category', fn ($q) => $q->where('is_active', true)->where(fn ($q) => $q->whereNull('parent_id')->orWhereHas('parent', fn ($q) => $q->where('is_active', true))))
+            ->availableToShoppers()
+            ->when($request->routeIs('wishlist.index'), fn ($q) => $q->whereIn('id', DB::table('product_wishlists')->where('user_id', $request->user()->id)->select('product_id')))
             ->when($filters['search'] ?? null, fn ($q, $search) => $q->where('name', 'like', '%'.$search.'%'))
             ->when($filters['category'] ?? null, fn ($q, $id) => $q->where(fn ($q) => $q->where('category_id', $id)->orWhereHas('category', fn ($q) => $q->where('parent_id', $id))))
             ->latest('id')->paginate(12)->withQueryString();
 
         $categories = Category::query()->with('parent:id,name')->where('is_active', true)->orderBy('name')->get(['id', 'name', 'parent_id'])->map(fn ($category) => ['id' => $category->id, 'name' => $category->parent ? $category->parent->name.' / '.$category->name : $category->name]);
 
-        return Inertia::render('marketplace/catalog', ['products' => $products, 'categories' => $categories, 'filters' => $filters]);
+        return Inertia::render('marketplace/catalog', ['products' => $products, 'categories' => $categories, 'filters' => $filters, 'wishlist' => $request->routeIs('wishlist.index'), 'favoriteIds' => $request->user()?->role === 'buyer' ? DB::table('product_wishlists')->where('user_id', $request->user()->id)->pluck('product_id') : []]);
     }
 
     public function cart(Request $request)

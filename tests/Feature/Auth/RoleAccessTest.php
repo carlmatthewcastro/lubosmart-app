@@ -5,6 +5,7 @@ use App\Models\RegistrationApplication;
 use App\Models\User;
 use App\Notifications\VerifyAccountEmail;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\User as GoogleUser;
@@ -56,18 +57,19 @@ test('suspended users cannot authenticate with a password', function () {
 
 test('public logistics registration is pending and cannot inject privileges', function () {
     Notification::fake();
-    $this->post('/register', ['policy_accepted' => true, 'name' => 'Test Logistics', 'email' => 'CENTER@example.com', 'role' => 'sorting_center', 'password' => 'password', 'password_confirmation' => 'password', 'status' => 'approved', 'email_verified_at' => now(), 'reviewer_id' => 1])->assertRedirect(route('verification.notice'));
+    Storage::fake('local');
+    $this->post('/register', logisticsRegistrationData(['policy_accepted' => true, 'name' => 'Test Logistics', 'email' => 'CENTER@example.com', 'password' => 'Register@2026', 'password_confirmation' => 'Register@2026', 'status' => 'approved', 'email_verified_at' => now(), 'reviewer_id' => 1]))->assertRedirect(route('verification.notice'));
     $user = User::query()->where('email', 'center@example.com')->firstOrFail();
     expect($user->status)->toBe('unverified');
     expect($user->email_verified_at)->toBeNull();
-    $this->assertDatabaseHas('registration_applications', ['user_id' => $user->id, 'requested_role' => 'sorting_center', 'status' => 'draft', 'reviewer_id' => null]);
+    $this->assertDatabaseHas('registration_applications', ['user_id' => $user->id, 'requested_role' => 'sorting_center', 'status' => 'submitted', 'reviewer_id' => null]);
     Notification::assertSentTo($user, VerifyAccountEmail::class);
 });
 
 test('Google login refuses unknown emails without creating an account', function () {
     Socialite::fake('google', GoogleUser::fake(['id' => 'new-google-id', 'email' => 'new@example.com', 'verified_email' => true]));
     session(['google_registration' => ['intent' => 'login', 'started_at' => now()->timestamp]]);
-    $this->get(route('auth.google.callback'))->assertRedirect(route('register'))->assertSessionHasErrors(['google' => 'No account found for this email. Choose a role to create one.']);
+    $this->get(route('auth.google.callback'))->assertRedirect(route('register'))->assertSessionHasNoErrors()->assertSessionHas('pending_google_registration.email', 'new@example.com');
     $this->assertGuest();
     $this->assertDatabaseCount('users', 0);
 });

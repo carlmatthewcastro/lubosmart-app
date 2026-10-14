@@ -5,6 +5,7 @@ Sorting centers coordinate couriers, coverage and parcel custody. Registration r
 | Function | Current behavior |
 | --- | --- |
 | Courier management | Review own couriers and apply permitted account changes; cannot undo Admin restrictions |
+| Rider signup | Riders create their own accounts, verify email and choose the company/center; Logistics reviews the submitted requirements in Rider Applications |
 | Shipping rates | Configure published barangay coverage, base fee, included weight, extra-kilogram fee and maximum weight |
 | Pickup | Approve pickup requests and assign eligible couriers |
 | Parcel processing | Confirm receipt, sorting and dispatch; monitor own-center parcels |
@@ -17,6 +18,6 @@ Publishing the first shipping rate enables logistics quotes. After that, unsuppo
 
 Barcode scanning, GPS routing and a complete assignment-history/return workflow are not verified.
 
-Sources: `DeliveryController`, `RiderServiceAreaController`, `app/Http/Controllers/Logistics/`, `app/Services/Logistics/`, `resources/js/pages/logistics/`.
+Sources: `DeliveryController`, `RiderServiceAreaController`, `app/Http/Controllers/Logistics/`, `app/Services/Logistics/`, `resources/views/pages/logistics/`.
 
 [Access rules](../../backend/README.md#accounts-and-access) · [Documentation](../../README.md)

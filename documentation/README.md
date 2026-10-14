@@ -28,6 +28,8 @@ Frontend changes follow [UI/UX rules](standards/UI_UX_RULES.md). The [page audit
 
 Branching, commits, and GitHub pushes follow [Git workflow rules](standards/GIT_WORKFLOW_RULES.md).
 
+The [ERP role and capability audit](standards/ERP_ROLE_CAPABILITY_AUDIT.md) maps the supplied reference to implemented role boundaries, the public Rider/Logistics approval flow and remaining capability gaps.
+
 ## Status and Sources
 
 **Current** describes inspected source/configuration, not live acceptance. **Planned** identifies the REST API/Sanctum migration. Live Azure and Cloudflare settings remain unverified.

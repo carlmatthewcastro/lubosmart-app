@@ -1,6 +1,6 @@
 # Buyer Functions
 
-Buyers discover products and place COD orders. Email verification, ID application and Admin approval are required for cart/checkout and other operational features.
+Buyers discover products and place COD orders. Email/password Buyer registration requires a valid government ID (JPG, PNG or PDF, maximum 5 MB), stored privately with the application, and activates after email verification. Legacy/Google onboarding requires an ID application and Admin review. Cart/checkout and operational features require a verified approved account.
 
 | Function | Current behavior |
 | --- | --- |
@@ -14,6 +14,6 @@ Buyers discover products and place COD orders. Email verification, ID applicatio
 
 Buyers communicate with sellers and receive courier/center status updates. Variants, vouchers, ratings and complete returns/refunds are not implemented.
 
-Sources: `MarketplaceController`, `OrderController`, `SupportCaseController`, `CreateOrderFromCart`, `resources/js/pages/marketplace/`.
+Sources: `MarketplaceController`, `OrderController`, `SupportCaseController`, `CreateOrderFromCart`, `resources/views/pages/marketplace/`.
 
 [Access rules](../../backend/README.md#accounts-and-access) · [Documentation](../../README.md)
