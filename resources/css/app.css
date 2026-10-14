@@ -315,6 +315,10 @@
     white-space: nowrap;
 }
 
+.app-wordmark--inverse {
+    color: #fff;
+}
+
 @keyframes auth-marketplace-float {
     0%,
     100% {

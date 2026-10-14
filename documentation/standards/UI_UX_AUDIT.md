@@ -703,3 +703,7 @@ Reduced the black wordmark stroke from 0.08em to 0.04em to emphasize white lette
 ### Solid black app name - 2026-10-15
 
 User revised the wordmark preference to solid black without shadows. Removed the outline and set the shared wordmark fill to black, preserving typography and size. ESLint, TypeScript, production build and 8 homepage tests (89 assertions) passed. Browser visual review remains pending, including visibility on dark surfaces.
+
+### White footer wordmark - 2026-10-15
+
+Restored white fill for the existing inverse wordmark used on the purple homepage footer after the user's screenshot correction. Default wordmarks remain black; both have no shadow or outline. ESLint, formatting, TypeScript, build and 8 homepage tests (89 assertions) passed. Browser visual verification remains pending.
