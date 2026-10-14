@@ -10,10 +10,10 @@ createServer((page) =>
         page,
         render: ReactDOMServer.renderToString,
         resolve: (name) => {
-            const pages = import.meta.glob('./pages/**/*.tsx', {
+            const pages = import.meta.glob('../views/pages/**/*.tsx', {
                 eager: true,
             });
-            return pages[`./pages/${name}.tsx`];
+            return pages[`../views/pages/${name}.tsx`];
         },
         // prettier-ignore
         setup: ({ App, props }) => <App {...props} />,

@@ -5,17 +5,16 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="color-scheme" content="light dark">
         <meta name="theme-color" content="#6D47B1">
-        <link rel="icon" type="image/svg+xml" href="{{ asset('logo.svg') }}">
+        <link rel="icon" type="image/svg+xml" href="{{ asset('images/brand/logo.svg') }}">
 
         <title inertia>{{ config('app.name', 'Laravel') }}</title>
 
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
-        <link rel="stylesheet" href="{{ asset('css/auth-style.css') }}">
 
         @routes
         @viteReactRefresh
-        @vite(['resources/js/app.tsx', "resources/js/pages/{$page['component']}.tsx"])
+        @vite(['resources/js/app.tsx'])
         @inertiaHead
     </head>
     <body class="font-sans antialiased">

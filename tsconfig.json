@@ -14,10 +14,13 @@
         "strict": true,
         "skipLibCheck": true,
         "paths": {
+            "@/pages/*": ["./resources/views/pages/*"],
+            "@/components/*": ["./resources/views/components/*"],
+            "@/layouts/*": ["./resources/views/layouts/*"],
             "@/*": ["./resources/js/*"],
             "ziggy-js": ["./vendor/tightenco/ziggy"]
         }
     },
-    "include": ["resources/js/**/*.ts", "resources/js/**/*.tsx"],
+    "include": ["resources/js/**/*.ts", "resources/js/**/*.tsx", "resources/views/**/*.ts", "resources/views/**/*.tsx"],
     "exclude": ["node_modules", "vendor", "public/build"]
 }

@@ -1,5 +1,110 @@
 @import 'tailwindcss';
 
+@keyframes registration-reveal {
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .auth-action-button {
+        transition:
+            transform 180ms ease,
+            box-shadow 180ms ease,
+            background-color 180ms ease;
+    }
+    .auth-action-button:not(:disabled):hover,
+    .auth-action-button:not(:disabled):focus-visible {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 18px -10px var(--primary);
+    }
+    .auth-action-button:not(:disabled):active {
+        transform: translateY(0) scale(0.98);
+    }
+    .auth-action-button svg:not(.animate-spin) {
+        transition: transform 180ms ease;
+    }
+    .auth-action-button:not(:disabled):hover svg:not(.animate-spin) {
+        transform: translateX(3px);
+    }
+    .auth-step-indicator {
+        transition:
+            background-color 220ms ease,
+            color 220ms ease,
+            border-color 220ms ease,
+            transform 220ms ease;
+    }
+    [aria-current='step'] .auth-step-indicator {
+        animation: auth-step-activate 350ms ease-out;
+    }
+    button:not(:disabled):hover .auth-step-indicator {
+        transform: scale(1.08);
+    }
+    .registration-role-card {
+        animation: registration-role-enter 480ms ease-out backwards;
+        transition:
+            transform 200ms ease,
+            box-shadow 200ms ease,
+            border-color 200ms ease;
+    }
+    .registration-role-card:nth-child(2) {
+        animation-delay: 80ms;
+    }
+    .registration-role-card:nth-child(3) {
+        animation-delay: 160ms;
+    }
+    .registration-role-card:nth-child(4) {
+        animation-delay: 240ms;
+    }
+    .registration-role-card:hover,
+    .registration-role-card:focus-visible {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 28px -18px var(--primary);
+    }
+    .registration-role-card svg {
+        transition: transform 200ms ease;
+    }
+    .registration-role-card:hover svg:first-child,
+    .registration-role-card:focus-visible svg:first-child {
+        transform: rotate(-6deg) scale(1.08);
+    }
+    .registration-role-card:hover .registration-role-arrow,
+    .registration-role-card:focus-visible .registration-role-arrow {
+        transform: translateX(4px);
+    }
+    .registration-section:not([hidden]) {
+        animation: registration-reveal 160ms ease-out;
+    }
+}
+
+@keyframes auth-step-activate {
+    0% {
+        transform: scale(0.85);
+    }
+    65% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes registration-role-enter {
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 @plugin 'tailwindcss-animate';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
@@ -7,6 +112,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
+    --color-brand-orange: var(--brand-orange);
+    --font-serif: Georgia, 'Times New Roman', serif;
     --font-sans:
         'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
@@ -37,6 +144,8 @@
 
     --color-destructive: var(--destructive);
     --color-destructive-foreground: var(--destructive-foreground);
+    --color-success: var(--success);
+    --color-warning: var(--warning);
 
     --color-border: var(--border);
     --color-input: var(--input);
@@ -88,17 +197,20 @@
     --popover: hsl(0, 0%, 100%);
     --popover-foreground: hsl(0, 0%, 3.9%);
     --primary: hsl(262, 43%, 49%);
+    --brand-orange: hsl(28, 75%, 38%);
     --primary-foreground: hsl(0, 0%, 98%);
     --secondary: hsl(0, 0%, 96.1%);
     --secondary-foreground: hsl(0, 0%, 9%);
     --muted: hsl(0, 0%, 96.1%);
-    --muted-foreground: hsl(0, 0%, 45.1%);
+    --muted-foreground: hsl(257, 8%, 40%);
     --accent: hsl(263, 45%, 95%);
     --accent-foreground: hsl(262, 43%, 39%);
-    --destructive: hsl(0, 84.2%, 60.2%);
+    --destructive: hsl(0, 72%, 42%);
+    --success: hsl(155, 70%, 27%);
+    --warning: hsl(32, 90%, 30%);
     --destructive-foreground: hsl(0, 0%, 98%);
     --border: hsl(0, 0%, 92.8%);
-    --input: hsl(0, 0%, 89.8%);
+    --input: hsl(257, 8%, 54%);
     --ring: hsl(262, 43%, 49%);
     --chart-1: hsl(12, 76%, 61%);
     --chart-2: hsl(173, 58%, 39%);
@@ -113,7 +225,7 @@
     --sidebar-accent: hsl(263, 45%, 95%);
     --sidebar-accent-foreground: hsl(262, 43%, 39%);
     --sidebar-border: hsl(0, 0%, 91%);
-    --sidebar-ring: hsl(217.2, 91.2%, 59.8%);
+    --sidebar-ring: var(--ring);
 }
 
 .dark {
@@ -124,6 +236,7 @@
     --popover: hsl(0, 0%, 3.9%);
     --popover-foreground: hsl(0, 0%, 98%);
     --primary: hsl(263, 70%, 76%);
+    --brand-orange: hsl(30, 95%, 72%);
     --primary-foreground: hsl(260, 30%, 12%);
     --secondary: hsl(0, 0%, 14.9%);
     --secondary-foreground: hsl(0, 0%, 98%);
@@ -131,10 +244,12 @@
     --muted-foreground: hsl(0, 0%, 63.9%);
     --accent: hsl(263, 30%, 20%);
     --accent-foreground: hsl(263, 70%, 82%);
-    --destructive: hsl(0, 84%, 60%);
-    --destructive-foreground: hsl(0, 0%, 98%);
+    --destructive: hsl(0, 85%, 75%);
+    --destructive-foreground: hsl(0, 60%, 12%);
+    --success: hsl(155, 65%, 72%);
+    --warning: hsl(40, 90%, 72%);
     --border: hsl(0, 0%, 14.9%);
-    --input: hsl(0, 0%, 14.9%);
+    --input: hsl(257, 8%, 54%);
     --ring: hsl(263, 70%, 76%);
     --chart-1: hsl(220, 70%, 50%);
     --chart-2: hsl(160, 60%, 45%);
@@ -143,8 +258,8 @@
     --chart-5: hsl(340, 75%, 55%);
     --sidebar-background: hsl(0, 0%, 7%);
     --sidebar-foreground: hsl(0, 0%, 80%);
-    --sidebar-primary: hsl(360, 100%, 100%);
-    --sidebar-primary-foreground: hsl(0, 0%, 100%);
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: var(--primary-foreground);
     --sidebar-accent: hsl(0, 0%, 15.9%);
     --sidebar-accent-foreground: hsl(240, 4.8%, 95.9%);
     --sidebar-border: hsl(0, 0%, 15.9%);
@@ -157,7 +272,10 @@
     }
 
     body {
-        @apply bg-background text-foreground;
+        @apply bg-background text-foreground antialiased;
+    }
+    [id] {
+        scroll-margin-top: 6rem;
     }
     button,
     a,
@@ -180,6 +298,75 @@
     *::before,
     *::after {
         animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
     }
+}
+
+.app-wordmark {
+    display: inline-block;
+    color: #000;
+    text-shadow:
+        0 1px 0 rgb(0 0 0 / 18%),
+        0 2px 0 rgb(0 0 0 / 10%),
+        0 3px 4px rgb(0 0 0 / 16%);
+    font-family: var(--font-serif);
+    font-variant-caps: normal;
+    font-weight: 700;
+    letter-spacing: 0.015em;
+    white-space: nowrap;
+}
+.app-wordmark--inverse {
+    color: #fff;
+    text-shadow:
+        0 1px 0 rgb(0 0 0 / 24%),
+        0 2px 3px rgb(0 0 0 / 24%);
+}
+
+@keyframes auth-marketplace-float {
+    0%,
+    100% {
+        transform: translateY(0) rotate(-0.5deg);
+    }
+    50% {
+        transform: translateY(-12px) rotate(0.5deg);
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .auth-marketplace-illustration {
+        transform-origin: bottom center;
+        animation: auth-marketplace-float 6s ease-in-out infinite;
+    }
+}
+
+.product-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+    align-items: stretch;
+}
+@media (min-width: 380px) {
+    .product-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+@media (min-width: 768px) {
+    .product-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+@media (min-width: 1100px) {
+    .product-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+@media (min-width: 1600px) {
+    .product-grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+}
+.product-card {
+    font-family: var(--font-sans);
 }
