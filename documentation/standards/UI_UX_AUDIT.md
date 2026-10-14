@@ -692,3 +692,18 @@ Replaced four fallback card images with newly generated matching square studio-s
 ### Seller invitation banner refresh - 2026-10-15
 
 Refined the homepage seller invitation with a two-line headline, concise seller journey list, decorative store emblem and subtle circular backdrop. Grouped the arrow action and supporting copy, retained the purple palette and existing seller registration handler, and added reduced-motion-aware icon/arrow effects. Mobile stacks the content and hides the decorative emblem. Validation: targeted ESLint, TypeScript, formatting, eight homepage tests, production build and isolated desktop/tablet/320px homepage reflow checks passed. Desktop screenshot inspected; full screen-reader/zoom and real performance measurements remain unverified.
+### White outlined app name - 2026-10-15
+
+Updated the shared app wordmark to white letter fill with a black outline and no drop shadow, including inverse contexts, as explicitly requested. Preserved font, sizing and existing consumers. Targeted ESLint, TypeScript, production build and 8 homepage feature tests (89 assertions) passed. Browser visual verification of outline thickness on mobile and light/dark surfaces remains pending; automated checks do not establish WCAG compliance.
+
+### Refined app name outline - 2026-10-15
+
+Reduced the black wordmark stroke from 0.08em to 0.04em to emphasize white letter fill as in the user's reference. No shadow; existing font and sizing retained. Targeted ESLint, TypeScript, production build and 8 homepage tests (89 assertions) passed. Visual matching in browser, including mobile and light/dark surfaces, remains unverified.
+
+### Solid black app name - 2026-10-15
+
+User revised the wordmark preference to solid black without shadows. Removed the outline and set the shared wordmark fill to black, preserving typography and size. ESLint, TypeScript, production build and 8 homepage tests (89 assertions) passed. Browser visual review remains pending, including visibility on dark surfaces.
+
+### White footer wordmark - 2026-10-15
+
+Restored white fill for the existing inverse wordmark used on the purple homepage footer after the user's screenshot correction. Default wordmarks remain black; both have no shadow or outline. ESLint, formatting, TypeScript, build and 8 homepage tests (89 assertions) passed. Browser visual verification remains pending.
