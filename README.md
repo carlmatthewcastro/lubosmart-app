@@ -1,6 +1,4 @@
-<p align="center">
-  <img src="public/logo.png" alt="LubosMart app logo" width="120">
-</p>
+
 
 # LubosMart
 
