@@ -4,15 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\Delivery;
 use App\Models\Order;
-use App\Models\Product;
 use App\Models\RegistrationApplication;
-use App\Models\SellerOrder;
 use App\Models\Store;
 use App\Models\User;
 use App\Services\Admin\AdminWorkspace;
 use App\Services\Admin\AuditLogger;
 use App\Services\Admin\DashboardAnalytics;
 use App\Services\Logistics\LogisticsWorkspace;
+use App\Services\Rider\RiderWorkspace;
+use App\Services\Seller\SellerWorkspace;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -41,28 +41,32 @@ class DashboardController extends Controller
     {
         $user = $request->user();
         abort_unless($user->role === $role, 403);
+        if ($role === 'rider') {
+            abort_unless($user->canOperate(), 403);
+
+            return Inertia::render('rider/dashboard', app(RiderWorkspace::class)->data($user));
+        }
         $stats = [];
         $records = collect();
         $adminOverview = null;
         $analytics = null;
-        if ($role === 'sorting_center') {
+        if ($role === 'logistics') {
             return Inertia::render('logistics/dashboard', app(LogisticsWorkspace::class)->data($user));
         }
         if ($role === 'buyer') {
             $orders = Order::query()->where('buyer_id', $user->id);
             $stats = ['Orders' => (clone $orders)->count(), 'In progress' => (clone $orders)->whereIn('status', ['pending', 'processing'])->count(), 'Completed' => (clone $orders)->where('status', 'completed')->count()];
-            $records = $orders->latest('id')->limit(10)->get(['id', 'status', 'total'])->map(fn ($row) => ['id' => $row->id, 'label' => 'Order #'.$row->id, 'status' => $row->status, 'detail' => 'PHP '.$row->total]);
+            $records = $orders->latest('id')->limit(10)->get(['id', 'status', 'total'])->map(fn ($row) => ['id' => $row->id, 'label' => 'Order #'.$row->id, 'status' => $row->status, 'detail' => 'PHP '.$row->total, 'href' => '/orders?search='.$row->id]);
+
+            return Inertia::render('buyer/dashboard', ['role' => $role, 'stats' => $stats, 'records' => $records, 'adminOverview' => null]);
         } elseif ($role === 'seller') {
-            $store = $user->store;
-            $orders = SellerOrder::query()->where('store_id', $store?->id);
-            $stats = ['Products' => Product::query()->where('store_id', $store?->id)->count(), 'Seller orders' => (clone $orders)->count(), 'Completed' => (clone $orders)->where('status', 'completed')->count()];
-            $records = $orders->latest('id')->limit(10)->get(['id', 'status', 'subtotal'])->map(fn ($row) => ['id' => $row->id, 'label' => 'Seller order #'.$row->id, 'status' => $row->status, 'detail' => 'PHP '.$row->subtotal]);
-        } elseif ($role === 'courier' || $role === 'sorting_center') {
+            return Inertia::render('seller/dashboard', app(SellerWorkspace::class)->data($user));
+        } elseif ($role === 'rider' || $role === 'logistics') {
             $deliveries = Delivery::query();
-            if ($role === 'courier') {
+            if ($role === 'rider') {
                 $deliveries->where('rider_id', $user->id);
             } else {
-                $deliveries->whereIn('sorting_center_id', $user->sortingCenters()->operational()->pluck('sorting_centers.id'));
+                $deliveries->whereIn('logistics_center_id', $user->logisticsCenters()->operational()->pluck('logistics_centers.id'));
             }
             $stats = ['Parcels' => (clone $deliveries)->count(), 'For pickup' => (clone $deliveries)->where('status', 'assigned')->count(), 'Delivered' => (clone $deliveries)->where('status', 'delivered')->count()];
             $records = $deliveries->latest('id')->limit(10)->get(['id', 'status'])->map(fn ($row) => ['id' => $row->id, 'label' => 'Delivery #'.$row->id, 'status' => $row->status, 'detail' => 'Assigned parcel']);
@@ -73,7 +77,7 @@ class DashboardController extends Controller
             }
             $stats = [];
             if ($user->canAdmin('accounts')) {
-                $stats['Accounts'] = User::query()->nonAdmin()->where(fn ($query) => $query->whereNull('role')->orWhere('role', '!=', 'courier'))->count();
+                $stats['Accounts'] = User::query()->nonAdmin()->where(fn ($query) => $query->whereNull('role')->orWhere('role', '!=', 'rider'))->count();
             }
             if ($user->canAdmin('registrations')) {
                 $stats['Pending review'] = $workspace['badges']['registrations'];
@@ -103,6 +107,6 @@ class DashboardController extends Controller
             ]);
         }
 
-        return Inertia::render($role === 'admin' ? 'admin/dashboard' : 'workspace/dashboard', ['role' => $role, 'stats' => $stats, 'records' => $records, 'storeStatus' => $user->store?->status, 'adminOverview' => $adminOverview, 'analytics' => $analytics, 'companyName' => $role === 'courier' ? $user->logisticsCenter?->name : null]);
+        return Inertia::render($role === 'admin' ? 'admin/dashboard' : 'workspace/dashboard', ['role' => $role, 'stats' => $stats, 'records' => $records, 'storeStatus' => $user->store?->status, 'adminOverview' => $adminOverview, 'analytics' => $analytics, 'companyName' => $role === 'rider' ? $user->logisticsCenter?->name : null]);
     }
 }

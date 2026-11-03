@@ -8,6 +8,7 @@ export const assets = {
         google: '/images/auth/google-g.png',
     },
     marketplace: {
+        sellerIllustration: '/images/brand/auth-marketplace-3d.webp',
         hero: '/images/marketplace/marketplace-hero-v2.jpg',
         fresh: '/images/marketplace/marketplace-fresh-v2.jpg',
         home: '/images/marketplace/marketplace-home-v2.jpg',

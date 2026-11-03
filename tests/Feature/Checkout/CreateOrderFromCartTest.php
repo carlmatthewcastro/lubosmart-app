@@ -14,6 +14,7 @@ use App\Models\Store;
 use App\Models\User;
 use Database\Seeders\MarketplaceCategorySeeder;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 function setupCheckoutCart(array $productDefinitions): array
@@ -71,6 +72,21 @@ function setupCheckoutCart(array $productDefinitions): array
 
     return compact('buyer', 'address', 'cart', 'products', 'stores');
 }
+
+it('rejects a changed reviewed subtotal without consuming stock and permits a reviewed retry', function () {
+    $setup = setupCheckoutCart([
+        ['store' => 'A', 'name' => 'Price change product', 'price' => '100.00', 'stock' => 3, 'quantity' => 1],
+    ]);
+    $key = (string) Str::uuid();
+    $this->actingAs($setup['buyer'])->post('/checkout', ['address_id' => $setup['address']->id, 'checkout_key' => $key, 'expected_items_subtotal' => '90.00'])
+        ->assertSessionHasErrors(['cart' => 'Item prices or quantities changed. Review your updated shopping bag before placing the order.']);
+    $this->assertDatabaseCount('orders', 0);
+    expect($setup['products']['Price change product']->fresh()->stock)->toBe(3);
+    $this->assertDatabaseHas('cart_items', ['cart_id' => $setup['cart']->id, 'quantity' => 1]);
+    $this->post('/checkout', ['address_id' => $setup['address']->id, 'checkout_key' => $key, 'expected_items_subtotal' => '100.00'])->assertRedirect('/orders')->assertSessionHasNoErrors();
+    expect($setup['products']['Price change product']->fresh()->stock)->toBe(2);
+    $this->assertDatabaseHas('orders', ['buyer_id' => $setup['buyer']->id, 'subtotal' => 100]);
+});
 
 it('creates one checkout with seller orders, per-seller deliveries, snapshots, and accurate totals', function () {
     $setup = setupCheckoutCart([

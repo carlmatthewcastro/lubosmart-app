@@ -1,5 +1,6 @@
 import { Badge, Card, Field, Page, Pager, Select, Textarea, buttonClass, secondaryClass, type Pagination } from '@/components/shared/marketplace-ui';
 import { ReasonConfirmation } from '@/components/shared/reason-confirmation';
+import ValidatedForm from '@/components/shared/validated-form';
 import { type SharedData } from '@/types';
 import { Link, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
@@ -120,7 +121,7 @@ export default function Conversation({
                     )}
                     {thread.status !== 'resolved' ? (
                         <Card>
-                            <form
+                            <ValidatedForm
                                 noValidate
                                 className="grid gap-4"
                                 onSubmit={(e) => {
@@ -159,7 +160,7 @@ export default function Conversation({
                                 <button className={`${buttonClass} justify-self-start`} disabled={form.processing}>
                                     {form.processing ? 'Sending…' : 'Send Reply'}
                                 </button>
-                            </form>
+                            </ValidatedForm>
                         </Card>
                     ) : (
                         <Card>
@@ -170,7 +171,7 @@ export default function Conversation({
                 {admin && (
                     <Card>
                         <h2 className="font-semibold">Case Management</h2>
-                        <form
+                        <ValidatedForm
                             noValidate
                             className="mt-5 grid gap-4"
                             onSubmit={(e) => {
@@ -197,7 +198,7 @@ export default function Conversation({
                             <button className={buttonClass} disabled={decision.processing}>
                                 Save case status
                             </button>
-                        </form>
+                        </ValidatedForm>
                     </Card>
                 )}
             </div>

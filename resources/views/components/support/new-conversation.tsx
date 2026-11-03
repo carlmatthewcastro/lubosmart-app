@@ -1,5 +1,6 @@
 import InputError from '@/components/auth/input-error';
 import { buttonClass, Field, inputClass, roleLabel, secondaryClass, Select } from '@/components/shared/marketplace-ui';
+import ValidatedForm from '@/components/shared/validated-form';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import type { SharedData } from '@/types';
 import { useForm, usePage } from '@inertiajs/react';
@@ -28,7 +29,7 @@ export function NewConversation({
     kind?: string;
 }) {
     const { auth } = usePage<SharedData>().props;
-    const logistics = auth.user.role === 'sorting_center';
+    const logistics = auth.user.role === 'logistics';
     const availableTopics = logistics
         ? topics.filter((topic) =>
               ['Registration Requirements', 'Order or Delivery Follow-up', 'Delivery Dispute', 'Account Assistance'].includes(topic.title),
@@ -110,7 +111,7 @@ export function NewConversation({
                         {admin ? 'Choose who to contact, select a topic, and write your message.' : 'Tell us what you need help with.'}
                     </DialogDescription>
                 </DialogHeader>
-                <form
+                <ValidatedForm
                     className="flex min-h-0 flex-col"
                     onSubmit={(event) => {
                         event.preventDefault();
@@ -172,14 +173,13 @@ export function NewConversation({
                                             }}
                                         >
                                             <option value="">All Roles</option>
-                                            {(logistics
-                                                ? ['admin', 'buyer', 'seller', 'courier']
-                                                : ['buyer', 'seller', 'courier', 'sorting_center']
-                                            ).map((role) => (
-                                                <option key={role} value={role}>
-                                                    {roleLabel(role)}
-                                                </option>
-                                            ))}
+                                            {(logistics ? ['admin', 'buyer', 'seller', 'rider'] : ['buyer', 'seller', 'rider', 'logistics']).map(
+                                                (role) => (
+                                                    <option key={role} value={role}>
+                                                        {roleLabel(role)}
+                                                    </option>
+                                                ),
+                                            )}
                                         </Select>
                                     )}
                                 </div>
@@ -296,7 +296,7 @@ export function NewConversation({
                             {form.processing ? 'Sending...' : 'Send Message'}
                         </button>
                     </div>
-                </form>
+                </ValidatedForm>
             </DialogContent>
         </Dialog>
     );

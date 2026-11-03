@@ -29,7 +29,7 @@ test('accounts register with shared details and retain verification and review b
         'email' => $role.'@new-member.example', 'role' => $role,
         'password' => 'Register@2026', 'password_confirmation' => 'Register@2026',
     ];
-    $this->post('/register', $role === 'seller' ? sellerRegistrationData($payload) : ($role === 'sorting_center' ? logisticsRegistrationData([...$payload, 'first_name' => 'Test', 'last_name' => 'User']) : sharedRegistrationData($payload)))->assertSessionHasNoErrors()->assertRedirect(route('verification.notice', absolute: false));
+    $this->post('/register', $role === 'seller' ? sellerRegistrationData($payload) : ($role === 'logistics' ? logisticsRegistrationData([...$payload, 'first_name' => 'Test', 'last_name' => 'User']) : sharedRegistrationData($payload)))->assertSessionHasNoErrors()->assertRedirect(route('verification.notice', absolute: false));
 
     $user = User::query()->where('email', $role.'@new-member.example')->firstOrFail();
     $this->assertAuthenticatedAs($user);
@@ -47,8 +47,8 @@ test('accounts register with shared details and retain verification and review b
     $this->get('/application')->assertRedirect(route('verification.notice'));
     $user->markEmailAsVerified();
     $this->actingAs($user->fresh())->get('/application')->assertInertia(fn (Assert $page) => $page
-        ->component($role === 'seller' ? 'onboarding/seller-application' : ($role === 'sorting_center' ? 'onboarding/logistics-application' : 'onboarding/application'))->where('profile.first_name', 'Test'));
-})->with(['buyer', 'seller', 'sorting_center']);
+        ->component($role === 'seller' ? 'onboarding/seller-application' : ($role === 'logistics' ? 'onboarding/logistics-application' : 'onboarding/application'))->where('profile.first_name', 'Test'));
+})->with(['buyer', 'seller', 'logistics']);
 
 test('structured signup preserves multiword names and prefills the partner application', function () {
     Notification::fake();
@@ -151,7 +151,7 @@ test('riders self-register without invitation and remain unverified until email 
     $this->post('/register', riderRegistrationData(['policy_accepted' => true,
         'name' => 'Rider User',
         'email' => 'rider@example.com',
-        'role' => 'courier',
+        'role' => 'rider',
         'password' => 'Register@2026',
         'password_confirmation' => 'Register@2026',
     ]))->assertSessionHasNoErrors()->assertRedirect(route('verification.notice'));
@@ -206,7 +206,7 @@ test('restricted roles cannot self-register', function (string $role) {
     $response->assertRedirect('/register');
     $response->assertSessionHasErrors('role');
     $this->assertDatabaseMissing('users', ['email' => $role.'@example.com']);
-})->with(['admin', 'owner', 'rider', 'logistics']);
+})->with(['admin', 'owner', 'courier', 'sorting_center']);
 
 test('seller signup rejects inactive or child categories', function (string $kind) {
     Notification::fake();

@@ -31,7 +31,7 @@ export const registrationLabels: Record<string, string> = {
     sex: 'Sex',
     vehicle_type: 'Vehicle',
     plate_number: 'Plate number',
-    sorting_center_id: 'Logistics center',
+    logistics_center_id: 'Logistics center',
     license: "Driver's license",
     vehicle_registration: 'Vehicle OR/CR',
     middle_initial: 'Middle initial',
@@ -103,9 +103,9 @@ export function registrationFieldError(field: string, value: unknown, data: Reco
     if (field === 'zip' && !/^\d{4}$/.test(text)) return 'Enter a 4-digit postal code.';
     if (
         field === 'business_name' &&
-        (Array.from(text).length > (data.role === 'sorting_center' ? 160 : 30) || Array.from(text).length < (data.role === 'sorting_center' ? 1 : 3))
+        (Array.from(text).length > (data.role === 'logistics' ? 160 : 30) || Array.from(text).length < (data.role === 'logistics' ? 1 : 3))
     )
-        return data.role === 'sorting_center' ? 'Use no more than 160 characters.' : 'Use between 3 and 30 characters.';
+        return data.role === 'logistics' ? 'Use no more than 160 characters.' : 'Use between 3 and 30 characters.';
 }
 
 export function registrationErrors(errors: Record<string, string | undefined>): Record<string, string> {

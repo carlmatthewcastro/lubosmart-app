@@ -222,7 +222,7 @@ function registrationForm(role, processing = false) {
     return { element: render(), render, posts, resets, focus, roles: exports.registrationRoles };
 }
 
-for (const role of ['seller', 'sorting_center']) {
+for (const role of ['seller', 'logistics']) {
     test(role + ' registration validates its current step before advancing', () => {
         const form = registrationForm(role);
         form.element.props.onSubmit({ preventDefault() {} });
@@ -275,7 +275,7 @@ for (const value of ['9171234567', '09171234567', '+639171234567']) {
 test('Rider choice submits public signup and explains Logistics approval', () => {
     const form = registrationForm('buyer');
     elements(form.element)
-        .find((element) => element.type === 'input' && element.props.value === 'courier')
+        .find((element) => element.type === 'input' && element.props.value === 'rider')
         .props.onChange();
     const rider = form.render();
     assert.ok(elements(rider).some((element) => element.props?.name === 'phone' && element.props.value === '' && element.props.phonePrefix));
@@ -295,7 +295,7 @@ test('Rider choice submits public signup and explains Logistics approval', () =>
 
 for (const [role, id] of [
     ['buyer', 'TC-BUY-002'],
-    ['courier', 'Public rider signup'],
+    ['rider', 'Public rider signup'],
 ]) {
     test(`${id}: empty signup validates its first step before submission`, () => {
         const { element, posts, focus } = registrationForm(role);

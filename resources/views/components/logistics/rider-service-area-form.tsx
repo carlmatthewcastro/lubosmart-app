@@ -1,5 +1,6 @@
 import InputError from '@/components/auth/input-error';
 import { Card, Select, buttonClass } from '@/components/shared/marketplace-ui';
+import ValidatedForm from '@/components/shared/validated-form';
 import { useForm } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 
@@ -30,8 +31,8 @@ export function useLocations(query: string | null) {
     return { items: query === null || loadedQuery !== query ? [] : items, error };
 }
 
-export default function RiderServiceAreaForm({ centers, riders }: { centers: Option[]; riders: (Option & { sorting_center_id: number })[] }) {
-    const form = useForm({ sorting_center_id: centers[0]?.id.toString() ?? '', rider_id: '', province_code: '', city_code: '', barangay_code: '' });
+export default function RiderServiceAreaForm({ centers, riders }: { centers: Option[]; riders: (Option & { logistics_center_id: number })[] }) {
+    const form = useForm({ logistics_center_id: centers[0]?.id.toString() ?? '', rider_id: '', province_code: '', city_code: '', barangay_code: '' });
     const provinces = useLocations('');
     const cities = useLocations(form.data.province_code ? `?province=${form.data.province_code}` : null);
     const barangays = useLocations(form.data.city_code ? `?city=${form.data.city_code}` : null);
@@ -42,9 +43,15 @@ export default function RiderServiceAreaForm({ centers, riders }: { centers: Opt
     ] as const;
     return (
         <Card>
-            <h2 className="font-semibold">Courier coverage areas</h2>
-            <p className="text-muted-foreground mt-2 text-sm">Assign a barangay to a courier before assigning parcels in that area.</p>
-            <form
+            <h2 className="text-lg font-semibold">Assign rider coverage</h2>
+            <p className="text-muted-foreground mt-2 text-sm">Choose a rider and destination barangay before assigning deliveries in that area.</p>
+            <ValidatedForm
+                confirmation={{
+                    title: 'Assign rider coverage?',
+                    description:
+                        'Review the rider, logistics center, and destination. This coverage determines which delivery assignments are permitted.',
+                    confirmLabel: 'Assign coverage',
+                }}
                 className="mt-4 grid gap-4 sm:grid-cols-2"
                 onSubmit={(event) => {
                     event.preventDefault();
@@ -54,9 +61,9 @@ export default function RiderServiceAreaForm({ centers, riders }: { centers: Opt
                 <Select
                     label="Logistics center"
                     required
-                    value={form.data.sorting_center_id}
+                    value={form.data.logistics_center_id}
                     onChange={(event) => {
-                        form.setData('sorting_center_id', event.target.value);
+                        form.setData('logistics_center_id', event.target.value);
                         form.setData('rider_id', '');
                     }}
                 >
@@ -66,15 +73,10 @@ export default function RiderServiceAreaForm({ centers, riders }: { centers: Opt
                         </option>
                     ))}
                 </Select>
-                <Select
-                    label="Approved courier"
-                    required
-                    value={form.data.rider_id}
-                    onChange={(event) => form.setData('rider_id', event.target.value)}
-                >
-                    <option value="">Choose a courier</option>
+                <Select label="Approved rider" required value={form.data.rider_id} onChange={(event) => form.setData('rider_id', event.target.value)}>
+                    <option value="">Choose a rider</option>
                     {riders
-                        .filter((rider) => rider.sorting_center_id === Number(form.data.sorting_center_id))
+                        .filter((rider) => rider.logistics_center_id === Number(form.data.logistics_center_id))
                         .map((rider) => (
                             <option key={rider.id} value={rider.id}>
                                 {rider.name}
@@ -106,11 +108,11 @@ export default function RiderServiceAreaForm({ centers, riders }: { centers: Opt
                         <InputError message={form.errors[key] || choices.error} />
                     </div>
                 ))}
-                <InputError message={form.errors.rider_id || form.errors.sorting_center_id} />
-                <button className={buttonClass} disabled={form.processing}>
+                <InputError message={form.errors.rider_id || form.errors.logistics_center_id} />
+                <button className={buttonClass + ' justify-self-start sm:col-span-2'} disabled={form.processing}>
                     Save coverage area
                 </button>
-            </form>
+            </ValidatedForm>
         </Card>
     );
 }

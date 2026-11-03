@@ -1,8 +1,9 @@
-import RiderServiceAreaForm from '@/components/logistics/rider-service-area-form';
-import { Badge, Card, Empty, inputClass, Page, Pager, secondaryClass, type Pagination } from '@/components/shared/marketplace-ui';
+import ParcelNextStep from '@/components/logistics/parcel-next-step';
+import { Badge, Card, Empty, Page, Pager, secondaryClass, type Pagination } from '@/components/shared/marketplace-ui';
+import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Link, router } from '@inertiajs/react';
-import { Boxes, MapPinned, PackageOpen, Search, Truck } from 'lucide-react';
+import { Link } from '@inertiajs/react';
+import { Boxes, PackageOpen, Search, Truck } from 'lucide-react';
 import { useState } from 'react';
 import { Parcel, type Area, type Collection, type Delivery, type Option, type Rider } from '../marketplace/deliveries';
 
@@ -15,72 +16,27 @@ type Props = {
     cod: Record<string, Collection>;
     filters: { stage?: string; search?: string };
 };
-const stages = [
-    { key: 'all', label: 'All Parcels' },
-    { key: 'pickups', label: 'Pickup Requests' },
-    { key: 'incoming', label: 'Incoming' },
-    { key: 'sorting', label: 'Sorting' },
-    { key: 'dispatch', label: 'Dispatch' },
-    { key: 'monitoring', label: 'Monitoring' },
-];
 export default function LogisticsParcels(props: Props) {
     const { deliveries, available, centers, riders, areas, cod, filters } = props;
-    const [selected, setSelected] = useState<{ id: number; available: boolean } | null>(null);
-    const [coverage, setCoverage] = useState(false);
-    const [search, setSearch] = useState(filters.search ?? '');
-    const parcel = selected ? (selected.available ? available : deliveries.data).find((row) => row.id === selected.id) : null;
-    const visit = (stage: string) => router.get('/deliveries', { stage, search }, { preserveState: true, preserveScroll: true });
+    const [selected, setSelected] = useState<{ id: number; available: boolean; tracking: string | null } | null>(null);
+    const parcel = selected ? [...deliveries.data, ...available].find((row) => row.id === selected.id) : null;
     return (
         <Page
             title="Parcel Operations"
             description="Approve pickups, receive and sort parcels, then assign riders by destination."
             action={
-                <button className={secondaryClass} onClick={() => setCoverage(true)}>
-                    <MapPinned className="size-4" />
-                    Rider Coverage
-                </button>
+                <Button variant="outline" size="icon" className="self-end" asChild>
+                    <Link href="/dashboard" aria-label="Search parcels on dashboard" title="Search parcels">
+                        <Search aria-hidden="true" />
+                    </Link>
+                </Button>
             }
         >
-            <Card>
-                <div className="flex flex-wrap gap-2">
-                    {stages.map((stage) => (
-                        <button
-                            key={stage.key}
-                            onClick={() => visit(stage.key)}
-                            aria-pressed={(filters.stage ?? 'all') === stage.key}
-                            className={`min-h-11 rounded-xl px-3.5 py-2.5 text-sm font-medium transition ${(filters.stage ?? 'all') === stage.key ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-accent'}`}
-                        >
-                            {stage.label}
-                        </button>
-                    ))}
-                </div>
-                <form
-                    className="mt-4 flex flex-wrap items-end gap-3 border-t pt-4"
-                    onSubmit={(event) => {
-                        event.preventDefault();
-                        visit(filters.stage ?? 'all');
-                    }}
-                >
-                    <div className="min-w-0 flex-1">
-                        <label htmlFor="parcel-search" className="text-sm font-medium">
-                            Find a Seller’s Parcels
-                        </label>
-                        <input
-                            id="parcel-search"
-                            type="search"
-                            maxLength={100}
-                            className={`${inputClass} mt-2`}
-                            value={search}
-                            onChange={(event) => setSearch(event.target.value)}
-                            placeholder="Search by store name"
-                        />
-                    </div>
-                    <button className={secondaryClass}>
-                        <Search className="size-4" />
-                        Search
-                    </button>
-                </form>
-            </Card>
+            {filters.search && (
+                <p role="status" className="text-muted-foreground text-sm break-words">
+                    Search results for: {filters.search}
+                </p>
+            )}
             {deliveries.data.length ? (
                 <div className="grid items-start gap-4 lg:grid-cols-2">
                     {deliveries.data.map((row) => (
@@ -92,6 +48,10 @@ export default function LogisticsParcels(props: Props) {
                                     </span>
                                     <div>
                                         <p className="text-muted-foreground text-xs">Parcel #{row.id}</p>
+                                        <p className="mt-2 font-mono text-xs break-all">{row.tracking_reference}</p>
+                                        {row.exception_status && (
+                                            <p className="text-destructive mt-2 text-sm">{row.exception_status.replaceAll('_', ' ')}</p>
+                                        )}
                                         <h2 className="mt-1 font-semibold">{row.seller_order.store.name}</h2>
                                     </div>
                                 </div>
@@ -106,7 +66,11 @@ export default function LogisticsParcels(props: Props) {
                                     {row.rider?.name ?? 'No rider assigned'}
                                 </p>
                             </div>
-                            <button className={`${secondaryClass} w-full`} onClick={() => setSelected({ id: row.id, available: false })}>
+                            <ParcelNextStep parcel={row} role="logistics" compact />
+                            <button
+                                className={`${secondaryClass} mt-4 w-full`}
+                                onClick={() => setSelected({ id: row.id, available: false, tracking: row.tracking_reference })}
+                            >
                                 View Parcel & Actions
                             </button>
                         </Card>
@@ -134,7 +98,10 @@ export default function LogisticsParcels(props: Props) {
                                         Parcel #{row.id} · {row.seller_order.store.name}
                                     </p>
                                 </div>
-                                <button className={secondaryClass} onClick={() => setSelected({ id: row.id, available: true })}>
+                                <button
+                                    className={secondaryClass}
+                                    onClick={() => setSelected({ id: row.id, available: true, tracking: row.tracking_reference })}
+                                >
                                     Review Request
                                 </button>
                             </div>
@@ -155,35 +122,30 @@ export default function LogisticsParcels(props: Props) {
                     </DialogHeader>
                     {parcel ? (
                         <Parcel
-                            key={`${parcel.id}-${parcel.status}-${parcel.received_at}-${parcel.sorted_at}-${parcel.pickup_approved_at}-${cod[parcel.id]?.status}`}
+                            key={`${parcel.id}-${parcel.status}-${parcel.received_at}-${parcel.sorted_at}-${parcel.pickup_approved_at}-${parcel.dispatch_prepared_at}-${parcel.dispatch_accepted_at}-${parcel.rider?.name}-${cod[parcel.id]?.status}`}
                             parcel={parcel}
-                            role="sorting_center"
+                            role="logistics"
                             centers={centers}
                             riders={riders}
                             areas={areas}
                             collection={cod[parcel.id]}
-                            available={selected?.available}
+                            available={!parcel.logistics_center_id}
                         />
                     ) : (
-                        <p className="text-muted-foreground text-sm">This parcel moved to another queue. Close this window to continue.</p>
+                        <div className="space-y-4">
+                            <p className="text-muted-foreground text-sm">
+                                The action was saved and this parcel moved to its next queue. Open its updated record to continue.
+                            </p>
+                            <Link
+                                href={`/deliveries?${new URLSearchParams({ stage: 'all', search: selected?.tracking ?? '' })}`}
+                                className={secondaryClass}
+                            >
+                                Open parcel in all queues
+                            </Link>
+                        </div>
                     )}
                 </DialogContent>
             </Dialog>
-            <Dialog open={coverage} onOpenChange={setCoverage}>
-                <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-2xl">
-                    <DialogHeader>
-                        <DialogTitle>Rider Coverage Assignments</DialogTitle>
-                        <DialogDescription>Assign destination barangays to approved riders.</DialogDescription>
-                    </DialogHeader>
-                    <RiderServiceAreaForm centers={centers} riders={riders} />
-                </DialogContent>
-            </Dialog>
-            <p className="text-muted-foreground text-xs">
-                Need more coverage?{' '}
-                <Link href="/logistics/shipping-rates" className="text-primary underline underline-offset-4">
-                    Manage Shipping Rates
-                </Link>
-            </p>
         </Page>
     );
 }

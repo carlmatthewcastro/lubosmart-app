@@ -6,8 +6,8 @@ use App\Http\Requests\SaveApplicationDraftRequest;
 use App\Http\Requests\SubmitApplicationRequest;
 use App\Models\Address;
 use App\Models\Category;
+use App\Models\LogisticsCenter;
 use App\Models\RegistrationApplication;
-use App\Models\SortingCenter;
 use App\Models\Store;
 use App\Services\LogisticsApplicationDetails;
 use App\Services\PhilippineLocations;
@@ -29,6 +29,9 @@ class ApplicationController extends Controller
     public function edit(Request $request): Response|RedirectResponse
     {
         $user = $request->user();
+        if ($user->status === 'pending_reverification') {
+            return to_route('account.settings');
+        }
         if ($user->status === 'approved') {
             return to_route('dashboard');
         }
@@ -42,14 +45,14 @@ class ApplicationController extends Controller
         }
 
         return Inertia::render($application->registration_contract === 'logistics-2026-10' ? 'onboarding/logistics-application' : ($user->role === 'seller' && $application->registration_contract === 'buyer-seller-2026-10' ? 'onboarding/seller-application' : 'onboarding/application'), [
-            'application' => $application->only(['id', 'status', 'rejection_reason', 'business_name', 'sorting_center_id', 'draft_data', 'draft_saved_at', 'submitted_at', 'reviewed_at', 'seller_type', 'tin', 'region_code', 'sec_number', 'position', 'service_regions']),
+            'application' => $application->only(['id', 'status', 'rejection_reason', 'business_name', 'logistics_center_id', 'draft_data', 'draft_saved_at', 'submitted_at', 'reviewed_at', 'seller_type', 'tin', 'region_code', 'sec_number', 'position', 'service_regions']),
             'profile' => $profile,
             'address' => Address::query()->find($application->address_id),
             'store' => $user->store,
-            'courier' => DB::table('rider_profiles')->where('user_id', $user->id)->first(),
+            'rider' => DB::table('rider_profiles')->where('user_id', $user->id)->first(),
             'documents' => $application->documents->map(fn ($document) => ['id' => $document->id, 'kind' => $document->kind]),
             'categories' => Category::query()->whereNull('parent_id')->where('is_active', true)->orderBy('name')->get(['id', 'name']),
-            'centers' => SortingCenter::query()->operational()->when($user->logistics_company_id, fn ($centers) => $centers->where('company_user_id', $user->logistics_company_id))->orderBy('name')->get(['id', 'name']),
+            'centers' => LogisticsCenter::query()->operational()->when($user->logistics_company_id, fn ($centers) => $centers->where('company_user_id', $user->logistics_company_id))->orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -104,7 +107,7 @@ class ApplicationController extends Controller
 
                     return;
                 }
-                if ($user->role === 'sorting_center' && isset($data['sec_number'])) {
+                if ($user->role === 'logistics' && isset($data['sec_number'])) {
                     app(LogisticsApplicationDetails::class)->save($user, $application, $data, $addressNames, $stored);
 
                     return;
@@ -121,21 +124,21 @@ class ApplicationController extends Controller
                 if ($user->role === 'seller') {
                     $user->store()->updateOrCreate(['user_id' => $user->id], ['name' => $data['business_name'], 'business_category_id' => $data['business_category_id'], 'status' => 'pending']);
                 }
-                if ($user->role === 'courier') {
-                    $center = SortingCenter::query()->operational()->whereKey($data['sorting_center_id'])->lockForUpdate()->first();
+                if ($user->role === 'rider') {
+                    $center = LogisticsCenter::query()->operational()->whereKey($data['logistics_center_id'])->lockForUpdate()->first();
                     if (! $center) {
-                        throw ValidationException::withMessages(['sorting_center_id' => 'Choose an approved and active sorting center.']);
+                        throw ValidationException::withMessages(['logistics_center_id' => 'Choose an approved and active logistics company.']);
                     }
                     if ($user->logistics_company_id && $center->company_user_id !== $user->logistics_company_id) {
-                        throw ValidationException::withMessages(['sorting_center_id' => 'Your rider account must remain with its creating company.']);
+                        throw ValidationException::withMessages(['logistics_center_id' => 'Your rider account must remain with its creating company.']);
                     }
-                    $user->forceFill(['sorting_center_id' => $center->id, 'logistics_company_id' => $center->company_user_id])->save();
+                    $user->forceFill(['logistics_center_id' => $center->id, 'logistics_company_id' => $center->company_user_id])->save();
                     DB::table('rider_profiles')->updateOrInsert(['user_id' => $user->id], ['vehicle_type' => $data['vehicle_type'], 'plate_number' => $data['plate_number'] ?? null, 'plate_normalized' => isset($data['plate_number']) ? strtoupper(trim($data['plate_number'])) : null, 'created_at' => now(), 'updated_at' => now()]);
                 }
                 $this->storeDocuments($request, $application, $stored);
                 $application->forceFill([
                     'address_id' => $address->id, 'business_name' => $data['business_name'] ?? null,
-                    'sorting_center_id' => $user->role === 'courier' ? $data['sorting_center_id'] : null,
+                    'logistics_center_id' => $user->role === 'rider' ? $data['logistics_center_id'] : null,
                     'status' => 'submitted', 'submitted_at' => now(), 'reviewer_id' => null, 'reviewed_at' => null, 'rejection_reason' => null,
                     'policy_version' => 'registration-2026-10', 'policy_accepted_at' => now(),
                 ])->save();
@@ -152,7 +155,7 @@ class ApplicationController extends Controller
                     throw ValidationException::withMessages(['tin' => 'This TIN is already registered.']);
                 }
             }
-            if ($exception instanceof UniqueConstraintViolationException && $request->user()->role === 'sorting_center') {
+            if ($exception instanceof UniqueConstraintViolationException && $request->user()->role === 'logistics') {
                 foreach (['business_name' => 'company_name_normalized', 'sec_number' => 'sec_number', 'tin' => 'tin'] as $field => $column) {
                     if (isset($data[$field]) && RegistrationApplication::where($column, $field === 'business_name' ? mb_strtolower(trim($data[$field])) : $data[$field])->where('user_id', '!=', $request->user()->id)->exists()) {
                         throw ValidationException::withMessages([$field => 'This company identifier is already registered.']);
@@ -173,7 +176,7 @@ class ApplicationController extends Controller
 
         return Inertia::render('auth/waiting-approval', [
             'email' => $request->user()->email,
-            'approver' => $request->user()->role === 'courier' ? $request->user()->logisticsCenter?->name : 'LubosMart Admin',
+            'approver' => $request->user()->role === 'rider' ? $request->user()->logisticsCenter?->name : 'LubosMart Admin',
             'submittedAt' => $request->user()->application?->submitted_at?->toIso8601String(),
         ]);
     }
@@ -181,7 +184,7 @@ class ApplicationController extends Controller
     private function storeDocuments(Request $request, RegistrationApplication $application, array &$stored): void
     {
         $kinds = ['identity'];
-        if (in_array($application->requested_role, ['seller', 'sorting_center'], true)) {
+        if (in_array($application->requested_role, ['seller', 'logistics'], true)) {
             $kinds[] = 'business_permit';
         }
         if ($application->requested_role === 'seller') {
@@ -190,7 +193,7 @@ class ApplicationController extends Controller
         if ($application->registration_contract === 'logistics-2026-10') {
             $kinds = array_unique([...$kinds, ...LogisticsRules::DOCUMENTS]);
         }
-        if ($application->requested_role === 'courier') {
+        if ($application->requested_role === 'rider') {
             $kinds[] = 'license';
             $kinds[] = 'vehicle_registration';
         }

@@ -81,12 +81,12 @@ test('registration documents require both a current signature and reviewer autho
 
 test('admin reason cannot bypass Logistics rider approval or produce a decision audit', function () {
     Notification::fake();
-    $courier = User::factory()->create(['role' => 'courier', 'status' => 'pending']);
-    $center = linkRiderToApprovedCenter($courier);
-    $application = RegistrationApplication::query()->create(['user_id' => $courier->id, 'requested_role' => 'courier', 'sorting_center_id' => $center->id, 'status' => 'submitted']);
+    $rider = User::factory()->create(['role' => 'rider', 'status' => 'pending']);
+    $center = linkRiderToApprovedCenter($rider);
+    $application = RegistrationApplication::query()->create(['user_id' => $rider->id, 'requested_role' => 'rider', 'logistics_center_id' => $center->id, 'status' => 'submitted']);
     $admin = User::factory()->create(['role' => 'admin']);
     $this->actingAs($admin)->patch('/reviews/'.$application->id, ['decision' => 'approved', 'reason' => 'Admin override after document review'])->assertForbidden();
-    expect($courier->fresh()->status)->toBe('pending');
+    expect($rider->fresh()->status)->toBe('pending');
     $this->assertDatabaseMissing('audit_events', [
         'actor_id' => $admin->id, 'subject_id' => $application->id, 'subject_type' => 'registration_application',
         'action' => 'approved', 'old_status' => 'pending', 'new_status' => 'approved', 'reason' => 'Admin override after document review',

@@ -3,11 +3,11 @@
 // Disposable browser acceptance server only. Never uses the configured database/mail.
 use App\Models\Category;
 use App\Models\Delivery;
+use App\Models\LogisticsCenter;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\RegistrationApplication;
 use App\Models\SellerOrder;
-use App\Models\SortingCenter;
 use App\Models\Store;
 use App\Models\User;
 use App\Notifications\EmailSecurityCode;
@@ -68,14 +68,14 @@ Route::middleware('web')->get('/__fixture/google-new', function (Request $reques
 
 if (PHP_SAPI === 'cli' && ($argv[1] ?? '') === 'dashboard-seed') {
     $users = [];
-    foreach (['buyer', 'seller', 'courier', 'sorting_center', 'admin'] as $role) {
+    foreach (['buyer', 'seller', 'rider', 'logistics', 'admin'] as $role) {
         $users[$role] = User::factory()->create(['name' => 'Browser '.$role, 'role' => $role, 'email' => $role.'@dashboard.example.com', 'password' => 'Browser@2026']);
     }
-    $center = SortingCenter::create(['code' => 'BROWSER', 'name' => 'Browser Logistics', 'address' => 'Synthetic center address', 'is_active' => true]);
-    $center->forceFill(['company_user_id' => $users['sorting_center']->id])->save();
-    $center->users()->attach($users['sorting_center']->id, ['granted_by' => $users['admin']->id]);
-    $center->users()->attach($users['courier']->id, ['granted_by' => $users['sorting_center']->id]);
-    $users['courier']->forceFill(['sorting_center_id' => $center->id, 'logistics_company_id' => $users['sorting_center']->id])->save();
+    $center = LogisticsCenter::create(['code' => 'BROWSER', 'name' => 'Browser Logistics', 'address' => 'Synthetic center address', 'is_active' => true]);
+    $center->forceFill(['company_user_id' => $users['logistics']->id])->save();
+    $center->users()->attach($users['logistics']->id, ['granted_by' => $users['admin']->id]);
+    $center->users()->attach($users['rider']->id, ['granted_by' => $users['logistics']->id]);
+    $users['rider']->forceFill(['logistics_center_id' => $center->id, 'logistics_company_id' => $users['logistics']->id])->save();
     $store = Store::create(['user_id' => $users['seller']->id, 'name' => 'Browser Store', 'status' => 'approved']);
     $category = Category::create(['name' => 'Browser bags', 'is_active' => true]);
     foreach (['handbag.jpg', 'messenger.jpg', 'mug.jpg', null] as $index => $image) {
@@ -89,17 +89,17 @@ if (PHP_SAPI === 'cli' && ($argv[1] ?? '') === 'dashboard-seed') {
     }
     $order = Order::create(['buyer_id' => $users['buyer']->id, 'shipping_recipient_name' => 'Browser Buyer', 'shipping_phone' => '09171234567', 'shipping_line1' => 'Synthetic street', 'shipping_barangay' => 'Commonwealth', 'shipping_city' => 'Quezon City', 'shipping_province' => 'Metro Manila', 'shipping_region' => 'NCR', 'shipping_zip' => '1100', 'subtotal' => 100, 'shipping_total' => 50, 'total' => 150, 'status' => 'processing']);
     $parcel = SellerOrder::create(['order_id' => $order->id, 'store_id' => $store->id, 'subtotal' => 100, 'shipping_fee' => 50, 'status' => 'shipped']);
-    Delivery::create(['seller_order_id' => $parcel->id, 'rider_id' => $users['courier']->id, 'sorting_center_id' => $center->id, 'status' => 'assigned']);
+    Delivery::create(['seller_order_id' => $parcel->id, 'rider_id' => $users['rider']->id, 'logistics_center_id' => $center->id, 'status' => 'assigned']);
     echo json_encode(['orders' => Order::where('buyer_id', $users['buyer']->id)->count(), 'parcels' => Delivery::count()]);
     exit;
 }
 
 if (PHP_SAPI === 'cli' && ($argv[1] ?? '') === 'seed') {
     Category::create(['name' => 'Home & Living', 'slug' => 'home-living', 'is_active' => true]);
-    $company = User::factory()->create(['name' => 'Browser Approver', 'role' => 'sorting_center', 'email' => 'logistics.approver@example.com', 'password' => 'Browser@2026']);
-    $center = SortingCenter::create(['code' => 'SIGNUP', 'name' => 'Signup Logistics', 'address' => 'Synthetic address', 'is_active' => true]);
+    $company = User::factory()->create(['name' => 'Browser Approver', 'role' => 'logistics', 'email' => 'logistics.approver@example.com', 'password' => 'Browser@2026']);
+    $center = LogisticsCenter::create(['code' => 'SIGNUP', 'name' => 'Signup Logistics', 'address' => 'Synthetic address', 'is_active' => true]);
     $center->forceFill(['company_user_id' => $company->id])->save();
-    $company->sortingCenters()->attach($center->id, ['granted_by' => $company->id]);
+    $company->logisticsCenters()->attach($center->id, ['granted_by' => $company->id]);
     exit;
 }
 if (PHP_SAPI === 'cli' && ($argv[1] ?? '') === 'reset-cache') {

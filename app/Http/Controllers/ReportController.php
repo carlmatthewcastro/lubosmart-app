@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\CommerceSetting;
+use App\Models\ParcelReturn;
 use App\Models\SellerOrder;
+use App\Models\SellerPayout;
 use App\Services\Admin\AuditLogger;
 use App\Services\Logistics\LogisticsContacts;
 use Illuminate\Http\Request;
@@ -15,18 +17,18 @@ class ReportController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
-        if ($user->role === 'sorting_center') {
+        if ($user->role === 'logistics') {
             return app(Logistics\ReportController::class)->index($request, app(LogisticsContacts::class));
         }
-        abort_unless(in_array($user->role, ['admin', 'seller', 'sorting_center', 'courier']), 403);
+        abort_unless(in_array($user->role, ['admin', 'seller', 'logistics', 'rider']), 403);
         $filters = $request->validate(['from' => 'nullable|date_format:Y-m-d', 'to' => ['nullable', 'date_format:Y-m-d', $request->filled('from') ? 'after_or_equal:from' : 'nullable']]);
         $orders = SellerOrder::query()->where('status', 'completed');
         $orders->when($filters['from'] ?? null, fn ($q, $date) => $q->whereHas('delivery', fn ($q) => $q->whereDate('delivered_at', '>=', $date)));
         $orders->when($filters['to'] ?? null, fn ($q, $date) => $q->whereHas('delivery', fn ($q) => $q->whereDate('delivered_at', '<=', $date)));
         if ($user->role === 'seller') {
             $orders->where('store_id', $user->store?->id);
-        } elseif (in_array($user->role, ['sorting_center', 'courier'])) {
-            $orders->whereHas('delivery', fn ($q) => $user->role === 'courier' ? $q->where('rider_id', $user->id) : $q->whereIn('sorting_center_id', $user->sortingCenters()->operational()->pluck('sorting_centers.id')));
+        } elseif (in_array($user->role, ['logistics', 'rider'])) {
+            $orders->whereHas('delivery', fn ($q) => $user->role === 'rider' ? $q->where('rider_id', $user->id) : $q->whereIn('logistics_center_id', $user->logisticsCenters()->operational()->pluck('logistics_centers.id')));
         }
         $financial = in_array($user->role, ['admin', 'seller']);
         $columns = $financial ? ['*'] : ['id', 'order_id', 'store_id', 'subtotal', 'shipping_fee'];
@@ -38,7 +40,18 @@ class ReportController extends Controller
             $totals += ['Parcel COD value' => (float) (clone $orders)->sum('subtotal') + (float) (clone $orders)->sum('shipping_fee')];
         }
 
-        return Inertia::render('marketplace/reports', ['role' => $user->role, 'records' => $records, 'totals' => $totals, 'settings' => null, 'filters' => $filters]);
+        $adjustments = null;
+        if ($financial) {
+            $returns = ParcelReturn::query()->whereIn('seller_order_id', (clone $orders)->select('id'));
+            $refunds = (int) (clone $returns)->sum('refund_cents');
+            $reversals = (int) (clone $returns)->sum('commission_reversal_cents');
+            $sellerDebits = (int) (clone $returns)->sum('seller_debit_cents');
+            $adjustments = ['Refunds recorded' => $refunds / 100, 'Commission reversed' => $reversals / 100, 'Seller refund deductions' => $sellerDebits / 100,
+                'Seller proceeds after refunds' => (float) $totals['Seller proceeds'] - $sellerDebits / 100,
+                'Manual seller payouts' => (int) SellerPayout::query()->whereIn('seller_order_id', (clone $orders)->select('id'))->sum('amount_cents') / 100];
+        }
+
+        return Inertia::render('marketplace/reports', ['role' => $user->role, 'records' => $records, 'totals' => $totals, 'adjustments' => $adjustments, 'settings' => null, 'filters' => $filters]);
     }
 
     public function commission(Request $request)
@@ -50,9 +63,10 @@ class ReportController extends Controller
 
     public function export(Request $request)
     {
-        abort_unless($request->user()->role === 'admin', 403);
+        abort_unless(in_array($request->user()->role, ['admin', 'seller'], true), 403);
         $filters = $request->validate(['from' => 'nullable|date_format:Y-m-d', 'to' => ['nullable', 'date_format:Y-m-d', $request->filled('from') ? 'after_or_equal:from' : 'nullable'], 'type' => 'required|in:sales,commission']);
         $orders = SellerOrder::query()->where('status', 'completed')->with('store:id,name')
+            ->when($request->user()->role === 'seller', fn ($q) => $q->where('store_id', $request->user()->store?->id))
             ->when($filters['from'] ?? null, fn ($q, $date) => $q->whereHas('delivery', fn ($q) => $q->whereDate('delivered_at', '>=', $date)))
             ->when($filters['to'] ?? null, fn ($q, $date) => $q->whereHas('delivery', fn ($q) => $q->whereDate('delivered_at', '<=', $date)));
 

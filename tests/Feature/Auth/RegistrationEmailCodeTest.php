@@ -31,7 +31,7 @@ test('registration email contains a hashed six digit code expiring in five minut
 test('registration OTP applies buyer activation and partner approval boundaries without accepting privileges', function (string $role) {
     Notification::fake();
     Storage::fake('local');
-    $this->post('/register', $role === 'seller' ? sellerRegistrationData() : ($role === 'sorting_center' ? logisticsRegistrationData(['email' => 'shared@example.com']) : sharedRegistrationData(['role' => $role])))->assertSessionHasNoErrors();
+    $this->post('/register', $role === 'seller' ? sellerRegistrationData() : ($role === 'logistics' ? logisticsRegistrationData(['email' => 'shared@example.com']) : sharedRegistrationData(['role' => $role])))->assertSessionHasNoErrors();
     $user = User::where('email', 'shared@example.com')->firstOrFail();
     $this->post(route('verification.code'), ['code' => registrationCodeFor($user), 'user_id' => 999, 'status' => 'approved', 'role' => 'admin'])
         ->assertSessionHasNoErrors()->assertRedirect('/application/waiting');
@@ -42,7 +42,7 @@ test('registration OTP applies buyer activation and partner approval boundaries 
     if ($role !== 'buyer') {
         $this->get('/dashboard/'.$role)->assertRedirect('/application/waiting');
     }
-})->with(['buyer', 'seller', 'sorting_center']);
+})->with(['buyer', 'seller', 'logistics']);
 
 test('registration OTP rejects malformed codes without changing account state', function (string $code) {
     Notification::fake();

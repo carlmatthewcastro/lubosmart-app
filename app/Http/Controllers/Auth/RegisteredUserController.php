@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterAccountRequest;
-use App\Models\SortingCenter;
+use App\Models\LogisticsCenter;
 use App\Services\GoogleRegistration;
 use App\Services\RegisterAccount;
 use Illuminate\Auth\Events\Registered;
@@ -25,7 +25,7 @@ class RegisteredUserController extends Controller
         $identity = $google->pending($request);
 
         return Inertia::render('auth/register', [
-            'riderCenters' => SortingCenter::query()->operational()->orderBy('name')->get(['id', 'name']),
+            'riderCenters' => LogisticsCenter::query()->operational()->orderBy('name')->get(['id', 'name']),
             'googleRegistration' => $identity ? array_intersect_key($identity, array_flip(['first_name', 'last_name', 'email'])) : null,
         ]);
     }

@@ -57,9 +57,9 @@ test('seller bank changes require confirmation and store encrypted details for r
 });
 
 test('approved rider plate changes return the account to pending', function () {
-    $rider = User::factory()->create(['role' => 'courier']);
+    $rider = User::factory()->create(['role' => 'rider']);
     linkRiderToApprovedCenter($rider);
-    RegistrationApplication::query()->create(['user_id' => $rider->id, 'requested_role' => 'courier', 'status' => 'approved']);
+    RegistrationApplication::query()->create(['user_id' => $rider->id, 'requested_role' => 'rider', 'status' => 'approved']);
     DB::table('rider_profiles')->insert(['user_id' => $rider->id, 'vehicle_type' => 'motorcycle', 'plate_number' => 'OLD123']);
     $this->actingAs($rider)->patch('/settings/profile', ['name' => $rider->name, 'email' => $rider->email, 'plate_number' => 'NEW123'])->assertSessionHasNoErrors();
     expect($rider->fresh()->status)->toBe('pending');

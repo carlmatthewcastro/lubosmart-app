@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AccountAccessLayout from '@/layouts/auth/account-access-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { ArrowRight, LoaderCircle, RotateCw } from 'lucide-react';
+import { LoaderCircle, RotateCw } from 'lucide-react';
 import { type FormEvent } from 'react';
 
 export default function VerifyCode({ email }: { email: string; status?: string }) {
@@ -64,7 +64,6 @@ export default function VerifyCode({ email }: { email: string; status?: string }
                     <Button type="submit" disabled={busy} className="h-12 w-full rounded-xl font-semibold shadow-sm">
                         {form.processing && <LoaderCircle className="size-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />}
                         {form.processing ? 'Verifying...' : 'Verify code'}
-                        {!form.processing && <ArrowRight className="size-4" aria-hidden="true" />}
                     </Button>
                     <Button
                         type="button"

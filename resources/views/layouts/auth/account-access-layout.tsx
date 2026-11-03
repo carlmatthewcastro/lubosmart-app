@@ -1,4 +1,5 @@
 import AppWordmark from '@/components/branding/app-wordmark';
+import { ThemeToggle } from '@/components/navigation/theme-toggle';
 import { SkipLink } from '@/components/shell/skip-link';
 import { assets } from '@/config/assets';
 import { Head, Link } from '@inertiajs/react';
@@ -86,6 +87,9 @@ export default function AccountAccessLayout({
                 className={`min-w-0 px-4 py-6 sm:px-8 ${registering ? 'lg:col-span-5 lg:ml-[33.333333%] lg:px-10 lg:py-8 xl:px-12' : 'flex min-h-svh flex-col justify-center lg:col-span-2 lg:col-start-4 lg:px-8 xl:px-12'}`}
             >
                 <div className={`mx-auto w-full ${registering ? 'max-w-5xl' : 'max-w-lg'}`}>
+                    <nav aria-label="Appearance" className="mb-4 flex justify-end">
+                        <ThemeToggle />
+                    </nav>
                     <Link href={route('home')} className="mb-6 flex w-fit items-center gap-[11px] text-[1.2rem] font-semibold lg:hidden">
                         <img src={assets.brand.logo} alt="" width={40} height={40} className="size-10 shrink-0" />
                         <AppWordmark />

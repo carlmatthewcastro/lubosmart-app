@@ -12,7 +12,7 @@ class CreateRiderRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->role === 'sorting_center' && $this->user()->canOperate() && $this->user()->riderCreationCenters()->exists();
+        return $this->user()?->role === 'logistics' && $this->user()->canOperate() && $this->user()->riderCreationCenters()->exists();
     }
 
     protected function prepareForValidation(): void
@@ -42,7 +42,7 @@ class CreateRiderRequest extends FormRequest
     {
         return [
             'first_name' => ['bail', 'required', ...AccountRules::name()], 'last_name' => ['bail', 'required', ...AccountRules::name()],
-            'birthday' => ['required', ...AccountRules::birthday('courier')],
+            'birthday' => ['required', ...AccountRules::birthday('rider')],
             'email' => ['bail', 'required', 'string', 'email', 'max:160', 'regex:/\A[^@]+@[^@]+\.[^@]+\z/', new UniqueAccountIdentifier('email')],
             'phone' => ['bail', 'required', 'string', 'regex:/\A09[0-9]{9}\z/', new UniqueAccountIdentifier('phone')],
             'license_number' => ['bail', 'required', 'string', 'regex:/\A[A-Z][0-9]{2}-[0-9]{2}-[0-9]{6}\z/', Rule::unique('rider_profiles', 'license_number')],

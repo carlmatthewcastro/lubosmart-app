@@ -15,11 +15,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     protected $attributes = ['status' => 'unverified'];
 
@@ -71,6 +72,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
             'logistics_company_id' => 'integer',
             'bank_account' => 'encrypted',
+            'notification_preferences' => 'array',
         ];
     }
 
@@ -91,7 +93,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function scopeManagedRiders(Builder $query, User $actor): void
     {
-        if ($actor->role === 'sorting_center') {
+        if ($actor->role === 'logistics') {
             $query->where(fn ($q) => $q->whereNull('logistics_company_id')->orWhere('logistics_company_id', $actor->id));
         }
     }
@@ -122,11 +124,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(Store::class);
     }
 
-    public function sortingCenters(): BelongsToMany
+    public function logisticsCenters(): BelongsToMany
     {
-        $relation = $this->belongsToMany(SortingCenter::class)->withPivot('granted_by')->withTimestamps();
-        if ($this->role === 'sorting_center') {
-            $relation->where(fn ($q) => $q->whereNull('sorting_centers.company_user_id')->orWhere('sorting_centers.company_user_id', $this->id));
+        $relation = $this->belongsToMany(LogisticsCenter::class)->withPivot('granted_by')->withTimestamps();
+        if ($this->role === 'logistics') {
+            $relation->where(fn ($q) => $q->whereNull('logistics_centers.company_user_id')->orWhere('logistics_centers.company_user_id', $this->id));
         }
 
         return $relation;
@@ -134,13 +136,13 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function logisticsCenter(): BelongsTo
     {
-        return $this->belongsTo(SortingCenter::class, 'sorting_center_id');
+        return $this->belongsTo(LogisticsCenter::class, 'logistics_center_id');
     }
 
     public function riderCreationCenters(): BelongsToMany
     {
-        return $this->sortingCenters()->operational()->where(fn ($centers) => $centers->where('company_user_id', $this->id)
-            ->orWhere(fn ($legacy) => $legacy->whereNull('company_user_id')->whereHas('users', fn ($users) => $users->where('role', 'sorting_center'), '=', 1)));
+        return $this->logisticsCenters()->operational()->where(fn ($centers) => $centers->where('company_user_id', $this->id)
+            ->orWhere(fn ($legacy) => $legacy->whereNull('company_user_id')->whereHas('users', fn ($users) => $users->where('role', 'logistics'), '=', 1)));
     }
 
     public function adminPermissions(): array
@@ -156,6 +158,6 @@ class User extends Authenticatable implements MustVerifyEmail
     public function canOperate(): bool
     {
         return $this->status === 'approved' && $this->hasVerifiedEmail()
-            && ($this->role !== 'courier' || $this->logisticsCenter()->operational()->exists());
+            && ($this->role !== 'rider' || $this->logisticsCenter()->operational()->exists());
     }
 }

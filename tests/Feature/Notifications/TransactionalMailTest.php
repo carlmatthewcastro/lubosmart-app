@@ -68,22 +68,22 @@ test('decision emails escape submitted reasons in the shared design', function (
     expect($html)->toContain('&lt;script&gt;')->not->toContain('<script>');
 });
 
-test('approval button and fallback links open the recipients role dashboard', function (string $role) {
+test('approval button opens the recipients role dashboard', function (string $role) {
     $user = User::factory()->make(['role' => $role]);
 
     $html = (string) (new ApplicationReviewed('approved', null))->toMail($user)->render();
 
-    expect(substr_count($html, 'href="https://lubosmart.app/dashboard/'.$role.'"'))->toBe(2);
+    expect(substr_count($html, 'href="https://lubosmart.app/dashboard/'.$role.'"'))->toBe(1);
     expect($html)->toContain('background-color: #6d47b3');
-})->with(['buyer', 'seller', 'courier', 'sorting_center', 'admin']);
+})->with(['buyer', 'seller', 'rider', 'logistics', 'admin']);
 
-test('rejection button and fallback links open the application page even without a reason', function () {
+test('rejection button opens the application page even without a reason', function () {
     $user = User::factory()->make();
 
     $message = (new ApplicationReviewed('rejected', null))->toMail($user);
     $html = (string) $message->render();
 
-    expect(substr_count($html, 'href="https://lubosmart.app/application"'))->toBe(2);
+    expect(substr_count($html, 'href="https://lubosmart.app/application"'))->toBe(1);
     expect($html)->toContain('Please review your application details.')->not->toContain('/dashboard');
 });
 

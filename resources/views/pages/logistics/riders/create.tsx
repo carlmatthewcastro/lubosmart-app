@@ -1,5 +1,6 @@
 import InputError from '@/components/auth/input-error';
 import { Page, buttonClass, inputClass } from '@/components/shared/marketplace-ui';
+import ValidatedForm from '@/components/shared/validated-form';
 import AppLayout from '@/layouts/app-layout';
 import { useForm } from '@inertiajs/react';
 export default function CreateRider() {
@@ -29,7 +30,7 @@ export default function CreateRider() {
     return (
         <AppLayout>
             <Page title="Add rider" description="The rider will receive a 24-hour activation link to set a password.">
-                <form
+                <ValidatedForm
                     noValidate
                     className="max-w-2xl space-y-5"
                     onSubmit={(event) => {
@@ -95,7 +96,7 @@ export default function CreateRider() {
                     <button className={buttonClass} disabled={form.processing}>
                         {form.processing ? 'Saving…' : 'Save rider'}
                     </button>
-                </form>
+                </ValidatedForm>
             </Page>
         </AppLayout>
     );

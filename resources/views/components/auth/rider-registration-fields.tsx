@@ -9,7 +9,7 @@ export type RiderDetails = {
     sex: string;
     vehicle_type: string;
     plate_number: string;
-    sorting_center_id: string;
+    logistics_center_id: string;
     province_code: string;
     city_code: string;
     barangay_code: string;
@@ -26,7 +26,7 @@ export const emptyRiderDetails: RiderDetails = {
     sex: '',
     vehicle_type: '',
     plate_number: '',
-    sorting_center_id: '',
+    logistics_center_id: '',
     province_code: '',
     city_code: '',
     barangay_code: '',
@@ -147,7 +147,7 @@ export default function RiderRegistrationFields({
         <fieldset disabled={disabled} className="grid min-w-0 items-start gap-5 sm:grid-cols-2 xl:grid-cols-3">
             <legend className="mb-4 font-semibold">Rider details</legend>
             {select(
-                'sorting_center_id',
+                'logistics_center_id',
                 'Logistics center',
                 centers.map((center) => ({ value: String(center.id), label: center.name })),
             )}

@@ -1,4 +1,5 @@
 import { buttonClass, Card, Empty, Field, money, Page, Pager, secondaryClass, type Pagination } from '@/components/shared/marketplace-ui';
+import ValidatedForm from '@/components/shared/validated-form';
 import { titleCase } from '@/lib/admin-display';
 import { Link, useForm } from '@inertiajs/react';
 import { Banknote, CalendarDays, Download, PackageCheck, Percent, Wallet } from 'lucide-react';
@@ -16,15 +17,19 @@ export default function Reports({
     totals,
     role,
     filters,
+    adjustments,
 }: {
     records: Pagination<Record>;
     totals: { [key: string]: string | number };
     role: string;
     filters: { from?: string; to?: string };
+    adjustments?: { [key: string]: number } | null;
 }) {
     const financial = ['admin', 'seller'].includes(role);
     const dates = useForm({ from: filters.from ?? '', to: filters.to ?? '' });
-    const exportUrl = (type: string) => '/reports/export?' + new URLSearchParams({ type, from: filters.from ?? '', to: filters.to ?? '' }).toString();
+    const exportUrl = (type: string) =>
+        (role === 'seller' ? '/seller/reports/export?' : '/reports/export?') +
+        new URLSearchParams({ type, from: filters.from ?? '', to: filters.to ?? '' }).toString();
     const icons = [PackageCheck, Banknote, Percent, Wallet];
     const formatDate = (value: string) =>
         new Date(value + 'T00:00:00').toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -43,7 +48,7 @@ export default function Reports({
                     ? 'Sales & Commission Reports'
                     : role === 'seller'
                       ? 'Sales Reports'
-                      : role === 'courier'
+                      : role === 'rider'
                         ? 'Delivery History'
                         : 'Delivery Reports'
             }
@@ -65,7 +70,7 @@ export default function Reports({
                         </p>
                     </div>
                 </div>
-                <form
+                <ValidatedForm
                     className="grid items-end gap-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_auto_auto]"
                     onSubmit={(event) => {
                         event.preventDefault();
@@ -93,10 +98,10 @@ export default function Reports({
                     <Link href="/reports" className={secondaryClass}>
                         Reset
                     </Link>
-                </form>
+                </ValidatedForm>
                 <div className="mt-5 flex flex-wrap items-center justify-between gap-4 border-t pt-5">
                     <p className="text-muted-foreground text-xs">{period}</p>
-                    {role === 'admin' && (
+                    {financial && (
                         <div className="flex flex-wrap gap-3">
                             <a className={secondaryClass} href={exportUrl('sales')}>
                                 <Download className="size-4" />
@@ -128,6 +133,36 @@ export default function Reports({
                     );
                 })}
             </div>
+            {adjustments && (
+                <Card>
+                    <h2 className="text-lg font-semibold">Refund and settlement adjustments</h2>
+                    <p className="text-muted-foreground mt-2 text-sm">
+                        Recorded adjustments for parcels delivered in the selected period. Historical sales above are retained. These are payment
+                        records, not automatic transfers.
+                    </p>
+                    <dl className="mt-4 grid gap-4 sm:grid-cols-2">
+                        {Object.entries(adjustments).map(([label, amount]) => (
+                            <div key={label}>
+                                <dt className="text-muted-foreground text-sm">{label}</dt>
+                                <dd className="mt-2 font-semibold tabular-nums">{money(amount)}</dd>
+                            </div>
+                        ))}
+                    </dl>
+                    <div className="mt-5 flex flex-wrap gap-3">
+                        <Link className={secondaryClass} href="/settlements">
+                            Seller settlements
+                        </Link>
+                        <Link className={secondaryClass} href="/returns">
+                            Returns and refunds
+                        </Link>
+                        {role === 'seller' && (
+                            <Link className={secondaryClass} href="/seller/costs">
+                                Costs and profit
+                            </Link>
+                        )}
+                    </div>
+                </Card>
+            )}
             {records.data.length ? (
                 <Card>
                     <div className="mb-5 flex flex-wrap items-center justify-between gap-3">

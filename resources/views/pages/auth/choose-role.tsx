@@ -7,8 +7,8 @@ import { type FormEvent } from 'react';
 const roles = [
     { value: 'buyer', title: 'Buyer', description: 'Browse local products and shop after registration approval.' },
     { value: 'seller', title: 'Seller', description: 'Submit business documents to open your store.' },
-    { value: 'courier', title: 'Rider', description: 'Submit rider requirements for your Logistics company to approve.' },
-    { value: 'sorting_center', title: 'Logistics', description: 'Submit company documents to manage your sorting center.' },
+    { value: 'rider', title: 'Rider', description: 'Submit rider requirements for your Logistics company to approve.' },
+    { value: 'logistics', title: 'Logistics', description: 'Submit company documents to manage your logistics company.' },
 ];
 
 export default function ChooseRole() {

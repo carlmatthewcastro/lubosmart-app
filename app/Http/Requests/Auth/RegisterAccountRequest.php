@@ -58,7 +58,7 @@ class RegisterAccountRequest extends FormRequest
             'birthday' => ['bail', 'required', ...AccountRules::birthday(is_string($this->input('role')) ? $this->input('role') : '')],
             'house_number' => ['required_with:street', 'nullable', 'string', 'max:30'],
             'street' => ['required_with:house_number', 'nullable', 'string', 'max:160'],
-            'role' => ['required', Rule::in(['buyer', 'seller', 'courier', 'sorting_center'])],
+            'role' => ['required', Rule::in(['buyer', 'seller', 'rider', 'logistics'])],
             'store_name' => ['nullable', 'string', 'max:160'],
             'business_category_id' => ['nullable', 'integer', Rule::exists(Category::class, 'id')->whereNull('parent_id')->where('is_active', true)],
             'password' => ['required', 'confirmed', ...AccountRules::password()],
@@ -75,10 +75,10 @@ class RegisterAccountRequest extends FormRequest
         if ($this->input('role') === 'seller') {
             $rules = array_replace($rules, SellerRules::rules($this->input('seller_type')));
         }
-        if ($this->input('role') === 'sorting_center') {
+        if ($this->input('role') === 'logistics') {
             $rules = array_replace($rules, LogisticsRules::rules());
         }
-        if ($this->input('role') === 'courier') {
+        if ($this->input('role') === 'rider') {
             $rules = array_replace($rules, RiderRegistrationRules::rules());
         }
 
@@ -101,7 +101,7 @@ class RegisterAccountRequest extends FormRequest
             }
             try {
                 app(PhilippineLocations::class)->resolve($this->input('province_code'), $this->input('city_code'), $this->input('barangay_code'), $this->input('region_code'));
-                if ($this->input('role') === 'sorting_center') {
+                if ($this->input('role') === 'logistics') {
                     app(LogisticsApplicationDetails::class)->validateRegions($this->input('service_regions'));
                 }
             } catch (ValidationException $exception) {

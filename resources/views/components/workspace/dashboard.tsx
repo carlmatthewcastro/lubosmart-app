@@ -3,12 +3,12 @@ import { DashboardMetric, DashboardQueues, DashboardWelcome } from '@/components
 import { assets } from '@/config/assets';
 import { type SharedData, type UserRole } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { ArrowRight, CheckCheck, Clock3, Package, ShoppingBag, Store, Truck, type LucideIcon } from 'lucide-react';
+import { CheckCheck, Clock3, Package, ShoppingBag, Store, Truck, type LucideIcon } from 'lucide-react';
 
 export interface WorkspaceDashboardProps {
     role: Exclude<UserRole, 'admin'>;
     stats: Record<string, number>;
-    records: { id: number; label: string; status: string; detail: string }[];
+    records: { id: number; label: string; status: string; detail: string; href?: string }[];
     storeStatus?: string;
     companyName?: string | null;
 }
@@ -29,8 +29,8 @@ export default function WorkspaceDashboard({
     content,
 }: WorkspaceDashboardProps & { content: WorkspaceDashboardContent }) {
     const { auth } = usePage<SharedData>().props;
-    const activityHref = ['courier', 'sorting_center'].includes(role) ? '/deliveries' : '/orders';
-    const roleTitle = role === 'courier' ? 'Rider' : role === 'sorting_center' ? 'Logistics' : role === 'seller' ? 'Seller' : 'Buyer';
+    const activityHref = ['rider', 'logistics'].includes(role) ? '/deliveries' : '/orders';
+    const roleTitle = role === 'rider' ? 'Rider' : role === 'logistics' ? 'Logistics' : role === 'seller' ? 'Seller' : 'Buyer';
     const RoleIcon = role === 'buyer' ? ShoppingBag : role === 'seller' ? Store : Truck;
     const metrics = Object.entries(stats);
     return (
@@ -50,7 +50,6 @@ export default function WorkspaceDashboard({
                         </p>
                         <Link href={content.href} className={buttonClass + ' mt-5'}>
                             {content.primary}
-                            <ArrowRight aria-hidden="true" className="size-4" />
                         </Link>
                     </div>
                 </section>
@@ -63,7 +62,6 @@ export default function WorkspaceDashboard({
                 >
                     <Link href={content.href} className={buttonClass}>
                         {content.primary}
-                        <ArrowRight aria-hidden="true" className="size-4" />
                     </Link>
                     <Link href="/settings/profile" className={secondaryClass}>
                         My account
@@ -98,17 +96,15 @@ export default function WorkspaceDashboard({
                             <h2 className="font-semibold">{item.title}</h2>
                             <p className="text-muted-foreground mt-1 text-xs leading-relaxed">{item.text}</p>
                         </div>
-                        <ArrowRight aria-hidden="true" className="text-muted-foreground size-4 shrink-0" />
                     </Link>
                 ))}
             </section>
             <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
                 <Card>
                     <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-                        <h2 className="text-lg font-semibold">{role === 'courier' ? 'Recent deliveries' : 'Recent orders'}</h2>
+                        <h2 className="text-lg font-semibold">{role === 'rider' ? 'Recent deliveries' : 'Recent orders'}</h2>
                         <Link href={activityHref} className="text-primary inline-flex min-h-11 items-center gap-1 text-sm font-medium">
                             View all
-                            <ArrowRight aria-hidden="true" className="size-4" />
                         </Link>
                     </div>
                     {records.length ? (
@@ -116,7 +112,7 @@ export default function WorkspaceDashboard({
                             {records.map((record) => (
                                 <li key={record.id}>
                                     <Link
-                                        href={activityHref}
+                                        href={record.href ?? activityHref}
                                         className="hover:bg-accent/30 flex flex-wrap items-center justify-between gap-3 rounded-xl py-4"
                                     >
                                         <div className="flex min-w-0 items-center gap-3">
@@ -144,7 +140,7 @@ export default function WorkspaceDashboard({
                 </Card>
                 <div className="space-y-6">
                     <DashboardQueues
-                        title={role === 'courier' ? 'Delivery overview' : 'Account snapshot'}
+                        title={role === 'rider' ? 'Delivery overview' : 'Account snapshot'}
                         description="Current totals for your account. Counts may describe overlapping groups."
                         items={metrics.map(([label, value]) => ({ label, value, href: label === 'Products' ? '/inventory' : activityHref }))}
                     />

@@ -1,10 +1,31 @@
 <?php
 
 use App\Models\Order;
+use App\Models\RegistrationApplication;
 use App\Models\User;
 use App\Notifications\VerifyAccountEmail;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Inertia\Testing\AssertableInertia as Assert;
+
+test('logistics settings show the signed in company registration details', function () {
+    $user = User::factory()->create(['role' => 'logistics']);
+    DB::table('user_profiles')->insert(['user_id' => $user->id, 'first_name' => 'Maria', 'last_name' => 'Santos', 'middle_initial' => 'C', 'sex' => 'female', 'birthday' => '1990-05-10']);
+    RegistrationApplication::query()->create(['user_id' => $user->id, 'requested_role' => 'logistics',
+        'business_name' => 'Sample Logistics', 'sec_number' => 'CS202012345', 'tin' => '123-456-789-000',
+        'position' => 'Manager', 'service_region_names' => ['CALABARZON']]);
+    $this->actingAs($user)->get('/settings/profile')->assertInertia(fn (Assert $page) => $page
+        ->where('logisticsRegistration.Personal details.First name', 'Maria')
+        ->where('logisticsRegistration.Personal details.Middle initial (optional)', 'C')
+        ->where('logisticsRegistration.Company registration.SEC registration number', 'CS202012345')
+        ->where('logisticsRegistration.Company registration.Service areas', 'CALABARZON')
+        ->where('logisticsRegistration.Submitted documents.Government-issued ID', 'Not submitted'));
+});
+
+test('other roles do not receive logistics registration details', function () {
+    $this->actingAs(User::factory()->create())->get('/settings/profile')
+        ->assertInertia(fn (Assert $page) => $page->where('logisticsRegistration', null));
+});
 
 test('Google users can edit their display name without changing their verified provider identity', function () {
     $user = User::factory()->create(['google_id' => 'trusted-google-id', 'name' => 'Google Nickname']);

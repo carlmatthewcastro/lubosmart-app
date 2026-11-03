@@ -3,8 +3,8 @@
 namespace App\Services;
 
 use App\Models\Address;
+use App\Models\LogisticsCenter;
 use App\Models\RegistrationApplication;
-use App\Models\SortingCenter;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -13,11 +13,11 @@ class RiderRegistrationDetails
 {
     public function save(User $user, RegistrationApplication $application, array $data, array $names, array &$stored): void
     {
-        $center = SortingCenter::query()->operational()->whereKey($data['sorting_center_id'])->lockForUpdate()->first();
+        $center = LogisticsCenter::query()->operational()->whereKey($data['logistics_center_id'])->lockForUpdate()->first();
         if (! $center) {
-            throw ValidationException::withMessages(['sorting_center_id' => 'Choose an approved and active Logistics center.']);
+            throw ValidationException::withMessages(['logistics_center_id' => 'Choose an approved and active Logistics center.']);
         }
-        $user->forceFill(['sorting_center_id' => $center->id, 'logistics_company_id' => $center->company_user_id])->save();
+        $user->forceFill(['logistics_center_id' => $center->id, 'logistics_company_id' => $center->company_user_id])->save();
         DB::table('user_profiles')->where('user_id', $user->id)->update([
             ...collect($data)->only(['middle_initial', 'sex', 'province_code', 'city_code', 'barangay_code'])->all(), 'updated_at' => now(),
         ]);
@@ -38,7 +38,7 @@ class RiderRegistrationDetails
             $stored[] = $path;
             $application->documents()->create(['kind' => $kind, 'disk' => 'local', 'path' => $path, 'mime_type' => $file->getMimeType(), 'size_bytes' => $file->getSize()]);
         }
-        $application->forceFill(['address_id' => $address->id, 'sorting_center_id' => $center->id, 'status' => 'submitted', 'submitted_at' => now()])->save();
+        $application->forceFill(['address_id' => $address->id, 'logistics_center_id' => $center->id, 'status' => 'submitted', 'submitted_at' => now()])->save();
         DB::table('audit_events')->insert(['actor_id' => $user->id, 'subject_type' => 'registration_application', 'subject_id' => $application->id, 'action' => 'submitted', 'occurred_at' => now()]);
     }
 }

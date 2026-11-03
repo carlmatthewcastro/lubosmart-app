@@ -21,7 +21,7 @@ class RiderInvitations
         $token = Str::random(64);
         $hash = hash('sha256', $token);
         DB::table('rider_activation_invitations')->updateOrInsert(['user_id' => $user->id], [
-            'company_id' => $company->id, 'sorting_center_id' => $user->sorting_center_id, 'email' => $user->email, 'token_hash' => $hash, 'expires_at' => now()->addDay(), 'consumed_at' => null,
+            'company_id' => $company->id, 'logistics_center_id' => $user->logistics_center_id, 'email' => $user->email, 'token_hash' => $hash, 'expires_at' => now()->addDay(), 'consumed_at' => null,
             'last_sent_at' => now(), 'window_started_at' => $same ? $old->window_started_at : now(), 'send_count' => $same ? $old->send_count + 1 : 1, 'created_at' => now(), 'updated_at' => now(),
         ]);
 
@@ -48,8 +48,8 @@ class RiderInvitations
         $delivery = DB::transaction(function () use ($actor, $target) {
             $company = User::whereKey($actor->id)->lockForUpdate()->firstOrFail();
             $user = User::whereKey($target->id)->lockForUpdate()->firstOrFail();
-            abort_unless($company->role === 'sorting_center' && $company->canOperate() && $user->logistics_company_id === $company->id && $user->role === 'courier', 404);
-            abort_unless($user->status === 'unverified' && $company->sortingCenters()->operational()->whereKey($user->sorting_center_id)->exists(), 403);
+            abort_unless($company->role === 'logistics' && $company->canOperate() && $user->logistics_company_id === $company->id && $user->role === 'rider', 404);
+            abort_unless($user->status === 'unverified' && $company->logisticsCenters()->operational()->whereKey($user->logistics_center_id)->exists(), 403);
 
             return $this->issue($user, $company);
         }, 3);
@@ -65,7 +65,7 @@ class RiderInvitations
         }
         $rider = User::find($record->user_id);
         $company = User::find($record->company_id);
-        if (! $rider || ! $company || $company->role !== 'sorting_center' || $rider->role !== 'courier' || $rider->status !== 'unverified' || $rider->email !== $record->email || $rider->logistics_company_id !== $company->id || $rider->sorting_center_id !== $record->sorting_center_id || ! $company->canOperate() || ! $company->sortingCenters()->operational()->whereKey($record->sorting_center_id)->exists()) {
+        if (! $rider || ! $company || $company->role !== 'logistics' || $rider->role !== 'rider' || $rider->status !== 'unverified' || $rider->email !== $record->email || $rider->logistics_company_id !== $company->id || $rider->logistics_center_id !== $record->logistics_center_id || ! $company->canOperate() || ! $company->logisticsCenters()->operational()->whereKey($record->logistics_center_id)->exists()) {
             return null;
         }
 

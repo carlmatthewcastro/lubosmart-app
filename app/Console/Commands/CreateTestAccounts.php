@@ -4,8 +4,8 @@ namespace App\Console\Commands;
 
 use App\Models\Address;
 use App\Models\Category;
+use App\Models\LogisticsCenter;
 use App\Models\Product;
-use App\Models\SortingCenter;
 use App\Models\Store;
 use App\Models\User;
 use Database\Seeders\MarketplaceCategorySeeder;
@@ -36,12 +36,12 @@ class CreateTestAccounts extends Command
         try {
             $accounts = DB::transaction(function () use ($password, $resetPasswords, &$credentialsChanged, &$accountStates) {
                 $accounts = [];
-                foreach (['admin', 'buyer', 'seller', 'courier', 'sorting_center'] as $role) {
+                foreach (['admin', 'buyer', 'seller', 'rider', 'logistics'] as $role) {
                     $email = 'lubosmart-'.$role.'@testing.app';
                     $user = User::query()->where('email', $email)->lockForUpdate()->first();
                     // Preserve existing local credentials after the canonical role migration.
-                    if (! $user && in_array($role, ['courier', 'sorting_center'], true)) {
-                        $legacyRole = $role === 'courier' ? 'rider' : 'logistics';
+                    if (! $user && in_array($role, ['rider', 'logistics'], true)) {
+                        $legacyRole = $role === 'rider' ? 'rider' : 'logistics';
                         $user = User::query()->where('email', 'lubosmart-'.$legacyRole.'@testing.app')->lockForUpdate()->first();
                     }
                     if (! $user) {
@@ -80,15 +80,15 @@ class CreateTestAccounts extends Command
                     $accounts[$role] = $user;
                 }
                 Store::query()->firstOrCreate(['user_id' => $accounts['seller']->id], ['name' => 'Test Store', 'description' => 'Local dashboard testing', 'status' => 'approved']);
-                if (! $accounts['sorting_center']->sortingCenters()->exists()) {
-                    $center = SortingCenter::query()->create(['code' => 'TEST-'.Str::upper(Str::random(8)), 'name' => 'Local Test Sorting Center', 'address' => 'Synthetic test address']);
-                    $accounts['sorting_center']->sortingCenters()->attach($center->id, ['granted_by' => $accounts['admin']->id]);
+                if (! $accounts['logistics']->logisticsCenters()->exists()) {
+                    $center = LogisticsCenter::query()->create(['code' => 'TEST-'.Str::upper(Str::random(8)), 'name' => 'Local Test Logistics', 'address' => 'Synthetic test address']);
+                    $accounts['logistics']->logisticsCenters()->attach($center->id, ['granted_by' => $accounts['admin']->id]);
                 }
-                $center = $accounts['sorting_center']->sortingCenters()->firstOrFail();
-                if (! $accounts['courier']->sorting_center_id) {
-                    $accounts['courier']->forceFill(['sorting_center_id' => $center->id])->save();
+                $center = $accounts['logistics']->logisticsCenters()->firstOrFail();
+                if (! $accounts['rider']->logistics_center_id) {
+                    $accounts['rider']->forceFill(['logistics_center_id' => $center->id])->save();
                 }
-                $accounts['courier']->sortingCenters()->syncWithoutDetaching([$center->id => ['granted_by' => $accounts['admin']->id]]);
+                $accounts['rider']->logisticsCenters()->syncWithoutDetaching([$center->id => ['granted_by' => $accounts['admin']->id]]);
 
                 return $accounts;
             });

@@ -10,19 +10,21 @@ use App\Models\Delivery;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\SellerOrder;
 use App\Models\Store;
 use App\Models\User;
 use App\Services\Logistics\ShippingQuotes;
+use App\Services\StoreDiscount;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class CreateOrderFromCart
 {
-    public function handle(User $buyer, int $addressId, ?int $sortingCenterId = null, ?int $expectedShippingCents = null): Order
+    public function handle(User $buyer, int $addressId, ?int $logisticsCenterId = null, ?int $expectedShippingCents = null, ?string $voucherCode = null, ?int $expectedDiscountCents = null, ?int $expectedItemsSubtotalCents = null): Order
     {
-        return DB::transaction(function () use ($buyer, $addressId, $sortingCenterId, $expectedShippingCents): Order {
+        return DB::transaction(function () use ($buyer, $addressId, $logisticsCenterId, $expectedShippingCents, $voucherCode, $expectedDiscountCents, $expectedItemsSubtotalCents): Order {
             $buyer = User::query()
                 ->whereKey($buyer->id)
                 ->lockForUpdate()
@@ -80,7 +82,7 @@ class CreateOrderFromCart
                 ->get()
                 ->keyBy('id');
 
-            if ($products->count() !== $cartItems->count()) {
+            if ($products->count() !== $cartItems->pluck('product_id')->unique()->count()) {
                 throw ValidationException::withMessages([
                     'cart' => 'One or more products in your cart are no longer available.',
                 ]);
@@ -94,11 +96,18 @@ class CreateOrderFromCart
                 ->get()
                 ->keyBy('id');
 
+            $variants = ProductVariant::query()->whereIn('product_id', $products->keys())->orderBy('id')->lockForUpdate()->get()->keyBy('id');
+
             foreach ($cartItems as $item) {
                 /** @var Product $product */
                 $product = $products->get($item->product_id);
                 $category = $product->category;
                 $store = $stores->get($product->store_id);
+                $variant = $item->product_variant_id ? $variants->get($item->product_variant_id) : null;
+                if (($item->product_variant_id && (! $variant || $variant->product_id !== $product->id || ! $variant->is_active || $variant->stock < $item->quantity))
+                    || (! $item->product_variant_id && $variants->contains('product_id', $product->id))) {
+                    throw ValidationException::withMessages(['cart' => 'A size/color option is unavailable or has insufficient stock. Update your cart.']);
+                }
 
                 if (! $category?->is_active || ($category->parent && ! $category->parent->is_active)) {
                     throw ValidationException::withMessages([
@@ -152,7 +161,7 @@ class CreateOrderFromCart
                 ]);
             }
 
-            $quotes = app(ShippingQuotes::class)->quote($address, $cartItems, $products, $sortingCenterId);
+            $quotes = app(ShippingQuotes::class)->quote($address, $cartItems, $products, $logisticsCenterId);
             $shippingTotalCents = array_sum(array_column($quotes, 'fee_cents'));
             if ($expectedShippingCents !== null && $shippingTotalCents !== $expectedShippingCents) {
                 throw ValidationException::withMessages(['shipping_fee' => 'Shipping rates changed. Refresh your cart and review the updated quote before placing the order.']);
@@ -160,6 +169,16 @@ class CreateOrderFromCart
             $subtotalCents = $cartItems->sum(
                 fn (CartItem $item): int => $this->toCents($products->get($item->product_id)->price) * $item->quantity
             );
+            if ($expectedItemsSubtotalCents !== null && $subtotalCents !== $expectedItemsSubtotalCents) {
+                throw ValidationException::withMessages(['cart' => 'Item prices or quantities changed. Review your updated shopping bag before placing the order.']);
+            }
+
+            $storeSubtotals = $itemsByStore->map(fn ($items) => $items->sum(fn ($item) => $this->toCents($products->get($item->product_id)->price) * $item->quantity))->all();
+            $discount = app(StoreDiscount::class)->resolve($voucherCode, $storeSubtotals, $buyer->id, true);
+            if ($expectedDiscountCents !== null && $discount['cents'] !== $expectedDiscountCents) {
+                throw ValidationException::withMessages(['voucher_code' => 'The discount changed. Apply the voucher again and review your total.']);
+            }
+            $subtotalCents -= $discount['cents'];
 
             $order = Order::query()->create([
                 'buyer_id' => $buyer->id,
@@ -184,12 +203,17 @@ class CreateOrderFromCart
                 $storeSubtotalCents = $storeItems->sum(
                     fn (CartItem $item): int => $this->toCents($products->get($item->product_id)->price) * $item->quantity
                 );
+                $storeDiscountCents = $discount['voucher']?->store_id === (int) $storeId ? $discount['cents'] : 0;
+                $storeSubtotalCents -= $storeDiscountCents;
                 // Commission amounts are recognized when the delivery is completed.
 
                 $sellerOrder = SellerOrder::query()->create([
                     'order_id' => $order->id,
                     'store_id' => $storeId,
                     'subtotal' => $this->fromCents($storeSubtotalCents),
+                    'discount_amount' => $this->fromCents($storeDiscountCents),
+                    'store_voucher_id' => $storeDiscountCents ? $discount['voucher']->id : null,
+                    'voucher_code' => $storeDiscountCents ? $discount['voucher']->code : null,
                     'shipping_fee' => $this->fromCents($quotes[$storeId]['fee_cents']),
                     'shipping_quote' => $quotes[$storeId],
                     'shipping_weight_grams' => $quotes[$storeId]['weight_grams'],
@@ -202,6 +226,10 @@ class CreateOrderFromCart
                 foreach ($storeItems as $item) {
                     /** @var Product $product */
                     $product = $products->get($item->product_id);
+                    $variant = $item->product_variant_id ? $variants->get($item->product_variant_id) : null;
+                    if ($variant && ProductVariant::query()->whereKey($variant->id)->where('is_active', true)->where('stock', '>=', $item->quantity)->decrement('stock', $item->quantity) !== 1) {
+                        throw ValidationException::withMessages(['cart' => 'This size/color option no longer has enough stock.']);
+                    }
 
                     $updatedRows = Product::query()
                         ->whereKey($product->id)
@@ -218,6 +246,9 @@ class CreateOrderFromCart
                         'seller_order_id' => $sellerOrder->id,
                         'product_id' => $product->id,
                         'product_name' => $product->name,
+                        'product_variant_id' => $variant?->id,
+                        'variant_name' => $variant?->name,
+                        'variant_key' => $variant ? (string) $variant->id : 'base',
                         'quantity' => $item->quantity,
                         'price_each' => $product->price,
                     ]);
@@ -225,7 +256,7 @@ class CreateOrderFromCart
 
                 Delivery::query()->create([
                     'seller_order_id' => $sellerOrder->id,
-                    'sorting_center_id' => $quotes[$storeId]['center_id'],
+                    'logistics_center_id' => $quotes[$storeId]['center_id'],
                     'service_area_id' => $quotes[$storeId]['area_id'],
                     'status' => 'unassigned',
                 ]);

@@ -11,6 +11,8 @@ class CartItem extends Model
         'cart_id',
         'product_id',
         'quantity',
+        'product_variant_id',
+        'variant_key',
     ];
 
     protected function casts(): array
@@ -28,5 +30,10 @@ class CartItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function variant(): BelongsTo
+    {
+        return $this->belongsTo(ProductVariant::class, 'product_variant_id');
     }
 }

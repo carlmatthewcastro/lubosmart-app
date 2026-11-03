@@ -10,6 +10,7 @@ use App\Models\Category;
 use App\Models\CommerceSetting;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\User;
 use App\Services\Logistics\ShippingQuotes;
 use Illuminate\Http\Request;
@@ -22,7 +23,8 @@ class MarketplaceController extends Controller
     public function index(Request $request)
     {
         $filters = $request->validate(['search' => 'nullable|string|max:100', 'category' => 'nullable|integer']);
-        $products = Product::query()->with(['store:id,name', 'category:id,name'])
+        $products = Product::query()->with(['store:id,name', 'category:id,name', 'variants'])
+            ->withAvg('reviews', 'rating')->withCount('reviews')
             ->availableToShoppers()
             ->when($request->routeIs('wishlist.index'), fn ($q) => $q->whereIn('id', DB::table('product_wishlists')->where('user_id', $request->user()->id)->select('product_id')))
             ->when($filters['search'] ?? null, fn ($q, $search) => $q->where('name', 'like', '%'.$search.'%'))
@@ -37,7 +39,11 @@ class MarketplaceController extends Controller
     public function cart(Request $request)
     {
         abort_unless($request->user()->role === 'buyer', 403);
-        $cart = Cart::query()->with('items.product.store:id,name')->where('user_id', $request->user()->id)->first();
+        $cart = Cart::query()->with(['items.product.store:id,name', 'items.variant'])->where('user_id', $request->user()->id)->first();
+        $availableIds = Product::query()->availableToShoppers()->whereIn('id', $cart?->items->pluck('product_id') ?? [])->pluck('id');
+        $cart?->items->each(function ($item) use ($availableIds) {
+            $item->product?->setAttribute('is_available', $availableIds->contains($item->product_id));
+        });
 
         return Inertia::render('marketplace/cart', ['items' => $cart?->items ?? [], 'addresses' => Address::query()->where('user_id', $request->user()->id)->orderByDesc('is_default')->latest('id')->get(), 'shippingFee' => CommerceSetting::query()->findOrFail(1)->shipping_fee_per_seller_order, 'logisticsPricing' => app(ShippingQuotes::class)->enabled()]);
     }
@@ -50,30 +56,39 @@ class MarketplaceController extends Controller
         $items = $cart?->items ?? collect();
         $products = $items->pluck('product')->filter()->keyBy('id');
 
-        return response()->json(['options' => $items->isNotEmpty() && $products->count() === $items->count() ? $quotes->options($address, $items, $products) : []])->header('Cache-Control', 'private, no-store');
+        return response()->json(['options' => $items->isNotEmpty() && $products->count() === $items->pluck('product_id')->unique()->count() ? $quotes->options($address, $items, $products) : []])->header('Cache-Control', 'private, no-store');
     }
 
     public function updateCart(Request $request, Product $product)
     {
         abort_unless($request->user()->role === 'buyer', 403);
-        $data = $request->validate(['quantity' => 'required|integer|min:0|max:999', 'add' => 'sometimes|boolean']);
+        $data = $request->validate(['quantity' => 'required|integer|min:0|max:999', 'add' => 'sometimes|boolean', 'product_variant_id' => 'nullable|integer']);
         DB::transaction(function () use ($request, $product, $data) {
             $buyer = User::query()->whereKey($request->user()->id)->lockForUpdate()->firstOrFail();
             abort_unless($buyer->role === 'buyer' && $buyer->canOperate(), 403);
             $cart = Cart::query()->firstOrCreate(['user_id' => $request->user()->id]);
+            $variantId = $data['product_variant_id'] ?? null;
+            $line = ['cart_id' => $cart->id, 'product_id' => $product->id, 'variant_key' => $variantId ? (string) $variantId : 'base'];
             if ($data['add'] ?? false) {
-                $data['quantity'] += CartItem::query()->where('cart_id', $cart->id)->where('product_id', $product->id)->value('quantity') ?? 0;
+                $data['quantity'] += CartItem::query()->where($line)->value('quantity') ?? 0;
             }
             if ($data['quantity'] === 0) {
-                CartItem::query()->where('cart_id', $cart->id)->where('product_id', $product->id)->delete();
+                CartItem::query()->where($line)->delete();
 
                 return;
             }
             $product->refresh()->load('store');
+            if (! Product::query()->availableToShoppers()->whereKey($product->id)->exists()) {
+                throw ValidationException::withMessages(['quantity' => 'This product is no longer available. Remove it or choose another product.']);
+            }
+            $variant = $variantId ? ProductVariant::query()->where('product_id', $product->id)->whereKey($variantId)->where('is_active', true)->first() : null;
+            if (($variantId && ! $variant) || (! $variantId && $product->variants()->exists()) || ($variant && $variant->stock < $data['quantity'])) {
+                throw ValidationException::withMessages(['quantity' => 'Choose an available size/color option with enough stock.']);
+            }
             if ($product->status !== 'active' || $product->blocked_at || $product->store->status !== 'approved' || $product->store->user->role !== 'seller' || ! $product->store->user->canOperate() || $product->stock < $data['quantity'] || $data['quantity'] > 999) {
                 throw ValidationException::withMessages(['quantity' => 'This quantity is unavailable. Please check the remaining stock.']);
             }
-            CartItem::query()->updateOrCreate(['cart_id' => $cart->id, 'product_id' => $product->id], ['quantity' => $data['quantity']]);
+            CartItem::query()->updateOrCreate($line, ['quantity' => $data['quantity'], 'product_variant_id' => $variantId]);
         }, 3);
 
         return back()->with('status', $data['quantity'] ? 'Cart updated.' : 'Item removed.');
@@ -91,14 +106,14 @@ class MarketplaceController extends Controller
     public function checkout(Request $request, CreateOrderFromCart $checkout)
     {
         abort_unless($request->user()->role === 'buyer', 403);
-        $data = $request->validate(['address_id' => 'required|integer', 'checkout_key' => 'required|uuid', 'sorting_center_id' => 'nullable|integer', 'expected_shipping_total' => [app(ShippingQuotes::class)->enabled() ? 'required' : 'nullable', 'numeric', 'decimal:0,2', 'min:0']]);
+        $data = $request->validate(['address_id' => 'required|integer', 'checkout_key' => 'required|uuid', 'expected_items_subtotal' => 'nullable|numeric|decimal:0,2|min:0', 'logistics_center_id' => 'nullable|integer', 'voucher_code' => 'nullable|string|max:30', 'expected_discount_total' => 'required_with:voucher_code|nullable|numeric|decimal:0,2|min:0', 'expected_shipping_total' => [app(ShippingQuotes::class)->enabled() ? 'required' : 'nullable', 'numeric', 'decimal:0,2', 'min:0']]);
         $order = DB::transaction(function () use ($request, $data, $checkout) {
             User::query()->whereKey($request->user()->id)->lockForUpdate()->firstOrFail();
             $existing = Order::query()->where('buyer_id', $request->user()->id)->where('checkout_key', $data['checkout_key'])->first();
             if ($existing) {
                 return $existing;
             }
-            $order = $checkout->handle($request->user(), $data['address_id'], $data['sorting_center_id'] ?? null, isset($data['expected_shipping_total']) ? (int) round((float) $data['expected_shipping_total'] * 100) : null);
+            $order = $checkout->handle($request->user(), $data['address_id'], $data['logistics_center_id'] ?? null, isset($data['expected_shipping_total']) ? (int) round((float) $data['expected_shipping_total'] * 100) : null, $data['voucher_code'] ?? null, isset($data['expected_discount_total']) ? (int) round((float) $data['expected_discount_total'] * 100) : null, isset($data['expected_items_subtotal']) ? (int) round((float) $data['expected_items_subtotal'] * 100) : null);
             $order->forceFill(['checkout_key' => $data['checkout_key']])->save();
 
             return $order;

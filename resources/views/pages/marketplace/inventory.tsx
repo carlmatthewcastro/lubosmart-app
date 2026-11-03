@@ -1,3 +1,5 @@
+import SellerListFilters from '@/components/seller/list-filters';
+import VariantForm from '@/components/seller/variant-form';
 import {
     Badge,
     buttonClass,
@@ -12,7 +14,8 @@ import {
     Select,
     Textarea,
 } from '@/components/shared/marketplace-ui';
-import { useForm } from '@inertiajs/react';
+import ValidatedForm from '@/components/shared/validated-form';
+import { Link, useForm } from '@inertiajs/react';
 import { Pencil, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { type Product } from './catalog';
@@ -23,6 +26,7 @@ function ProductForm({ product, categories, close }: { product: Product | null; 
         description: product?.description ?? '',
         price: product?.price ?? '',
         stock: product?.stock ?? 0,
+        expected_stock: product?.stock ?? 0,
         weight_grams: product?.weight_grams?.toString() ?? '',
         category_id: product?.category_id.toString() ?? '',
         status: product?.status ?? 'active',
@@ -37,7 +41,12 @@ function ProductForm({ product, categories, close }: { product: Product | null; 
                     Cancel
                 </button>
             </div>
-            <form
+            <ValidatedForm
+                confirmation={{
+                    title: product ? 'Update this product?' : 'Publish this product?',
+                    description: `${form.data.name}: check the price, available stock, packed weight, and visibility. Approved active products become available to buyers.`,
+                    confirmLabel: 'Save product',
+                }}
                 className="grid gap-4 sm:grid-cols-2"
                 onSubmit={(e) => {
                     e.preventDefault();
@@ -72,6 +81,7 @@ function ProductForm({ product, categories, close }: { product: Product | null; 
                     label="Price (PHP)"
                     type="number"
                     min="0.01"
+                    max="999999.99"
                     step="0.01"
                     required
                     value={form.data.price}
@@ -93,8 +103,12 @@ function ProductForm({ product, categories, close }: { product: Product | null; 
                     label="Available stock"
                     type="number"
                     min="0"
+                    max="1000000"
+                    step="1"
                     required
                     value={form.data.stock}
+                    readOnly={!!product?.variants?.length}
+                    hint={product?.variants?.length ? 'Stock is managed in size/color options.' : undefined}
                     onChange={(e) => form.setData('stock', Number(e.target.value))}
                     error={form.errors.stock}
                 />
@@ -129,7 +143,12 @@ function ProductForm({ product, categories, close }: { product: Product | null; 
                         {form.processing ? 'Saving…' : 'Save product'}
                     </button>
                 </div>
-            </form>
+                {form.progress && (
+                    <p role="status" className="text-muted-foreground text-sm sm:col-span-2">
+                        Uploading product image: {form.progress.percentage}%
+                    </p>
+                )}
+            </ValidatedForm>
         </Card>
     );
 }
@@ -138,13 +157,16 @@ export default function Inventory({
     categories,
     store,
     complianceNotices,
+    filters = {},
 }: {
     products: Pagination<Product>;
     categories: { id: number; name: string }[];
     store: { name: string; status: string } | null;
     complianceNotices: { id: number; name: string; action: string; reason: string }[];
+    filters?: { search?: string; status?: string };
 }) {
     const [editing, setEditing] = useState<Product | null | undefined>(undefined);
+    const [options, setOptions] = useState<Product | null>(null);
     return (
         <Page
             title="Inventory"
@@ -156,6 +178,11 @@ export default function Inventory({
                 </button>
             }
         >
+            <SellerListFilters key={JSON.stringify(filters)} inventory filters={filters} />
+            <Link className={secondaryClass} href="/seller/vouchers">
+                Manage store vouchers
+            </Link>
+            {options && <VariantForm key={options.id} product={options} close={() => setOptions(null)} />}
             {!!complianceNotices.length && (
                 <Card className="border-primary/15 !bg-accent/40">
                     <h2 className="font-semibold">Listing review updates</h2>
@@ -173,7 +200,7 @@ export default function Inventory({
             )}
             <div className="grid gap-4 sm:grid-cols-3">
                 <Card>
-                    <p className="text-muted-foreground text-sm">Catalog products</p>
+                    <p className="text-muted-foreground text-sm">Matching products</p>
                     <p className="mt-3 text-3xl font-semibold">{products.total}</p>
                 </Card>
                 <Card>
@@ -211,6 +238,11 @@ export default function Inventory({
                                 <div className="min-w-40 flex-1">
                                     <h2 className="font-medium">{product.name}</h2>
                                     <p className="text-muted-foreground mt-1 text-xs">{product.category?.name}</p>
+                                    <p className="text-muted-foreground mt-1 text-xs">
+                                        {product.weight_grams
+                                            ? `${product.weight_grams.toLocaleString()} g packed weight`
+                                            : 'Packed weight missing: add it for shipping quotes'}
+                                    </p>
                                 </div>
                                 <div className="text-sm">
                                     <p className="font-semibold">{money(product.price)}</p>
@@ -223,12 +255,22 @@ export default function Inventory({
                                     <Pencil className="size-3" />
                                     Edit
                                 </button>
+                                <button className={secondaryClass} onClick={() => setOptions(product)} disabled={store?.status !== 'approved'}>
+                                    Size/color options
+                                </button>
                             </div>
                         ))}
                     </div>
                 </Card>
             ) : (
-                <Empty title="No products yet" description="Add your first product to start building your store." />
+                <Empty
+                    title={filters.search || (filters.status && filters.status !== 'all') ? 'No matching products' : 'No products yet'}
+                    description={
+                        filters.search || (filters.status && filters.status !== 'all')
+                            ? 'Change or reset the filters to see more products.'
+                            : 'Add your first product to start building your store.'
+                    }
+                />
             )}
             <Pager links={products.links} />
         </Page>

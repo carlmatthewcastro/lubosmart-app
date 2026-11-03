@@ -1,8 +1,8 @@
 <?php
 
 use App\Models\Address;
+use App\Models\LogisticsCenter;
 use App\Models\RegistrationApplication;
-use App\Models\SortingCenter;
 use App\Models\Store;
 use App\Models\User;
 use App\Notifications\ApplicationReviewed;
@@ -39,21 +39,21 @@ function applicationPayload(): array
     return ['first_name' => 'Test', 'last_name' => 'Applicant', 'sex' => 'female', 'birthday' => '1995-04-12', 'phone' => '09171234567', 'province_code' => '043400000', 'city_code' => '043404000', 'barangay_code' => '043404001', 'line1' => 'Synthetic Street 1', 'zip' => '4000', 'identity' => UploadedFile::fake()->create('id.pdf', 10, 'application/pdf'), 'policy_accepted' => true];
 }
 
-test('review status filters preserve role and sorting center authorization', function () {
+test('review status filters preserve role and logistics company authorization', function () {
     $seller = applicationApplicant('seller', 'approved');
     applicationApplicant('seller', 'submitted');
-    $center = SortingCenter::query()->create(['code' => 'CENTER-A', 'name' => 'Center A', 'address' => 'Test Street']);
-    $otherCenter = SortingCenter::query()->create(['code' => 'CENTER-B', 'name' => 'Center B', 'address' => 'Other Street']);
-    $rider = applicationApplicant('courier', 'approved');
-    $rider->application->update(['sorting_center_id' => $center->id]);
-    $rider->forceFill(['sorting_center_id' => $center->id])->save();
-    $otherRider = applicationApplicant('courier', 'approved');
-    $otherRider->application->update(['sorting_center_id' => $otherCenter->id]);
-    $otherRider->forceFill(['sorting_center_id' => $otherCenter->id])->save();
+    $center = LogisticsCenter::query()->create(['code' => 'CENTER-A', 'name' => 'Center A', 'address' => 'Test Street']);
+    $otherCenter = LogisticsCenter::query()->create(['code' => 'CENTER-B', 'name' => 'Center B', 'address' => 'Other Street']);
+    $rider = applicationApplicant('rider', 'approved');
+    $rider->application->update(['logistics_center_id' => $center->id]);
+    $rider->forceFill(['logistics_center_id' => $center->id])->save();
+    $otherRider = applicationApplicant('rider', 'approved');
+    $otherRider->application->update(['logistics_center_id' => $otherCenter->id]);
+    $otherRider->forceFill(['logistics_center_id' => $otherCenter->id])->save();
     $admin = User::factory()->create(['role' => 'admin']);
     $this->actingAs($admin)->get('/reviews?status=approved')->assertInertia(fn (Assert $page) => $page->has('applications.data', 1)->where('applications.data.0.id', $seller->application->id)->where('filters.status', 'approved'));
-    $logistics = User::factory()->create(['role' => 'sorting_center']);
-    $logistics->sortingCenters()->attach($center->id, ['granted_by' => $admin->id]);
+    $logistics = User::factory()->create(['role' => 'logistics']);
+    $logistics->logisticsCenters()->attach($center->id, ['granted_by' => $admin->id]);
     $this->actingAs($logistics)->get('/reviews?status=approved')->assertInertia(fn (Assert $page) => $page->has('applications.data', 1)->where('applications.data.0.id', $rider->application->id));
     $this->actingAs($admin)->get('/reviews?status=draft')->assertSessionHasErrors('status');
 });
@@ -111,38 +111,38 @@ test('seller requires a department and business permit', function () {
 });
 
 test('rider requires vehicle registration and a reviewing center', function () {
-    $user = applicationApplicant('courier');
-    $this->actingAs($user)->from('/application')->post('/application', [...applicationPayload(), 'vehicle_type' => 'motorcycle'])->assertRedirect('/application')->assertSessionHasErrors(['plate_number', 'vehicle_registration', 'sorting_center_id']);
+    $user = applicationApplicant('rider');
+    $this->actingAs($user)->from('/application')->post('/application', [...applicationPayload(), 'vehicle_type' => 'motorcycle'])->assertRedirect('/application')->assertSessionHasErrors(['plate_number', 'vehicle_registration', 'logistics_center_id']);
 });
 
 test('rider submission links the selected approved logistics center while leaving approval pending', function () {
     Storage::fake('local');
     fakeApplicationLocations();
-    $rider = applicationApplicant('courier');
+    $rider = applicationApplicant('rider');
     $center = linkRiderToApprovedCenter($rider);
-    $rider->forceFill(['sorting_center_id' => null])->save();
+    $rider->forceFill(['logistics_center_id' => null])->save();
     $this->actingAs($rider)->post('/application', [...applicationPayload(),
-        'vehicle_type' => 'motorcycle', 'plate_number' => 'TEST123', 'sorting_center_id' => $center->id,
+        'vehicle_type' => 'motorcycle', 'plate_number' => 'TEST123', 'logistics_center_id' => $center->id,
         'license' => UploadedFile::fake()->create('license.pdf', 10, 'application/pdf'),
         'vehicle_registration' => UploadedFile::fake()->create('orcr.pdf', 10, 'application/pdf'),
     ])->assertRedirect('/application/waiting')->assertSessionHasNoErrors();
     expect($rider->fresh()->status)->toBe('pending');
-    expect($rider->fresh()->sorting_center_id)->toBe($center->id);
-    expect($rider->fresh()->application->sorting_center_id)->toBe($center->id);
+    expect($rider->fresh()->logistics_center_id)->toBe($center->id);
+    expect($rider->fresh()->application->logistics_center_id)->toBe($center->id);
     expect($rider->fresh()->application->documents)->toHaveCount(3);
 });
 
 test('a center with an unapproved operator cannot receive rider applications', function () {
-    $rider = applicationApplicant('courier');
+    $rider = applicationApplicant('rider');
     $center = linkRiderToApprovedCenter($rider);
-    $center->users()->where('role', 'sorting_center')->firstOrFail()->forceFill(['status' => 'pending'])->save();
-    $rider->forceFill(['sorting_center_id' => null])->save();
-    $this->actingAs($rider)->post('/application', [...applicationPayload(), 'sorting_center_id' => $center->id])->assertSessionHasErrors('sorting_center_id');
+    $center->users()->where('role', 'logistics')->firstOrFail()->forceFill(['status' => 'pending'])->save();
+    $rider->forceFill(['logistics_center_id' => null])->save();
+    $this->actingAs($rider)->post('/application', [...applicationPayload(), 'logistics_center_id' => $center->id])->assertSessionHasErrors('logistics_center_id');
     $this->get('/application')->assertInertia(fn (Assert $page) => $page->has('centers', 0));
 });
 
 test('rider registration requires both a license and plate number for every vehicle choice', function (string $vehicle) {
-    $user = applicationApplicant('courier');
+    $user = applicationApplicant('rider');
     $this->actingAs($user)->post('/application', [...applicationPayload(), 'vehicle_type' => $vehicle])->assertSessionHasErrors(['license', 'plate_number']);
     expect($user->fresh()->status)->toBe('incomplete');
     $this->assertDatabaseCount('registration_documents', 0);
@@ -202,13 +202,13 @@ test('buyer and seller cannot review applications', function (string $role) {
     $user = applicationApplicant('buyer', 'submitted');
     $this->actingAs(User::factory()->create(['role' => $role]))->patch(route('reviews.update', $user->application->id), ['decision' => 'approved'])->assertForbidden();
     expect($user->fresh()->status)->toBe('pending');
-})->with(['buyer', 'seller', 'courier']);
+})->with(['buyer', 'seller', 'rider']);
 
 test('admin cannot override Logistics rider approval even for a legacy application', function () {
     Notification::fake();
-    $user = applicationApplicant('courier', 'submitted');
-    $center = SortingCenter::query()->create(['code' => 'ADMIN-REVIEW', 'name' => 'Review center', 'address' => 'Synthetic address']);
-    $user->application->update(['sorting_center_id' => $center->id]);
+    $user = applicationApplicant('rider', 'submitted');
+    $center = LogisticsCenter::query()->create(['code' => 'ADMIN-REVIEW', 'name' => 'Review center', 'address' => 'Synthetic address']);
+    $user->application->update(['logistics_center_id' => $center->id]);
     $this->actingAs(User::factory()->create(['role' => 'admin']))->get(route('reviews.show', $user->application->id))->assertForbidden();
     $this->patch(route('reviews.update', $user->application->id), ['decision' => 'approved'])->assertForbidden();
     expect($user->fresh()->status)->toBe('pending');
@@ -218,18 +218,18 @@ test('admin cannot override Logistics rider approval even for a legacy applicati
 test('logistics can approve only riders applying to its own center', function (bool $sameCenter) {
     Notification::fake();
     $admin = User::factory()->create(['role' => 'admin']);
-    $logistics = User::factory()->create(['role' => 'sorting_center']);
-    $center = SortingCenter::query()->create(['code' => 'CENTER-A', 'name' => 'Center A', 'address' => 'Synthetic address']);
-    $other = SortingCenter::query()->create(['code' => 'CENTER-B', 'name' => 'Center B', 'address' => 'Synthetic address']);
-    $logistics->sortingCenters()->attach($center->id, ['granted_by' => $admin->id]);
-    $user = applicationApplicant('courier', 'submitted');
-    $user->application->update(['sorting_center_id' => $sameCenter ? $center->id : $other->id]);
-    $user->forceFill(['sorting_center_id' => $sameCenter ? $center->id : $other->id])->save();
+    $logistics = User::factory()->create(['role' => 'logistics']);
+    $center = LogisticsCenter::query()->create(['code' => 'CENTER-A', 'name' => 'Center A', 'address' => 'Synthetic address']);
+    $other = LogisticsCenter::query()->create(['code' => 'CENTER-B', 'name' => 'Center B', 'address' => 'Synthetic address']);
+    $logistics->logisticsCenters()->attach($center->id, ['granted_by' => $admin->id]);
+    $user = applicationApplicant('rider', 'submitted');
+    $user->application->update(['logistics_center_id' => $sameCenter ? $center->id : $other->id]);
+    $user->forceFill(['logistics_center_id' => $sameCenter ? $center->id : $other->id])->save();
     $response = $this->actingAs($logistics)->patch(route('reviews.update', $user->application->id), ['decision' => 'approved']);
     if ($sameCenter) {
         $response->assertRedirect(route('reviews.index'));
         expect($user->fresh()->status)->toBe('approved');
-        expect($user->fresh()->sorting_center_id)->toBe($center->id);
+        expect($user->fresh()->logistics_center_id)->toBe($center->id);
         Notification::assertSentTo($user, ApplicationReviewed::class);
     } else {
         $response->assertForbidden();
@@ -281,13 +281,13 @@ test('rejected applicants can resubmit and clear the old review decision', funct
 
 test('approved logistics applicants receive a center and membership', function () {
     Notification::fake();
-    $user = applicationApplicant('sorting_center', 'submitted');
+    $user = applicationApplicant('logistics', 'submitted');
     $address = Address::query()->create(['user_id' => $user->id, 'label' => 'Registration', 'recipient_name' => 'Logistics Test', 'phone' => '09171234567', 'line1' => 'Synthetic address', 'barangay' => 'Test Barangay', 'city' => 'Test City', 'province' => 'Test Province', 'region' => 'Test Region', 'zip' => '4000']);
     $user->application->forceFill(['address_id' => $address->id, 'business_name' => 'Test Center'])->save();
     $admin = User::factory()->create(['role' => 'admin']);
     $this->actingAs($admin)->patch(route('reviews.update', $user->application->id), ['decision' => 'approved'])->assertRedirect(route('reviews.index'));
-    $center = SortingCenter::query()->where('code', 'APP-'.$user->application->id)->firstOrFail();
-    $this->assertDatabaseHas('sorting_center_user', ['user_id' => $user->id, 'sorting_center_id' => $center->id, 'granted_by' => $admin->id]);
+    $center = LogisticsCenter::query()->where('code', 'APP-'.$user->application->id)->firstOrFail();
+    $this->assertDatabaseHas('logistics_center_user', ['user_id' => $user->id, 'logistics_center_id' => $center->id, 'granted_by' => $admin->id]);
     expect($user->fresh()->status)->toBe('approved');
     Notification::assertSentTo($user, ApplicationReviewed::class);
 });

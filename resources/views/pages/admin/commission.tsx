@@ -1,4 +1,5 @@
 import { Card, Field, Page, buttonClass, money, secondaryClass } from '@/components/shared/marketplace-ui';
+import ValidatedForm from '@/components/shared/validated-form';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Link, useForm } from '@inertiajs/react';
 import { ArrowRight, Check, Percent, Wallet } from 'lucide-react';
@@ -36,7 +37,7 @@ export default function Commission({ settings }: { settings: { platform_commissi
                         </div>
                         <span className="bg-success/10 text-success ml-auto rounded-full px-3 py-1 text-xs font-medium">Active</span>
                     </div>
-                    <form
+                    <ValidatedForm
                         className="space-y-6 p-6"
                         onSubmit={(event) => {
                             event.preventDefault();
@@ -77,7 +78,7 @@ export default function Commission({ settings }: { settings: { platform_commissi
                                 Review Change <ArrowRight className="size-4" />
                             </button>
                         </div>
-                    </form>
+                    </ValidatedForm>
                 </Card>
                 <div className="space-y-5">
                     <Card>

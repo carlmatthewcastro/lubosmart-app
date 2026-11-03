@@ -44,7 +44,7 @@ class RegisterAccount
                 $application = RegistrationApplication::create([
                     'user_id' => $user->id, 'requested_role' => $user->role,
                     'policy_version' => 'terms-privacy-2026-10', 'policy_accepted_at' => now(),
-                    'registration_contract' => $user->role === 'courier' ? 'self-service-rider-2026-10' : (in_array($user->role, ['buyer', 'seller'], true) ? 'buyer-seller-2026-10' : null),
+                    'registration_contract' => $user->role === 'rider' ? 'self-service-rider-2026-10' : (in_array($user->role, ['buyer', 'seller'], true) ? 'buyer-seller-2026-10' : null),
                 ]);
                 if ($data['role'] === 'buyer') {
                     $address = Address::create(['user_id' => $user->id, ...$names, 'label' => 'Registration', 'recipient_name' => $user->name, 'phone' => $user->phone,
@@ -62,10 +62,10 @@ class RegisterAccount
                 if ($data['role'] === 'seller') {
                     app(SellerApplicationDetails::class)->save($user, $application, $data, $names, $stored);
                 }
-                if ($data['role'] === 'sorting_center') {
+                if ($data['role'] === 'logistics') {
                     app(LogisticsApplicationDetails::class)->save($user, $application, $data, $names, $stored);
                 }
-                if ($data['role'] === 'courier') {
+                if ($data['role'] === 'rider') {
                     app(RiderRegistrationDetails::class)->save($user, $application, $data, $names, $stored);
                 }
 
@@ -83,7 +83,7 @@ class RegisterAccount
             if (User::where('phone_normalized', $data['phone'])->exists()) {
                 throw ValidationException::withMessages(['phone' => 'This mobile number is already registered.']);
             }
-            if ($data['role'] === 'courier' && DB::table('rider_profiles')->where('plate_normalized', strtoupper(trim($data['plate_number'])))->exists()) {
+            if ($data['role'] === 'rider' && DB::table('rider_profiles')->where('plate_normalized', strtoupper(trim($data['plate_number'])))->exists()) {
                 throw ValidationException::withMessages(['plate_number' => 'This plate number is already registered.']);
             }
             if ($data['role'] === 'seller' && isset($data['business_name']) && Store::where('name_normalized', mb_strtolower(trim($data['business_name'])))->exists()) {
@@ -95,7 +95,7 @@ class RegisterAccount
             if (isset($data['sec_number']) && RegistrationApplication::where('sec_number', $data['sec_number'])->exists()) {
                 throw ValidationException::withMessages(['sec_number' => 'This SEC registration number is already registered.']);
             }
-            if ($data['role'] === 'sorting_center' && RegistrationApplication::where('company_name_normalized', mb_strtolower(trim($data['business_name'])))->exists()) {
+            if ($data['role'] === 'logistics' && RegistrationApplication::where('company_name_normalized', mb_strtolower(trim($data['business_name'])))->exists()) {
                 throw ValidationException::withMessages(['business_name' => 'This company name is already registered.']);
             }
             throw $exception;

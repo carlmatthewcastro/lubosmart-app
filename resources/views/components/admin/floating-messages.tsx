@@ -1,4 +1,5 @@
 import { Badge, buttonClass, inputClass, roleLabel, secondaryClass } from '@/components/shared/marketplace-ui';
+import ValidatedForm from '@/components/shared/validated-form';
 import { NewConversation } from '@/components/support/new-conversation';
 import type { SharedData } from '@/types';
 import { Link, useForm, usePage } from '@inertiajs/react';
@@ -16,7 +17,7 @@ type Message = { id: number; body: string; author: { id: number; name: string };
 type Thread = { case: Conversation; messages: { data: Message[]; next_page_url: string | null } };
 export function AdminFloatingMessages() {
     const { auth, adminWorkspace } = usePage<SharedData>().props;
-    const enabled = ['admin', 'sorting_center'].includes(auth.user.role) && auth.user.status === 'approved';
+    const enabled = ['admin', 'logistics'].includes(auth.user.role) && auth.user.status === 'approved';
     const [open, setOpen] = useState(false);
     const [creating, setCreating] = useState(false);
     const [selected, setSelected] = useState<number | null>(null);
@@ -331,7 +332,7 @@ export function AdminFloatingMessages() {
                                     This conversation is resolved. Reopen it in the full conversation to reply.
                                 </p>
                             ) : (
-                                <form
+                                <ValidatedForm
                                     onSubmit={(event) => {
                                         event.preventDefault();
                                         form.post('/support/' + selected + '/messages', {
@@ -369,7 +370,7 @@ export function AdminFloatingMessages() {
                                             {form.processing ? 'Sending...' : 'Send Reply'}
                                         </button>
                                     </div>
-                                </form>
+                                </ValidatedForm>
                             )
                         ) : (
                             <div className="flex justify-end">

@@ -17,15 +17,16 @@ class RiderController extends Controller
 {
     public function index(Request $request): Response
     {
-        abort_unless($request->user()->role === 'sorting_center' && $request->user()->canOperate(), 403);
+        abort_unless($request->user()->role === 'logistics' && $request->user()->canOperate(), 403);
 
         $user = $request->user();
-        $riders = User::query()->managedRiders($user)->where('role', 'courier')
-            ->whereIn('sorting_center_id', $user->sortingCenters()->operational()->pluck('sorting_centers.id'))
-            ->with('application:id,user_id,status,registration_contract,requested_role,sorting_center_id')->orderBy('name')->get(['id', 'name', 'email', 'role', 'status', 'sorting_center_id', 'logistics_company_id']);
+        $riders = User::query()->managedRiders($user)->where('role', 'rider')
+            ->whereIn('logistics_center_id', $user->logisticsCenters()->operational()->pluck('logistics_centers.id'))
+            ->with('application:id,user_id,status,registration_contract,requested_role,logistics_center_id')->orderBy('name')->get(['id', 'name', 'email', 'role', 'status', 'logistics_center_id', 'logistics_company_id', 'created_at', 'email_verified_at']);
 
         return Inertia::render('logistics/riders/index', ['riders' => $riders->map(fn ($rider) => [
-            ...$rider->only(['id', 'name', 'email', 'status']),
+            ...$rider->only(['id', 'name', 'email', 'status', 'created_at', 'email_verified_at']),
+            'applicationStatus' => $rider->application?->status,
             'pendingActivation' => $rider->status === 'unverified' && $rider->application?->registration_contract === 'company-rider-2026-10',
             'applicationId' => $rider->application?->id,
             'canReview' => $rider->status === 'pending' && $rider->application?->status === 'submitted' && Gate::forUser($user)->allows('review', $rider->application),
@@ -35,7 +36,7 @@ class RiderController extends Controller
 
     public function create(Request $request): Response
     {
-        abort_unless($request->user()->role === 'sorting_center' && $request->user()->canOperate() && $request->user()->riderCreationCenters()->exists(), 403);
+        abort_unless($request->user()->role === 'logistics' && $request->user()->canOperate() && $request->user()->riderCreationCenters()->exists(), 403);
 
         return Inertia::render('logistics/riders/create');
     }

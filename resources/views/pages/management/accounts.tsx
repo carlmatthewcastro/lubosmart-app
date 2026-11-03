@@ -1,6 +1,7 @@
 import { AccountAccessPanel } from '@/components/shared/account-access-panel';
 import { InfoModal } from '@/components/shared/info-modal';
 import { Badge, buttonClass, Card, Empty, Field, Page, Pager, roleLabel, Select, type Pagination } from '@/components/shared/marketplace-ui';
+import ValidatedForm from '@/components/shared/validated-form';
 import { useInitials } from '@/hooks/use-initials';
 import { type SharedData, type User } from '@/types';
 import { Link, useForm, usePage } from '@inertiajs/react';
@@ -69,7 +70,7 @@ export default function Accounts({
     allowedStatuses: string[];
 }) {
     const { auth } = usePage<SharedData>().props;
-    const center = auth.user.role === 'sorting_center';
+    const center = auth.user.role === 'logistics';
     const search = useForm({ search: filters.search ?? '', role: filters.role ?? '', status: filters.status ?? '', sort: filters.sort ?? 'name' });
     return (
         <Page
@@ -87,7 +88,7 @@ export default function Accounts({
                         <p className="text-muted-foreground mt-1 text-xs">Search by name or email, then narrow by role and status.</p>
                     </div>
                 </div>
-                <form
+                <ValidatedForm
                     className="grid items-end gap-4 sm:grid-cols-2 xl:grid-cols-[1fr_160px_160px_auto]"
                     onSubmit={(e) => {
                         e.preventDefault();
@@ -97,7 +98,7 @@ export default function Accounts({
                     <Field label="Search Accounts" value={search.data.search} onChange={(e) => search.setData('search', e.target.value)} />
                     <Select label="Role" value={search.data.role} onChange={(e) => search.setData('role', e.target.value)}>
                         <option value="">All Roles</option>
-                        {(center ? ['courier'] : ['buyer', 'seller', 'sorting_center']).map((role) => (
+                        {(center ? ['rider'] : ['buyer', 'seller', 'logistics']).map((role) => (
                             <option key={role} value={role}>
                                 {roleLabel(role)}
                             </option>
@@ -131,7 +132,7 @@ export default function Accounts({
                             Clear Filters
                         </Link>
                     )}
-                </form>
+                </ValidatedForm>
             </Card>
             <p className="text-muted-foreground text-sm">
                 {accounts.total} {accounts.total === 1 ? 'account' : 'accounts'}

@@ -2,7 +2,7 @@
 
 namespace App\Support;
 
-use App\Models\SortingCenter;
+use App\Models\LogisticsCenter;
 use App\Rules\UniqueRiderPlate;
 use Illuminate\Validation\Rule;
 
@@ -20,7 +20,7 @@ class RiderRegistrationRules
             'zip' => ['required', 'regex:/^\d{4}$/'],
             'vehicle_type' => ['required', Rule::in(['motorcycle', 'bicycle', 'car', 'van', 'truck'])],
             'plate_number' => ['bail', 'required', 'string', 'max:30', new UniqueRiderPlate],
-            'sorting_center_id' => ['required', 'integer', Rule::in(SortingCenter::query()->operational()->pluck('id')->all())],
+            'logistics_center_id' => ['required', 'integer', Rule::in(LogisticsCenter::query()->operational()->pluck('id')->all())],
             'identity' => ['required', ...AccountRules::upload()],
             'license' => ['required', ...AccountRules::upload()],
             'vehicle_registration' => ['required', ...AccountRules::upload()],

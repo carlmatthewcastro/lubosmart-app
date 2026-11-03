@@ -26,7 +26,7 @@ test('admin overview shows its oldest eligible applications and excludes rider r
         ]);
         $first ??= $application;
     }
-    foreach ([['courier', 'submitted'], ['seller', 'draft'], ['sorting_center', 'approved']] as [$role, $status]) {
+    foreach ([['rider', 'submitted'], ['seller', 'draft'], ['logistics', 'approved']] as [$role, $status]) {
         RegistrationApplication::query()->create([
             'user_id' => User::factory()->create(['role' => $role])->id,
             'requested_role' => $role,
@@ -47,5 +47,5 @@ test('admin overview shows its oldest eligible applications and excludes rider r
 
 test('non admin dashboards do not expose the admin review queue', function () {
     $this->actingAs(User::factory()->create())->get('/dashboard/buyer')
-        ->assertInertia(fn (Assert $page) => $page->component('workspace/dashboard')->where('adminOverview', null));
+        ->assertInertia(fn (Assert $page) => $page->component('buyer/dashboard')->where('adminOverview', null));
 });

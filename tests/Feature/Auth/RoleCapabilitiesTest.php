@@ -4,25 +4,25 @@ use App\Models\User;
 
 test('each dashboard role is denied other dashboards and unsupported operational routes', function (string $role) {
     $user = User::factory()->create(['role' => $role]);
-    if ($role === 'courier') {
+    if ($role === 'rider') {
         linkRiderToApprovedCenter($user);
     }
     $this->actingAs($user);
 
     $this->get('/dashboard/'.$role)->assertOk();
-    foreach (array_diff(['buyer', 'seller', 'courier', 'sorting_center', 'admin'], [$role]) as $otherRole) {
+    foreach (array_diff(['buyer', 'seller', 'rider', 'logistics', 'admin'], [$role]) as $otherRole) {
         $this->get('/dashboard/'.$otherRole)->assertForbidden();
     }
     $access = [
         '/cart' => ['buyer'],
         '/inventory' => ['seller'],
         '/orders' => ['buyer', 'seller', 'admin'],
-        '/deliveries' => ['courier', 'sorting_center', 'admin'],
-        '/reports' => ['seller', 'courier', 'sorting_center', 'admin'],
-        '/reviews' => ['admin', 'sorting_center'],
-        '/accounts' => ['admin', 'sorting_center'],
-        '/logistics/riders' => ['sorting_center'],
-        '/logistics/shipping-rates' => ['sorting_center'],
+        '/deliveries' => ['rider', 'logistics', 'admin'],
+        '/reports' => ['seller', 'rider', 'logistics', 'admin'],
+        '/reviews' => ['admin', 'logistics'],
+        '/accounts' => ['admin', 'logistics'],
+        '/logistics/riders' => ['logistics'],
+        '/logistics/shipping-rates' => ['logistics'],
         '/admin/commission' => ['admin'],
         '/admin/platform' => ['admin'],
         '/admin/compliance' => ['admin'],
@@ -33,9 +33,9 @@ test('each dashboard role is denied other dashboards and unsupported operational
             $this->get($url)->assertForbidden();
         }
     }
-    foreach (['/checkout' => 'buyer', '/inventory' => 'seller', '/logistics/riders' => 'sorting_center', '/logistics/shipping-rates' => 'sorting_center', '/admin/platform' => 'admin'] as $url => $allowedRole) {
+    foreach (['/checkout' => 'buyer', '/inventory' => 'seller', '/logistics/riders' => 'logistics', '/logistics/shipping-rates' => 'logistics', '/admin/platform' => 'admin'] as $url => $allowedRole) {
         if ($role !== $allowedRole) {
             $this->post($url, ['role' => $allowedRole, 'status' => 'approved'])->assertForbidden();
         }
     }
-})->with(['buyer', 'seller', 'courier', 'sorting_center', 'admin']);
+})->with(['buyer', 'seller', 'rider', 'logistics', 'admin']);

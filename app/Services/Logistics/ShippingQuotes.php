@@ -4,7 +4,7 @@ namespace App\Services\Logistics;
 
 use App\Models\Address;
 use App\Models\CommerceSetting;
-use App\Models\SortingCenter;
+use App\Models\LogisticsCenter;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -20,7 +20,7 @@ class ShippingQuotes
     public function options(Address $address, Collection $items, Collection $products): array
     {
         $options = [];
-        foreach (SortingCenter::query()->operational()->orderBy('name')->orderBy('id')->get(['id', 'name']) as $center) {
+        foreach (LogisticsCenter::query()->operational()->orderBy('name')->orderBy('id')->get(['id', 'name']) as $center) {
             try {
                 $quotes = $this->quote($address, $items, $products, $center->id);
                 $options[] = ['id' => $center->id, 'name' => $center->name, 'total' => array_sum(array_column($quotes, 'fee_cents')) / 100, 'parcels' => array_values($quotes)];
@@ -43,16 +43,16 @@ class ShippingQuotes
 
             return $groups->map(fn () => ['fee_cents' => $fee, 'weight_grams' => null, 'center_id' => null, 'area_id' => null, 'basis' => 'legacy_flat'])->all();
         }
-        $centerQuery = SortingCenter::query()->operational()->whereKey($centerId);
+        $centerQuery = LogisticsCenter::query()->operational()->whereKey($centerId);
         if (DB::transactionLevel() > 0) {
             $centerQuery->lockForUpdate();
         }
         $center = $centerQuery->first();
         if (! $center) {
-            throw ValidationException::withMessages(['sorting_center_id' => 'Choose an available logistics provider for this address.']);
+            throw ValidationException::withMessages(['logistics_center_id' => 'Choose an available logistics provider for this address.']);
         }
         $ratesQuery = DB::table('shipping_rates')->join('service_areas', 'service_areas.id', '=', 'shipping_rates.service_area_id')
-            ->where('service_areas.sorting_center_id', $center->id)->where('service_areas.is_active', true)->where('shipping_rates.is_active', true)
+            ->where('service_areas.logistics_center_id', $center->id)->where('service_areas.is_active', true)->where('shipping_rates.is_active', true)
             ->orderBy('shipping_rates.id');
         if (DB::transactionLevel() > 0) {
             $ratesQuery->lockForUpdate();
@@ -63,7 +63,7 @@ class ShippingQuotes
             && mb_strtolower(trim($rate->barangay_name ?? '')) === mb_strtolower(trim($location->barangay));
         $rate = $rates->first(fn ($rate) => $matches($rate, $address));
         if (! $rate) {
-            throw ValidationException::withMessages(['sorting_center_id' => 'This provider does not cover the delivery barangay.']);
+            throw ValidationException::withMessages(['logistics_center_id' => 'This provider does not cover the delivery barangay.']);
         }
         $sellerIds = $products->pluck('store.user_id')->filter()->unique();
         $pickupAddresses = Address::query()->whereIn('user_id', $sellerIds)->orderByDesc('is_default')->orderBy('id')->get()->groupBy('user_id');
@@ -72,7 +72,7 @@ class ShippingQuotes
             $firstProduct = $products->get($storeItems->first()->product_id);
             $pickup = ($pickupAddresses->get($firstProduct?->store?->user_id) ?? collect())->first();
             if (! $pickup || ! $rates->contains(fn ($rate) => $matches($rate, $pickup))) {
-                throw ValidationException::withMessages(['sorting_center_id' => 'This provider does not cover one of the seller pickup addresses.']);
+                throw ValidationException::withMessages(['logistics_center_id' => 'This provider does not cover one of the seller pickup addresses.']);
             }
             $weight = 0;
             foreach ($storeItems as $item) {

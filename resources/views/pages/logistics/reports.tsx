@@ -1,4 +1,5 @@
 import { Card, Empty, Field, Page, Pager, type Pagination, buttonClass, money, secondaryClass } from '@/components/shared/marketplace-ui';
+import ValidatedForm from '@/components/shared/validated-form';
 import { useForm } from '@inertiajs/react';
 import { Download, PackageCheck } from 'lucide-react';
 
@@ -23,7 +24,7 @@ export default function LogisticsReports({
     return (
         <Page title="Delivery Reports" description="Review completed parcels and delivery amounts for your logistics center.">
             <Card>
-                <form
+                <ValidatedForm
                     className="grid items-end gap-4 sm:grid-cols-[1fr_1fr_auto]"
                     onSubmit={(event) => {
                         event.preventDefault();
@@ -48,7 +49,7 @@ export default function LogisticsReports({
                     <button className={buttonClass} disabled={form.processing}>
                         Apply Dates
                     </button>
-                </form>
+                </ValidatedForm>
                 <a href={`/logistics/reports/export${query ? '?' + query : ''}`} className={`${secondaryClass} mt-4`}>
                     <Download className="size-4" />
                     Download Delivery CSV

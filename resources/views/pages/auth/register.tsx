@@ -1,7 +1,7 @@
 import RegistrationForm, { registrationRoles } from '@/components/auth/registration-form';
 import AccountAccessLayout from '@/layouts/auth/account-access-layout';
 import { Link, usePage } from '@inertiajs/react';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 
 export default function Register() {
     const { url } = usePage();
@@ -39,10 +39,7 @@ export default function Register() {
                                 <h2 className="text-xl font-semibold">{title}</h2>
                                 <p className="text-muted-foreground text-sm leading-relaxed">{description}</p>
                             </div>
-                            <span className="text-primary mt-auto inline-flex items-center gap-2 text-sm font-semibold">
-                                Join as {title}
-                                <ArrowRight className="registration-role-arrow size-4" aria-hidden="true" />
-                            </span>
+                            <span className="text-primary mt-auto inline-flex items-center gap-2 text-sm font-semibold">Join as {title}</span>
                         </Link>
                     ))}
                 </div>

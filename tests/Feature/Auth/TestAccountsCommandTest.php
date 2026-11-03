@@ -14,7 +14,7 @@ test('the test account command creates five verified active local accounts', fun
     $this->artisan('lubosmart:test-accounts')->assertSuccessful();
     expect(User::query()->where('status', 'approved')->whereNotNull('email_verified_at')->count())->toBe(5);
     $this->assertDatabaseHas('stores', ['status' => 'approved', 'name' => 'Test Store']);
-    $this->assertDatabaseCount('sorting_center_user', 2);
+    $this->assertDatabaseCount('logistics_center_user', 2);
 });
 
 test('the test account command refuses production environments', function () {
@@ -101,8 +101,8 @@ test('repeating test account creation preserves credentials and creates no dupli
     $this->assertDatabaseHas('users', ['id' => $buyer->id, 'status' => 'suspended', 'name' => 'Preserved Test Buyer']);
     $this->assertDatabaseCount('users', 5);
     $this->assertDatabaseCount('stores', 1);
-    $this->assertDatabaseCount('sorting_centers', 1);
-    $this->assertDatabaseCount('sorting_center_user', 2);
+    $this->assertDatabaseCount('logistics_centers', 1);
+    $this->assertDatabaseCount('logistics_center_user', 2);
 });
 
 test('partial test accounts are completed without changing an existing account', function () {
@@ -113,7 +113,7 @@ test('partial test accounts are completed without changing an existing account',
     expect(Hash::check('ExistingPassword123', $buyer->fresh()->password))->toBeTrue();
     $this->assertDatabaseCount('users', 5);
     $this->assertDatabaseCount('stores', 1);
-    $this->assertDatabaseCount('sorting_center_user', 2);
+    $this->assertDatabaseCount('logistics_center_user', 2);
 });
 
 test('explicit test password reset updates only reserved test accounts', function () {
@@ -131,7 +131,7 @@ test('explicit test password reset updates only reserved test accounts', functio
     }
     expect(Hash::check('UnrelatedPassword123', $other->fresh()->password))->toBeTrue();
     $this->assertDatabaseCount('users', 6);
-    $this->assertDatabaseCount('sorting_centers', 1);
+    $this->assertDatabaseCount('logistics_centers', 1);
 });
 
 test('reserved test emails with conflicting roles return a clear error and roll back changes', function () {
@@ -145,7 +145,7 @@ test('reserved test emails with conflicting roles return a clear error and roll 
     expect($user->fresh()->password)->toBe($password);
     $this->assertDatabaseCount('users', 1);
     $this->assertDatabaseCount('stores', 0);
-    $this->assertDatabaseCount('sorting_centers', 0);
+    $this->assertDatabaseCount('logistics_centers', 0);
 });
 
 test('test password reset is unavailable in production', function () {
@@ -162,7 +162,7 @@ test('the private login guide retains the same known passwords across reruns', f
     Artisan::call('lubosmart:test-accounts');
     $passwords = Storage::disk('local')->get('test-account-passwords.json');
     $guide = Storage::disk('local')->get('local-test-accounts.md');
-    expect($guide)->toContain('lubosmart-admin@testing.app', 'lubosmart-buyer@testing.app', 'lubosmart-seller@testing.app', 'lubosmart-courier@testing.app', 'lubosmart-sorting_center@testing.app');
+    expect($guide)->toContain('lubosmart-admin@testing.app', 'lubosmart-buyer@testing.app', 'lubosmart-seller@testing.app', 'lubosmart-rider@testing.app', 'lubosmart-logistics@testing.app');
     Artisan::call('lubosmart:test-accounts');
     expect(Storage::disk('local')->get('test-account-passwords.json'))->toBe($passwords);
     expect(Storage::disk('local')->get('local-test-accounts.md'))->toBe($guide);
@@ -182,14 +182,14 @@ test('demo setup is repeatable and preserves existing stock and address records'
 });
 
 test('canonical role names retain legacy local test emails and passwords', function () {
-    $courier = User::factory()->create(['role' => 'courier', 'email' => 'lubosmart-rider@testing.app']);
-    $center = User::factory()->create(['role' => 'sorting_center', 'email' => 'lubosmart-logistics@testing.app']);
-    $courierPassword = $courier->password;
+    $rider = User::factory()->create(['role' => 'rider', 'email' => 'lubosmart-rider@testing.app']);
+    $center = User::factory()->create(['role' => 'logistics', 'email' => 'lubosmart-logistics@testing.app']);
+    $riderPassword = $rider->password;
     $centerPassword = $center->password;
     $this->artisan('lubosmart:test-accounts')->assertSuccessful();
     $this->assertDatabaseCount('users', 5);
-    expect($courier->fresh()->password)->toBe($courierPassword);
+    expect($rider->fresh()->password)->toBe($riderPassword);
     expect($center->fresh()->password)->toBe($centerPassword);
-    expect($courier->fresh()->email)->toBe('lubosmart-rider@testing.app');
+    expect($rider->fresh()->email)->toBe('lubosmart-rider@testing.app');
     expect($center->fresh()->email)->toBe('lubosmart-logistics@testing.app');
 });

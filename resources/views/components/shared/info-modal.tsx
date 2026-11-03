@@ -1,6 +1,6 @@
 import { secondaryClass } from '@/components/shared/marketplace-ui';
 import { RegistrationProfile } from '@/components/shared/registration-profile';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import Account from '@/pages/admin/account';
 import Review from '@/pages/management/registrations/show';
@@ -72,10 +72,12 @@ export function InfoModal({ kind, id, label }: { kind: Kind; id: number; label: 
     };
     return (
         <>
-            <button type="button" className={secondaryClass} onClick={() => toggle(true)}>
-                {label}
-            </button>
             <Dialog open={open} onOpenChange={toggle}>
+                <DialogTrigger asChild>
+                    <button type="button" className={secondaryClass}>
+                        {label}
+                    </button>
+                </DialogTrigger>
                 <DialogContent className="max-h-[90dvh] gap-0 overflow-hidden !p-0 sm:max-w-4xl">
                     <DialogHeader className="border-primary/10 bg-accent/40 border-b px-6 py-5 pr-14">
                         <DialogTitle>

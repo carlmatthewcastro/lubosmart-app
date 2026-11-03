@@ -12,24 +12,33 @@ use Laravel\Socialite\Two\User as GoogleUser;
 
 test('each verified active role receives its own dashboard', function (string $role) {
     $user = User::factory()->create(['role' => $role]);
-    if ($role === 'courier') {
+    if ($role === 'rider') {
         linkRiderToApprovedCenter($user);
     }
     $this->actingAs($user)->get(route('dashboard.role', $role))->assertOk()
         ->assertInertia(function (Assert $page) use ($role) {
-            if ($role === 'sorting_center') {
-                $page->component('logistics/dashboard')->has('metrics', 8)->has('recentParcels', 0);
+            if ($role === 'logistics') {
+                $page->component('logistics/dashboard')->where('metrics', [
+                    'pickupRequests' => 0, 'incoming' => 0, 'sorting' => 0,
+                    'dispatch' => 0, 'exceptions' => 0, 'cash' => 0,
+                    'activeDeliveries' => 0, 'riderApplications' => 0,
+                    'delivered' => 0, 'activeRiders' => 0, 'publishedRates' => 0,
+                ])->has('recentParcels', 0);
+            } elseif ($role === 'rider') {
+                $page->component('rider/dashboard')->where('queues.all', 0)->has('recentParcels', 0);
+            } elseif ($role === 'seller') {
+                $page->component('seller/dashboard')->where('queues.all', 0)->has('recentOrders', 0);
             } else {
-                $page->component($role === 'admin' ? 'admin/dashboard' : 'workspace/dashboard')->where('role', $role)->has('stats', 3)->has('records', 0);
+                $page->component($role === 'admin' ? 'admin/dashboard' : 'buyer/dashboard')->where('role', $role)->has('stats', 3)->has('records', 0);
             }
         });
-})->with(['buyer', 'seller', 'courier', 'sorting_center', 'admin']);
+})->with(['buyer', 'seller', 'rider', 'logistics', 'admin']);
 
 test('a role cannot open another role dashboard', function (string $role) {
     $user = User::factory()->create(['role' => $role]);
     $target = $role === 'admin' ? 'buyer' : 'admin';
     $this->actingAs($user)->get(route('dashboard.role', $target))->assertForbidden();
-})->with(['buyer', 'seller', 'courier', 'sorting_center', 'admin']);
+})->with(['buyer', 'seller', 'rider', 'logistics', 'admin']);
 
 test('unverified accounts are sent to email verification', function () {
     $this->actingAs(User::factory()->unverified()->create())->get('/dashboard/buyer')->assertRedirect(route('verification.notice'));
@@ -62,7 +71,7 @@ test('public logistics registration is pending and cannot inject privileges', fu
     $user = User::query()->where('email', 'center@example.com')->firstOrFail();
     expect($user->status)->toBe('unverified');
     expect($user->email_verified_at)->toBeNull();
-    $this->assertDatabaseHas('registration_applications', ['user_id' => $user->id, 'requested_role' => 'sorting_center', 'status' => 'submitted', 'reviewer_id' => null]);
+    $this->assertDatabaseHas('registration_applications', ['user_id' => $user->id, 'requested_role' => 'logistics', 'status' => 'submitted', 'reviewer_id' => null]);
     Notification::assertSentTo($user, VerifyAccountEmail::class);
 });
 

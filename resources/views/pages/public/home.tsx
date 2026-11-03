@@ -1,16 +1,17 @@
 import AuthFeedback from '@/components/auth/auth-feedback';
 import AppWordmark from '@/components/branding/app-wordmark';
 import HomeDiscovery from '@/components/marketplace/home-discovery';
+import { ThemeToggle } from '@/components/navigation/theme-toggle';
 import { assets } from '@/config/assets';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { ArrowRight, PackageCheck, Search, Store, Wallet } from 'lucide-react';
+import { MapPin, Package, PackageCheck, Search, ShoppingBag, Sparkles, Store, Wallet } from 'lucide-react';
 import { useEffect, useRef, type MouseEvent } from 'react';
 
 import { SkipLink } from '@/components/shell/skip-link';
 import type { SharedData } from '@/types';
 import '../../../css/storefront.css';
 
-type PublicRole = 'buyer' | 'seller' | 'courier' | 'sorting_center';
+type PublicRole = 'buyer' | 'seller' | 'rider' | 'logistics';
 
 function scrollToSection(event: MouseEvent<HTMLAnchorElement>, id: string) {
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
@@ -89,6 +90,7 @@ export default function Welcome({
                         <AppWordmark />
                     </a>
                     <nav className="storefront__nav" aria-label="Main navigation">
+                        <ThemeToggle />
                         <a className="storefront__nav-link" href="#shop-categories" onClick={(event) => scrollToSection(event, 'shop-categories')}>
                             Discover
                         </a>
@@ -226,14 +228,39 @@ export default function Welcome({
                             starts with your store.
                         </h2>
                         <p>Bring your products to your local community. Create a seller account and start building your shop.</p>
+                        <button className="storefront__button storefront__seller-button" type="button" onClick={() => openRegistration('seller')}>
+                            Become a seller
+                        </button>
                     </div>
                     <div className="storefront__seller-action">
-                        <span className="storefront__seller-emblem" aria-hidden="true">
-                            <Store className="size-10" strokeWidth={1.5} />
-                        </span>
-                        <button className="storefront__button storefront__button--light" type="button" onClick={() => openRegistration('seller')}>
-                            Become a seller <ArrowRight aria-hidden="true" className="size-4" />
-                        </button>
+                        <div className="storefront__seller-scene" aria-hidden="true">
+                            <span className="storefront__seller-orbit" />
+                            <span className="storefront__seller-charm storefront__seller-charm--parcel">
+                                <Package strokeWidth={1.5} />
+                            </span>
+                            <span className="storefront__seller-charm storefront__seller-charm--bag">
+                                <ShoppingBag strokeWidth={1.5} />
+                            </span>
+                            <span className="storefront__seller-charm storefront__seller-charm--pin">
+                                <MapPin strokeWidth={1.5} />
+                            </span>
+                            <Sparkles className="storefront__seller-sparkle storefront__seller-sparkle--top" />
+                            <Sparkles className="storefront__seller-sparkle storefront__seller-sparkle--bottom" />
+                            <span className="storefront__seller-parcels">
+                                <span />
+                                <span />
+                                <span />
+                            </span>
+                            <img
+                                src={assets.marketplace.sellerIllustration}
+                                className="storefront__seller-illustration"
+                                alt=""
+                                width={1024}
+                                height={1536}
+                                loading="lazy"
+                                decoding="async"
+                            />
+                        </div>
                     </div>
                 </section>
 
@@ -267,11 +294,11 @@ export default function Welcome({
                             <button type="button" onClick={() => openRegistration('seller')}>
                                 Open a seller store
                             </button>
-                            <button type="button" onClick={() => openRegistration('courier')}>
+                            <button type="button" onClick={() => openRegistration('rider')}>
                                 Sign up as a rider
                             </button>
-                            <button type="button" onClick={() => openRegistration('sorting_center')}>
-                                Register a sorting center
+                            <button type="button" onClick={() => openRegistration('logistics')}>
+                                Register a logistics company
                             </button>
                         </div>
                     </div>

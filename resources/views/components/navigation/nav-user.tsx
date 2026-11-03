@@ -22,10 +22,10 @@ export function NavUser() {
                     <DropdownMenuTrigger asChild>
                         <SidebarMenuButton
                             size="lg"
-                            className={`text-sidebar-accent-foreground data-[state=open]:bg-sidebar-accent group ${['admin', 'sorting_center'].includes(auth.user.role) ? 'bg-accent/50 size-11! justify-center rounded-xl border p-2!' : ''}`}
+                            className={`text-sidebar-accent-foreground data-[state=open]:bg-sidebar-accent group ${['admin', 'logistics'].includes(auth.user.role) ? 'bg-accent/50 size-11! justify-center rounded-xl border p-2!' : ''}`}
                             tooltip="Account menu"
                         >
-                            {['admin', 'sorting_center'].includes(auth.user.role) ? (
+                            {['admin', 'logistics'].includes(auth.user.role) ? (
                                 <>
                                     <Avatar aria-hidden="true" className="size-8">
                                         <AvatarFallback className="bg-muted text-foreground text-xs font-medium">

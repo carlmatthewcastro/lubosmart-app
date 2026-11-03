@@ -15,7 +15,7 @@ export default function Account({
     onViewRegistration,
     onSaved,
     address,
-    courier,
+    rider,
     centers,
     assignedCenter,
     allowedStatuses,
@@ -25,7 +25,7 @@ export default function Account({
     onViewRegistration?: (id: number) => void;
     onSaved?: () => void;
     address?: Record<string, string> | null;
-    courier?: { vehicle_type?: string; plate_number?: string } | null;
+    rider?: { vehicle_type?: string; plate_number?: string } | null;
     centers?: { id: number; name: string }[];
     assignedCenter?: string | null;
     allowedStatuses?: string[];
@@ -65,15 +65,15 @@ export default function Account({
                         ['First Name', profile?.first_name ?? 'Not Provided'],
                         ['Last Name', profile?.last_name ?? 'Not Provided'],
                         ...(account.role === 'seller' ? [['Store', store?.name ?? 'Not Provided']] : []),
-                        ...(account.role === 'courier'
+                        ...(account.role === 'rider'
                             ? [
-                                  ['Vehicle', courier?.vehicle_type ?? 'Not Provided'],
-                                  ['Plate Number', courier?.plate_number ?? 'Not Provided'],
-                                  ['Sorting Center', assignedCenter ?? 'Not Assigned'],
+                                  ['Vehicle', rider?.vehicle_type ?? 'Not Provided'],
+                                  ['Plate Number', rider?.plate_number ?? 'Not Provided'],
+                                  ['Logistics', assignedCenter ?? 'Not Assigned'],
                               ]
                             : []),
-                        ...(account.role === 'sorting_center'
-                            ? [['Sorting Centers', centers?.map((center) => center.name).join(', ') || 'Not Assigned']]
+                        ...(account.role === 'logistics'
+                            ? [['Logistics companies', centers?.map((center) => center.name).join(', ') || 'Not Assigned']]
                             : []),
                         ...(address
                             ? [['Address', [address.line1, address.barangay, address.city, address.province, address.zip].filter(Boolean).join(', ')]]

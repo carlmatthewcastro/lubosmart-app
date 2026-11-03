@@ -1,5 +1,10 @@
+import ReviewForm, { type PurchaseReview } from '@/components/marketplace/review-form';
+import SellerListFilters from '@/components/seller/list-filters';
+import SellerNavigation from '@/components/seller/seller-navigation';
+import { useConfirmAction } from '@/components/shared/action-feedback';
 import { Badge, buttonClass, Card, Empty, money, Page, Pager, Textarea, type Pagination } from '@/components/shared/marketplace-ui';
-import { Link, useForm } from '@inertiajs/react';
+import ValidatedForm from '@/components/shared/validated-form';
+import { Link, useForm, usePoll } from '@inertiajs/react';
 import { Check, MapPin, MessageCircle, Package, Truck } from 'lucide-react';
 
 type Message = { id: number; body: string; name: string; created_at: string };
@@ -17,9 +22,22 @@ export type SellerOrder = {
     shipping_fee: string;
     seller_proceeds: string;
     commission_amount: string;
+    discount_amount?: string;
+    voucher_code?: string | null;
     store: { name: string; pickup_address?: { line1: string; barangay: string; city: string; province: string; phone: string } | null };
-    items: { id: number; product_name: string; quantity: number; price_each: string }[];
-    delivery: { id: number; status: string; proof_photo_path: string | null } | null;
+    items: { id: number; product_name: string; quantity: number; price_each: string; variant_name?: string | null }[];
+    delivery: {
+        id: number;
+        status: string;
+        proof_photo_path: string | null;
+        tracking_reference?: string | null;
+        exception_status?: string | null;
+        picked_up_at?: string | null;
+        received_at?: string | null;
+        sorted_at?: string | null;
+        dispatch_accepted_at?: string | null;
+        delivered_at?: string | null;
+    } | null;
     order: {
         status: string;
         shipping_recipient_name: string;
@@ -31,14 +49,25 @@ export type SellerOrder = {
         created_at: string;
     };
 };
-function OrderCard({ order, messages, role }: { order: SellerOrder; messages: Message[]; role: string }) {
+function OrderCard({
+    order,
+    messages,
+    role,
+    reviews,
+}: {
+    order: SellerOrder;
+    messages: Message[];
+    role: string;
+    reviews: Record<string, PurchaseReview>;
+}) {
+    const confirm = useConfirmAction();
     const message = useForm({ body: '' });
     const cancel = useForm({});
     const prepare = useForm({ status: order.status === 'pending' ? 'processing' : 'shipped' });
     const stage =
         order.status === 'completed'
             ? 3
-            : ['picked_up', 'in_transit'].includes(order.delivery?.status ?? '')
+            : ['picked_up', 'in_transit', 'out_for_delivery', 'delivered'].includes(order.delivery?.status ?? '')
               ? 2
               : order.status === 'shipped'
                 ? 1
@@ -51,23 +80,68 @@ function OrderCard({ order, messages, role }: { order: SellerOrder; messages: Me
                         Order #{order.order_id} / Parcel #{order.id}
                     </p>
                     <h2 className="mt-1 text-lg font-semibold">{order.store.name}</h2>
+                    {order.delivery?.tracking_reference && (
+                        <p className="text-muted-foreground mt-2 text-sm break-all">Tracking: {order.delivery.tracking_reference}</p>
+                    )}
                 </div>
                 <Badge
+                    label={
+                        order.status === 'shipped' && ['unassigned', 'assigned'].includes(order.delivery?.status ?? '')
+                            ? order.delivery?.status === 'assigned'
+                                ? 'Pickup rider assigned'
+                                : 'Ready for pickup'
+                            : undefined
+                    }
                     status={
-                        order.status === 'cancelled' || order.delivery?.status === 'unassigned'
+                        ['pending', 'processing', 'completed', 'cancelled'].includes(order.status) || order.delivery?.status === 'unassigned'
                             ? order.status
                             : (order.delivery?.status ?? order.status)
                     }
                 />
             </div>
+            {order.delivery?.exception_status && (
+                <p role="status" className="text-destructive mt-4 text-sm">
+                    Delivery issue: {order.delivery.exception_status.replaceAll('_', ' ')}.{' '}
+                    {role === 'buyer' ? 'Contact your seller or support for follow-up.' : 'Contact support or your buyer for follow-up.'}
+                </p>
+            )}
             <ol aria-label="Order progress" className={`my-6 grid grid-cols-4 gap-1 ${order.status === 'cancelled' ? 'hidden' : ''}`}>
-                {['Preparing', 'Ready', 'On the way', 'Delivered'].map((label, i) => (
+                {[order.status === 'pending' ? 'Order placed' : 'Preparing', 'Ready', 'On the way', 'Delivered'].map((label, i) => (
                     <li key={label} className="text-center">
                         <div className={`mb-2 h-1 rounded-full ${i <= stage ? 'bg-primary' : 'bg-muted'}`} />
                         <span className={`text-[10px] sm:text-xs ${i <= stage ? 'text-primary' : 'text-muted-foreground'}`}>{label}</span>
                     </li>
                 ))}
             </ol>
+            {order.status !== 'cancelled' && (
+                <details className="mb-6 rounded-xl border p-4">
+                    <summary className="min-h-6 cursor-pointer text-sm font-medium">Parcel handover history</summary>
+                    <p className="text-muted-foreground mt-3 text-sm">
+                        Rider assignment and label printing do not confirm physical pickup. Each store sends a separate parcel.
+                    </p>
+                    <ol className="mt-4 space-y-3 text-sm">
+                        {[
+                            { label: 'Order placed', at: order.order.created_at },
+                            { label: 'Collected from seller', at: order.delivery?.picked_up_at },
+                            { label: 'Received at logistics center', at: order.delivery?.received_at },
+                            { label: 'Sorted at logistics center', at: order.delivery?.sorted_at },
+                            { label: 'Accepted by delivery rider', at: order.delivery?.dispatch_accepted_at },
+                            { label: 'Delivered to recipient', at: order.delivery?.delivered_at },
+                        ].map((event) => (
+                            <li key={event.label} className="flex flex-wrap justify-between gap-2">
+                                <span>{event.label}</span>
+                                {event.at ? (
+                                    <time dateTime={event.at} className="text-muted-foreground">
+                                        {new Date(event.at).toLocaleString()}
+                                    </time>
+                                ) : (
+                                    <span className="text-muted-foreground">Not recorded</span>
+                                )}
+                            </li>
+                        ))}
+                    </ol>
+                </details>
+            )}
             <div className="grid gap-6 md:grid-cols-2">
                 <div>
                     <ul className="space-y-3">
@@ -75,12 +149,18 @@ function OrderCard({ order, messages, role }: { order: SellerOrder; messages: Me
                             <li key={item.id} className="flex justify-between gap-3 text-sm">
                                 <span>
                                     {item.product_name}
+                                    {item.variant_name && <span className="text-muted-foreground"> · {item.variant_name}</span>}
                                     <span className="text-muted-foreground"> × {item.quantity}</span>
                                 </span>
                                 <span className="shrink-0">{money(Number(item.price_each) * item.quantity)}</span>
                             </li>
                         ))}
                     </ul>
+                    {Number(order.discount_amount ?? 0) > 0 && (
+                        <p className="text-success mt-4 text-sm">
+                            Voucher {order.voucher_code}: −{money(order.discount_amount!)} on product sales
+                        </p>
+                    )}
                     <div className="mt-4 flex justify-between border-t pt-3 text-sm">
                         <span className="text-muted-foreground">Delivery fee</span>
                         {money(order.shipping_fee)}
@@ -116,10 +196,19 @@ function OrderCard({ order, messages, role }: { order: SellerOrder; messages: Me
                 <button
                     className={`${buttonClass} mt-5`}
                     disabled={prepare.processing}
-                    onClick={() => prepare.patch(`/orders/${order.id}`, { preserveScroll: true })}
+                    onClick={async () => {
+                        if (
+                            await confirm({
+                                title: order.status === 'pending' ? 'Start preparing this parcel?' : 'Mark this parcel ready for pickup?',
+                                description: `Parcel #${order.id} from ${order.store.name}. Confirm the items and packaging before updating fulfillment.`,
+                                confirmLabel: order.status === 'pending' ? 'Start preparing' : 'Mark ready for pickup',
+                            })
+                        )
+                            prepare.patch(`/orders/${order.id}`, { preserveScroll: true });
+                    }}
                 >
                     {order.status === 'pending' ? <Package className="size-4" /> : <Truck className="size-4" />}
-                    {order.status === 'pending' ? 'Start preparing' : 'Mark ready for pickup'}
+                    {prepare.processing ? 'Updating parcel…' : order.status === 'pending' ? 'Start preparing' : 'Mark ready for pickup'}
                 </button>
             )}
             {['seller', 'admin'].includes(role) && (
@@ -136,7 +225,18 @@ function OrderCard({ order, messages, role }: { order: SellerOrder; messages: Me
                     <button
                         className="bg-destructive text-destructive-foreground min-h-11 rounded-xl px-4 text-sm"
                         disabled={cancel.processing}
-                        onClick={() => cancel.post(`/purchases/${order.order_id}/cancel`, { preserveScroll: true })}
+                        onClick={async () => {
+                            if (
+                                await confirm({
+                                    title: `Cancel Order #${order.order_id}?`,
+                                    description:
+                                        'This cancels every store parcel in this purchase and restores eligible stock. A seller must not have started preparation.',
+                                    confirmLabel: 'Cancel purchase',
+                                    destructive: true,
+                                })
+                            )
+                                cancel.post(`/purchases/${order.order_id}/cancel`, { preserveScroll: true });
+                        }}
                     >
                         Confirm cancellation
                     </button>
@@ -148,6 +248,22 @@ function OrderCard({ order, messages, role }: { order: SellerOrder; messages: Me
                     Delivered successfully
                 </p>
             )}
+            {role === 'buyer' && order.status === 'completed' && (
+                <Link href={`/returns?parcel=${order.id}`} className="text-primary mt-4 inline-flex min-h-11 items-center text-sm underline">
+                    Request or follow a return
+                </Link>
+            )}
+            {role === 'buyer' &&
+                order.status === 'completed' &&
+                order.delivery?.status === 'delivered' &&
+                order.items.map((item) => (
+                    <ReviewForm
+                        key={item.id}
+                        itemId={item.id}
+                        name={`${item.product_name}${item.variant_name ? ' · ' + item.variant_name : ''}`}
+                        review={reviews[item.id]}
+                    />
+                ))}
             <details className="mt-6 border-t pt-5">
                 <summary className="flex cursor-pointer items-center gap-2 text-sm font-medium">
                     <MessageCircle className="text-primary size-4" />
@@ -166,7 +282,7 @@ function OrderCard({ order, messages, role }: { order: SellerOrder; messages: Me
                         <p className="text-muted-foreground text-sm">Ask a question or share an update about this order.</p>
                     )}
                     {role !== 'admin' && (
-                        <form
+                        <ValidatedForm
                             className="flex flex-wrap items-end gap-3"
                             onSubmit={(e) => {
                                 e.preventDefault();
@@ -188,14 +304,28 @@ function OrderCard({ order, messages, role }: { order: SellerOrder; messages: Me
                             <button className={buttonClass} disabled={message.processing}>
                                 {message.processing ? 'Sending…' : 'Send'}
                             </button>
-                        </form>
+                        </ValidatedForm>
                     )}
                 </div>
             </details>
         </Card>
     );
 }
-export default function Orders({ orders, messages, role }: { orders: Pagination<SellerOrder>; messages: Record<string, Message[]>; role: string }) {
+export default function Orders({
+    orders,
+    messages,
+    role,
+    filters = {},
+    reviews = {},
+}: {
+    orders: Pagination<SellerOrder>;
+    messages: Record<string, Message[]>;
+    role: string;
+    filters?: { search?: string; stage?: string };
+    reviews?: Record<string, PurchaseReview>;
+}) {
+    usePoll(30000, { only: ['orders', 'messages', 'reviews'] }, { autoStart: role === 'admin' });
+    const filtered = !!filters.search || (!!filters.stage && filters.stage !== 'all');
     return (
         <Page
             title={role === 'seller' ? 'Order fulfillment' : 'Orders & tracking'}
@@ -205,17 +335,36 @@ export default function Orders({ orders, messages, role }: { orders: Pagination<
                     : 'Follow each store’s parcel from preparation to your doorstep.'
             }
         >
+            {['seller', 'buyer'].includes(role) && (
+                <>
+                    {role === 'seller' && <SellerNavigation />}
+                    <SellerListFilters key={JSON.stringify(filters)} filters={filters} buyer={role === 'buyer'} />
+                    <p role="status" className="text-muted-foreground text-sm">
+                        {orders.total.toLocaleString()} matching {orders.total === 1 ? 'parcel' : 'parcels'}
+                    </p>
+                </>
+            )}
             {orders.data.length ? (
                 <div className="space-y-5">
                     {orders.data.map((order) => (
-                        <OrderCard key={`${order.id}-${order.status}`} order={order} messages={messages[order.id] ?? []} role={role} />
+                        <OrderCard
+                            key={`${order.id}-${order.status}`}
+                            order={order}
+                            messages={messages[order.id] ?? []}
+                            role={role}
+                            reviews={reviews}
+                        />
                     ))}
                 </div>
             ) : (
                 <Empty
-                    title="No orders yet"
+                    title={filtered ? 'No matching orders' : 'No orders yet'}
                     description={
-                        role === 'seller' ? 'Incoming orders appear here when a buyer checks out.' : 'Your purchases will appear here after checkout.'
+                        filtered
+                            ? 'Change the queue or reset your search to see more orders.'
+                            : role === 'seller'
+                              ? 'Incoming orders appear here when a buyer checks out.'
+                              : 'Your purchases will appear here after checkout.'
                     }
                     href={role === 'buyer' ? '/shop' : '/dashboard'}
                     label={role === 'buyer' ? 'Start exploring' : 'Back to overview'}

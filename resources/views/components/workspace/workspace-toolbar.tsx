@@ -1,8 +1,10 @@
 import { UserMenuContent } from '@/components/navigation/user-menu-content';
 import { inputClass, secondaryClass } from '@/components/shared/marketplace-ui';
+import ValidatedForm from '@/components/shared/validated-form';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useWorkspaceStatus } from '@/components/workspace/workspace-runtime';
 import { useInitials } from '@/hooks/use-initials';
 import type { SharedData } from '@/types';
 import { Link, router, usePage } from '@inertiajs/react';
@@ -11,6 +13,7 @@ import { useState } from 'react';
 
 export function WorkspaceToolbar() {
     const { auth } = usePage<SharedData>().props;
+    const status = useWorkspaceStatus();
     const initials = useInitials();
     const [open, setOpen] = useState(false);
     const [search, setSearch] = useState('');
@@ -46,10 +49,18 @@ export function WorkspaceToolbar() {
             {buyer && (
                 <Link
                     href="/cart"
-                    aria-label="Open shopping bag"
-                    className="text-muted-foreground hover:bg-accent hover:text-primary flex size-11 items-center justify-center rounded-xl"
+                    aria-label={`Open shopping bag${status ? `, ${status.cartQuantity} items` : ''}`}
+                    className="text-muted-foreground hover:bg-accent hover:text-primary relative flex size-11 items-center justify-center rounded-xl"
                 >
                     <ShoppingCart aria-hidden="true" className="size-5" />
+                    {!!status?.cartQuantity && (
+                        <span
+                            aria-hidden
+                            className="bg-primary text-primary-foreground absolute -top-1 -right-1 min-w-5 rounded-full px-1 text-center text-xs leading-5 tabular-nums"
+                        >
+                            {status.cartQuantity > 99 ? '99+' : status.cartQuantity}
+                        </span>
+                    )}
                 </Link>
             )}
             <Link
@@ -101,7 +112,7 @@ export function WorkspaceToolbar() {
                         <DialogTitle>Search products</DialogTitle>
                         <DialogDescription>Find products in the marketplace.</DialogDescription>
                     </DialogHeader>
-                    <form
+                    <ValidatedForm
                         className="space-y-4"
                         onSubmit={(event) => {
                             event.preventDefault();
@@ -123,7 +134,7 @@ export function WorkspaceToolbar() {
                         <button type="submit" className={secondaryClass}>
                             Search
                         </button>
-                    </form>
+                    </ValidatedForm>
                 </DialogContent>
             </Dialog>
         </div>
