@@ -1,15 +1,16 @@
 import InputError from '@/components/auth/input-error';
 import { useLocations } from '@/components/logistics/rider-service-area-form';
-import { Badge, Card, Empty, Field, Page, Select, buttonClass, money, secondaryClass } from '@/components/shared/marketplace-ui';
+import { Badge, Card, Field, Page, Select, buttonClass, money, secondaryClass } from '@/components/shared/marketplace-ui';
+import ValidatedForm from '@/components/shared/validated-form';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { router, useForm } from '@inertiajs/react';
-import { MapPinned, Pencil, Plus, Scale, Wallet } from 'lucide-react';
+import { MapPinned, Pencil, Plus, Scale } from 'lucide-react';
 import { useState } from 'react';
 
 type Center = { id: number; name: string };
 type Rate = {
     id: number;
-    sorting_center_id: number;
+    logistics_center_id: number;
     center_name: string;
     area_name: string;
     province_code: string;
@@ -23,7 +24,7 @@ type Rate = {
 };
 function RateEditor({ centers, rate, close, pricingEnabled }: { centers: Center[]; rate: Rate | null; close: () => void; pricingEnabled: boolean }) {
     const form = useForm({
-        sorting_center_id: (rate?.sorting_center_id ?? centers[0]?.id)?.toString() ?? '',
+        logistics_center_id: (rate?.logistics_center_id ?? centers[0]?.id)?.toString() ?? '',
         province_code: rate?.province_code ?? '',
         city_code: rate?.city_code ?? '',
         barangay_code: rate?.barangay_code ?? '',
@@ -42,7 +43,7 @@ function RateEditor({ centers, rate, close, pricingEnabled }: { centers: Center[
     const extra = Math.ceil(Math.max(0, sample - Number(form.data.included_weight_grams)) / 1000);
     const preview = Number(form.data.base_fee || 0) + extra * Number(form.data.extra_kg_fee || 0);
     return (
-        <form
+        <ValidatedForm
             onSubmit={(event) => {
                 event.preventDefault();
                 if (form.data.is_active) setReview(true);
@@ -55,9 +56,9 @@ function RateEditor({ centers, rate, close, pricingEnabled }: { centers: Center[
                     label="Logistics Center"
                     required
                     disabled={Boolean(rate)}
-                    value={form.data.sorting_center_id}
-                    onChange={(event) => form.setData('sorting_center_id', event.target.value)}
-                    error={form.errors.sorting_center_id}
+                    value={form.data.logistics_center_id}
+                    onChange={(event) => form.setData('logistics_center_id', event.target.value)}
+                    error={form.errors.logistics_center_id}
                 >
                     {centers.map((center) => (
                         <option key={center.id} value={center.id}>
@@ -224,42 +225,77 @@ function RateEditor({ centers, rate, close, pricingEnabled }: { centers: Center[
                     </div>
                 </DialogContent>
             </Dialog>
-        </form>
+        </ValidatedForm>
     );
 }
 export default function ShippingRates({ centers, rates, pricingEnabled }: { centers: Center[]; rates: Rate[]; pricingEnabled: boolean }) {
     const [editing, setEditing] = useState<Rate | null | undefined>();
     const [confirm, setConfirm] = useState<Rate | null>(null);
     const [busy, setBusy] = useState(false);
+    const [search, setSearch] = useState('');
+    const [status, setStatus] = useState('');
+    const published = rates.filter((rate) => rate.is_active).length;
+    const visibleRates = rates.filter(
+        (rate) =>
+            (!search.trim() || (rate.area_name + ' ' + rate.center_name).toLocaleLowerCase().includes(search.trim().toLocaleLowerCase())) &&
+            (!status || (status === 'published' ? Boolean(rate.is_active) : !rate.is_active)),
+    );
     return (
-        <Page
-            title="Shipping Rates & Coverage"
-            description="Set fair, consistent shipping fees for the barangays your center serves."
-            action={
-                <button className={buttonClass} disabled={!centers.length} onClick={() => setEditing(null)}>
-                    <Plus className="size-4" />
-                    Add Barangay Rate
-                </button>
-            }
-        >
-            <div className="grid gap-4 sm:grid-cols-3">
-                {[
-                    { label: 'Published Areas', value: rates.filter((rate) => rate.is_active).length, icon: MapPinned },
-                    { label: 'Draft Areas', value: rates.filter((rate) => !rate.is_active).length, icon: Wallet },
-                    { label: 'Pricing Basis', value: 'Area + Weight', icon: Scale },
-                ].map((item) => (
-                    <Card key={item.label}>
-                        <div className="flex items-center justify-between">
-                            <p className="text-muted-foreground text-sm">{item.label}</p>
-                            <item.icon className="text-primary size-5" />
-                        </div>
-                        <p className="mt-4 text-2xl font-semibold">{item.value}</p>
-                    </Card>
-                ))}
-            </div>
-            {rates.length ? (
+        <Page title="Shipping Rates & Coverage" description="Set fair, consistent shipping fees for the barangays your center serves.">
+            <Card>
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div className="min-w-0">
+                        <h2 className="text-lg font-semibold">Barangay coverage</h2>
+                        <p className="text-muted-foreground mt-1 max-w-xl text-sm leading-relaxed">
+                            Manage the pickup and delivery areas your company serves, with a clear rate for each destination.
+                        </p>
+                    </div>
+                    <button className={buttonClass} disabled={!centers.length} onClick={() => setEditing(null)}>
+                        <Plus aria-hidden="true" className="size-4" />
+                        Add barangay rate
+                    </button>
+                </div>
+                <dl className="mt-5 flex flex-wrap gap-x-8 gap-y-3 border-t pt-4 text-sm">
+                    <div className="flex items-center gap-2">
+                        <dt className="text-muted-foreground">Published</dt>
+                        <dd className="text-primary font-semibold tabular-nums">{published}</dd>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <dt className="text-muted-foreground">Drafts</dt>
+                        <dd className="font-semibold tabular-nums">{rates.length - published}</dd>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <dt className="text-muted-foreground">Pricing</dt>
+                        <dd className="font-medium">Area + weight</dd>
+                    </div>
+                </dl>
+                {!centers.length && (
+                    <p className="text-muted-foreground mt-4 text-sm">An approved logistics center is required before adding coverage.</p>
+                )}
+            </Card>
+            {rates.length > 0 && (
+                <Card>
+                    <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_200px]">
+                        <Field
+                            label="Search coverage"
+                            placeholder="Barangay or logistics center"
+                            value={search}
+                            onChange={(event) => setSearch(event.target.value)}
+                        />
+                        <Select label="Publication status" value={status} onChange={(event) => setStatus(event.target.value)}>
+                            <option value="">All rates</option>
+                            <option value="published">Published</option>
+                            <option value="draft">Draft</option>
+                        </Select>
+                    </div>
+                    <p role="status" className="text-muted-foreground mt-4 text-xs">
+                        {visibleRates.length} of {rates.length} rates{search || status ? ' matching your filters' : ''}
+                    </p>
+                </Card>
+            )}
+            {visibleRates.length ? (
                 <div className="grid gap-4 lg:grid-cols-2">
-                    {rates.map((rate) => (
+                    {visibleRates.map((rate) => (
                         <Card key={rate.id}>
                             <div className="flex flex-wrap items-start justify-between gap-3">
                                 <div>
@@ -293,21 +329,59 @@ export default function ShippingRates({ centers, rates, pricingEnabled }: { cent
                     ))}
                 </div>
             ) : (
-                <Empty
-                    title="No Shipping Rates Yet"
-                    description="Add pickup and delivery barangays, set their rates, then publish them when your center is ready."
-                />
+                <Card className="flex flex-col items-center px-6 py-10 text-center sm:py-12">
+                    <span aria-hidden="true" className="bg-accent text-primary flex size-14 items-center justify-center rounded-2xl">
+                        <MapPinned className="size-7" />
+                    </span>
+                    <h2 className="mt-5 text-lg font-semibold">{rates.length ? 'No matching coverage' : 'Build your delivery coverage'}</h2>
+                    <p className="text-muted-foreground mt-2 max-w-md text-sm leading-relaxed">
+                        {rates.length
+                            ? 'Try another barangay, center name, or publication status.'
+                            : 'Start with a barangay you can serve. Set a base fee and weight allowance, then publish when your team is ready.'}
+                    </p>
+                    {rates.length ? (
+                        <button
+                            className={secondaryClass + ' mt-5'}
+                            onClick={() => {
+                                setSearch('');
+                                setStatus('');
+                            }}
+                        >
+                            Clear filters
+                        </button>
+                    ) : (
+                        <button className={secondaryClass + ' mt-5'} disabled={!centers.length} onClick={() => setEditing(null)}>
+                            <Plus aria-hidden="true" className="size-4" />
+                            Add your first rate
+                        </button>
+                    )}
+                </Card>
             )}
             <Card>
-                <h2 className="font-semibold">How Shipping Is Calculated</h2>
-                <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
-                    Base fee for the destination barangay + each started kilogram above the included weight. For example, a ₱50 base fee covering 1 kg
-                    and ₱15 per extra kg gives a ₱65 fee for a 1.5 kg parcel. Set your actual rates based on operating costs and the areas you can
-                    serve.
-                </p>
-                <p className="text-muted-foreground mt-3 text-xs leading-relaxed">
-                    Both pickup and destination must be covered. No per-kilometer or volumetric charges are applied in this version. Unavailable areas
-                    and missing product weights prevent a quote.
+                <div className="flex items-center gap-3">
+                    <span aria-hidden="true" className="bg-accent text-primary rounded-xl p-3">
+                        <Scale className="size-5" />
+                    </span>
+                    <div>
+                        <h2 className="font-semibold">How shipping is calculated</h2>
+                        <p className="text-muted-foreground mt-1 text-xs">A destination base fee, plus any extra weight.</p>
+                    </div>
+                </div>
+                <div className="mt-5 grid gap-4 sm:grid-cols-3">
+                    {[
+                        { title: '1. Base fee', text: 'The destination barangay rate covers the included parcel weight.' },
+                        { title: '2. Extra weight', text: 'Each started kilogram above the allowance adds the extra kilogram fee.' },
+                        { title: '3. Coverage check', text: 'Pickup and destination must both be covered, with product weights available.' },
+                    ].map((item) => (
+                        <div key={item.title} className="bg-muted/40 rounded-xl p-4">
+                            <h3 className="text-sm font-semibold">{item.title}</h3>
+                            <p className="text-muted-foreground mt-2 text-xs leading-relaxed">{item.text}</p>
+                        </div>
+                    ))}
+                </div>
+                <p className="text-muted-foreground mt-4 border-t pt-4 text-xs leading-relaxed">
+                    Example: {money(50)} for 1 kg + {money(15)} per extra kg = <strong className="text-foreground">{money(65)} for 1.5 kg</strong>.
+                    Rates depend on your published coverage. No distance or volumetric charges apply.
                 </p>
             </Card>
             <Dialog

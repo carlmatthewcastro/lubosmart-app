@@ -4,7 +4,7 @@ import type Review from '@/pages/management/registrations/show';
 import { useState, type ComponentProps } from 'react';
 
 export function RegistrationProfile({ details }: { details: ComponentProps<typeof Review> }) {
-    const { application, applicant, profile, address, store, courier, documents, reviewer } = details;
+    const { application, applicant, profile, address, store, rider, documents, reviewer } = details;
     const getInitials = useInitials();
     const [section, setSection] = useState('Personal information');
     const sections = [
@@ -21,7 +21,7 @@ export function RegistrationProfile({ details }: { details: ComponentProps<typeo
         ['Email', applicant.email],
         ['Phone', applicant.phone],
         ['Email verified', applicant.email_verified_at ? 'Yes' : 'No'],
-        ...(['buyer', 'courier'].includes(application.requested_role) || profile?.birthday
+        ...(['buyer', 'rider'].includes(application.requested_role) || profile?.birthday
             ? [
                   ['Birthday', profile?.birthday],
                   ['Age', profile?.age],
@@ -47,10 +47,10 @@ export function RegistrationProfile({ details }: { details: ComponentProps<typeo
             : []),
     ];
     const roleDetails =
-        application.requested_role === 'courier'
+        application.requested_role === 'rider'
             ? [
-                  ['Vehicle', courier?.vehicle_type],
-                  ['Plate number', courier?.plate_number],
+                  ['Vehicle', rider?.vehicle_type],
+                  ['Plate number', rider?.plate_number],
               ]
             : [
                   ['Business name', application.business_name ?? store?.name],

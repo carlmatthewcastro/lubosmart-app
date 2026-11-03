@@ -1,9 +1,11 @@
+import { LogisticsCharts } from '@/components/logistics/logistics-charts';
+import ParcelNavigation from '@/components/logistics/parcel-navigation';
 import { InfoModal } from '@/components/shared/info-modal';
 import { Badge, Card, Empty, Page, secondaryClass } from '@/components/shared/marketplace-ui';
-import { DashboardMetric, DashboardQueues, DashboardWelcome } from '@/components/workspace/dashboard-panels';
+import { DashboardMetric } from '@/components/workspace/dashboard-panels';
 import type { SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { ArrowRight, Boxes, ClipboardCheck, MapPinned, PackageCheck, PackageOpen, Truck, Users, Wallet } from 'lucide-react';
+import { Boxes, CheckCircle2, CircleAlert, ClipboardCheck, MapPinned, PackageCheck, PackageOpen, Truck, Users, Wallet } from 'lucide-react';
 
 type Metrics = {
     pickupRequests: number;
@@ -14,6 +16,9 @@ type Metrics = {
     riderApplications: number;
     activeRiders: number;
     publishedRates: number;
+    dispatch: number;
+    exceptions: number;
+    cash: number;
 };
 type Parcel = { id: number; status: string; rider: { name: string } | null; seller_order: { store: { name: string } } };
 export default function LogisticsDashboard({
@@ -21,18 +26,20 @@ export default function LogisticsDashboard({
     metrics,
     applications,
     recentParcels,
+    setupChecklist = [],
 }: {
     centers: { id: number; name: string }[];
     metrics: Metrics;
     applications: { id: number; user: { name: string } }[];
     recentParcels: Parcel[];
+    setupChecklist?: { label: string; complete: boolean; count: number; description: string; url: string }[];
 }) {
     const { auth } = usePage<SharedData>().props;
     const cards = [
         {
             label: 'Pickup Requests',
             value: metrics.pickupRequests,
-            hint: 'Seller parcels ready for approval',
+            hint: 'Approve requests and assign pickup Riders',
             href: '/deliveries?stage=pickups',
             icon: PackageOpen,
         },
@@ -52,56 +59,149 @@ export default function LogisticsDashboard({
             icon: MapPinned,
         },
     ];
-    const attention = metrics.pickupRequests + metrics.sorting + metrics.riderApplications;
     return (
         <Page title="Logistics Dashboard" headerInNavbar description="Manage your center, coordinate riders, and keep parcels moving.">
-            <DashboardWelcome
-                label="Logistics portal"
-                title={'Welcome back, ' + auth.user.name.split(' ')[0] + '.'}
-                description={
-                    (centers.map((center) => center.name).join(' / ') || 'Your logistics company') +
-                    (attention ? ' / ' + attention + ' items need attention.' : ' / Your operations queue is up to date.')
-                }
-                icon={Truck}
+            <section
+                aria-label="Welcome and priorities"
+                className="border-primary/15 from-accent via-card to-background rounded-2xl border bg-linear-to-br p-6 sm:p-8"
             >
-                <Link href="/deliveries" className={secondaryClass}>
-                    Open parcel operations <ArrowRight aria-hidden="true" className="size-4" />
-                </Link>
-                <span className="text-primary text-sm font-medium">{metrics.delivered.toLocaleString()} delivered parcels</span>
-            </DashboardWelcome>
-            <Card>
-                <h2 className="text-lg font-semibold">Keep parcels moving</h2>
-                <p className="text-muted-foreground mt-1 text-sm">
-                    Approve the seller pickup, receive and sort the parcel, then assign a rider with destination coverage.
-                </p>
-                <ol className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-                    {[
-                        { label: 'Approve pickup', detail: 'Verify seller requests', stage: 'pickups' },
-                        { label: 'Receive parcels', detail: 'Confirm center arrival', stage: 'incoming' },
-                        { label: 'Sort by area', detail: 'Prepare destination batches', stage: 'sorting' },
-                        { label: 'Assign a rider', detail: 'Match coverage and rider', stage: 'dispatch' },
-                        { label: 'Monitor delivery', detail: 'Track delivery and COD', stage: 'monitoring' },
-                    ].map((item, index) => (
-                        <li key={item.stage}>
-                            <Link
-                                href={'/deliveries?stage=' + item.stage}
-                                className="hover:bg-accent focus-visible:ring-ring flex h-full min-h-24 gap-3 rounded-xl border p-4 focus-visible:ring-2"
-                            >
-                                <span className="bg-accent text-primary flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold">
-                                    {index + 1}
-                                </span>
-                                <div className="min-w-0">
-                                    <p className="text-sm font-semibold">{item.label}</p>
-                                    <p className="text-muted-foreground mt-1 text-xs leading-relaxed">{item.detail}</p>
-                                </div>
+                <div className="grid items-center gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+                    <div className="min-w-0">
+                        <p className="text-primary text-xs font-semibold tracking-widest uppercase">Operations overview</p>
+                        <h2 className="mt-3 text-2xl font-semibold tracking-tight break-words sm:text-3xl">
+                            Welcome back, {auth.user.name.trim().split(/\s+/)[0]}.
+                        </h2>
+                        <p className="text-muted-foreground mt-3 text-sm leading-relaxed">
+                            {centers.map((center) => center.name).join(' / ') || 'Your logistics company'}
+                        </p>
+                        <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
+                            Monitor parcel movement, review your queues, and keep your riders ready.
+                        </p>
+                        <div className="mt-5 flex flex-wrap gap-3">
+                            <Link href="/deliveries" className={secondaryClass}>
+                                Parcel operations
                             </Link>
-                        </li>
+                            <Link href="/reports" className={secondaryClass}>
+                                Delivery reports
+                            </Link>
+                        </div>
+                    </div>
+                    <div className="bg-card/90 rounded-xl border p-5">
+                        <h3 className="text-sm font-semibold">Needs attention</h3>
+                        <p className="text-muted-foreground mt-1 text-xs">Current company review queues</p>
+                        <ul className="mt-3 divide-y">
+                            {[
+                                { label: 'Pickup approvals', value: metrics.pickupRequests, href: '/deliveries?stage=pickups' },
+                                { label: 'Parcels to sort', value: metrics.sorting, href: '/deliveries?stage=sorting' },
+                                { label: 'Rider applications', value: metrics.riderApplications, href: '/reviews' },
+                            ].map((item) => (
+                                <li key={item.label}>
+                                    <Link
+                                        href={item.href}
+                                        className="hover:text-primary focus-visible:ring-ring flex min-h-11 items-center justify-between gap-3 rounded px-1 text-sm focus-visible:ring-2"
+                                    >
+                                        <span>{item.label}</span>
+                                        <span className="font-semibold tabular-nums">{item.value.toLocaleString()}</span>
+                                    </Link>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </div>
+            </section>
+            {!!setupChecklist.length && (
+                <Card>
+                    <h2 className="text-lg font-semibold">Company setup</h2>
+                    <p className="text-muted-foreground mt-2 text-sm">
+                        Complete these requirements before serving a route. Every assignment still checks the exact area, Rider, and parcel stage.
+                    </p>
+                    <ul className="mt-4 grid gap-4 sm:grid-cols-2">
+                        {setupChecklist.map((item) => (
+                            <li key={item.label} className="rounded-xl border p-4">
+                                <div className="flex items-start gap-3">
+                                    {item.complete ? (
+                                        <CheckCircle2 aria-hidden className="text-success mt-0.5 size-5 shrink-0" />
+                                    ) : (
+                                        <CircleAlert aria-hidden className="text-warning mt-0.5 size-5 shrink-0" />
+                                    )}
+                                    <div className="min-w-0">
+                                        <h3 className="text-sm font-semibold">{item.label}</h3>
+                                        <p className="text-muted-foreground mt-1 text-xs">
+                                            {item.complete ? `${item.count} configured` : 'Needs setup'}
+                                        </p>
+                                    </div>
+                                </div>
+                                <p className="text-muted-foreground mt-3 text-sm leading-relaxed">{item.description}</p>
+                                <Link href={item.url} className="text-primary mt-2 inline-flex min-h-11 items-center text-sm font-medium underline">
+                                    {item.complete ? 'Manage setup' : 'Complete setup'}
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
+                </Card>
+            )}
+            <ParcelNavigation />
+            <Card>
+                <h2 className="text-lg font-semibold">Dispatch, exceptions and cash</h2>
+                <nav aria-label="Logistics follow-up work" className="mt-4 grid gap-3 sm:grid-cols-3">
+                    {[
+                        { label: 'Delivery assignments', value: metrics.dispatch ?? 0, url: '/deliveries?stage=dispatch' },
+                        { label: 'Delivery exceptions', value: metrics.exceptions ?? 0, url: '/deliveries?stage=exceptions' },
+                        { label: 'COD handovers', value: metrics.cash ?? 0, url: '/deliveries?stage=cash' },
+                    ].map((item) => (
+                        <Link
+                            key={item.url}
+                            href={item.url}
+                            className="hover:bg-accent flex min-h-11 items-center justify-between gap-3 rounded-xl border p-4 text-sm"
+                        >
+                            <span>{item.label}</span>
+                            <span className="font-semibold tabular-nums">{item.value}</span>
+                        </Link>
                     ))}
-                </ol>
+                </nav>
             </Card>
             <section aria-label="Operations overview" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 {cards.map((card) => (
                     <DashboardMetric key={card.label} label={card.label} value={card.value} hint={card.hint} href={card.href} icon={card.icon} />
+                ))}
+            </section>
+            <LogisticsCharts queues={cards} delivered={metrics.delivered} active={metrics.activeDeliveries} />
+            <section aria-label="Company resources" className="grid gap-4 sm:grid-cols-3">
+                {[
+                    {
+                        label: 'Delivered parcels',
+                        value: metrics.delivered,
+                        hint: 'All-time completed deliveries',
+                        href: '/reports',
+                        icon: PackageCheck,
+                    },
+                    {
+                        label: 'Active riders',
+                        value: metrics.activeRiders,
+                        hint: 'Approved and email verified',
+                        href: '/logistics/riders',
+                        icon: Users,
+                    },
+                    {
+                        label: 'Published rates',
+                        value: metrics.publishedRates,
+                        hint: 'Active barangay coverage rates',
+                        href: '/logistics/shipping-rates',
+                        icon: Wallet,
+                    },
+                ].map((item) => (
+                    <Link
+                        key={item.label}
+                        href={item.href}
+                        className="bg-card hover:border-primary/40 focus-visible:ring-ring min-w-0 rounded-2xl border p-5 focus-visible:ring-2"
+                    >
+                        <div className="flex items-center justify-between gap-3">
+                            <h2 className="text-sm font-medium">{item.label}</h2>
+                            <item.icon aria-hidden="true" className="text-primary size-5 shrink-0" />
+                        </div>
+                        <p className="mt-3 text-2xl font-semibold tabular-nums">{item.value.toLocaleString()}</p>
+                        <p className="text-muted-foreground mt-1 text-xs">{item.hint}</p>
+                    </Link>
                 ))}
             </section>
             <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
@@ -160,11 +260,6 @@ export default function LogisticsDashboard({
                     </Card>
                 </div>
                 <div className="space-y-6">
-                    <DashboardQueues
-                        title="Parcel queues"
-                        description="Current company queues. Parcels can appear in more than one stage."
-                        items={cards.map((card) => ({ label: card.label, value: card.value, href: card.href }))}
-                    />
                     <Card>
                         <h2 className="font-semibold">Center Management</h2>
                         <p className="text-muted-foreground mt-2 text-sm">Prepare coverage and riders before dispatch.</p>
@@ -185,7 +280,7 @@ export default function LogisticsDashboard({
                                 {
                                     label: 'Coverage Assignments',
                                     detail: 'Match riders to destination barangays',
-                                    href: '/deliveries?stage=dispatch',
+                                    href: '/logistics/rider-coverage',
                                     icon: MapPinned,
                                 },
                                 { label: 'Delivery Reports', detail: 'Completed parcels and collected COD', href: '/reports', icon: ClipboardCheck },
@@ -200,7 +295,6 @@ export default function LogisticsDashboard({
                                         <p className="text-sm font-medium">{item.label}</p>
                                         <p className="text-muted-foreground mt-1 text-xs">{item.detail}</p>
                                     </div>
-                                    <ArrowRight className="text-muted-foreground size-4" />
                                 </Link>
                             ))}
                         </div>

@@ -1,5 +1,6 @@
 import { Card } from '@/components/shared/marketplace-ui';
-import { Link } from '@inertiajs/react';
+import type { SharedData } from '@/types';
+import { Link, usePage } from '@inertiajs/react';
 import { ArrowUpRight, type LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 
@@ -53,13 +54,14 @@ export function DashboardMetric({
     icon: LucideIcon;
     href?: string;
 }) {
+    const { auth } = usePage<SharedData>().props;
     const content = (
         <>
             <div className="flex items-center justify-between gap-3">
                 <span aria-hidden="true" className="bg-accent text-primary flex size-11 items-center justify-center rounded-xl">
                     <Icon className="size-5" />
                 </span>
-                {href && <ArrowUpRight aria-hidden="true" className="text-muted-foreground size-4" />}
+                {href && auth.user.role === 'admin' && <ArrowUpRight aria-hidden="true" className="text-muted-foreground size-4" />}
             </div>
             <p className="mt-4 text-3xl font-semibold tracking-tight tabular-nums">{value.toLocaleString()}</p>
             <h2 className="mt-1 text-sm font-medium">{label}</h2>

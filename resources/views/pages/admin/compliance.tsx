@@ -1,6 +1,7 @@
 import { Badge, Card, Empty, Field, Page, Pager, Select, buttonClass, money, type Pagination } from '@/components/shared/marketplace-ui';
 import { ReasonConfirmation } from '@/components/shared/reason-confirmation';
-import { useForm } from '@inertiajs/react';
+import ValidatedForm from '@/components/shared/validated-form';
+import { Link, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 type Product = {
     id: number;
@@ -44,7 +45,7 @@ function Listing({ product, history }: { product: Product; history: Review[] }) 
                 </div>
             </dl>
             {mismatch && <p className="bg-accent text-primary mt-4 rounded-xl p-3 text-sm">Category does not match the registered department.</p>}
-            <form
+            <ValidatedForm
                 noValidate
                 className="mt-5 grid gap-4"
                 onSubmit={(e) => {
@@ -86,7 +87,7 @@ function Listing({ product, history }: { product: Product; history: Review[] }) 
                 <button className={buttonClass} disabled={form.processing}>
                     {form.processing ? 'Saving…' : 'Save Review'}
                 </button>
-            </form>
+            </ValidatedForm>
             <ReasonConfirmation
                 open={confirming}
                 onOpenChange={setConfirming}
@@ -132,9 +133,17 @@ export default function Compliance({
 }) {
     const search = useForm({ search: filters.search ?? '', status: filters.status ?? 'all' });
     return (
-        <Page title="Seller Compliance" description="Check listing categories, record warnings, and handle violations.">
+        <Page
+            title="Seller Compliance"
+            description="Check listing categories, record warnings, and handle violations."
+            action={
+                <Link className={buttonClass} href="/admin/product-reviews">
+                    Moderate product reviews
+                </Link>
+            }
+        >
             <Card>
-                <form
+                <ValidatedForm
                     className="grid items-end gap-4 sm:grid-cols-[1fr_220px_auto]"
                     onSubmit={(e) => {
                         e.preventDefault();
@@ -150,7 +159,7 @@ export default function Compliance({
                     <button className={buttonClass} disabled={search.processing}>
                         Apply Filters
                     </button>
-                </form>
+                </ValidatedForm>
             </Card>
             <p className="text-muted-foreground text-sm">{products.total} listings</p>
             {products.data.length ? (

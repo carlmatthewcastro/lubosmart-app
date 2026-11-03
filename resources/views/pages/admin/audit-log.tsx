@@ -1,5 +1,6 @@
 import { InfoModal } from '@/components/shared/info-modal';
 import { Badge, buttonClass, Card, Empty, Field, Page, Pager, secondaryClass, Select, type Pagination } from '@/components/shared/marketplace-ui';
+import ValidatedForm from '@/components/shared/validated-form';
 import { activityAction, activityDate, activityDescription, activitySubject, titleCase } from '@/lib/admin-display';
 import { Link, useForm } from '@inertiajs/react';
 import { History } from 'lucide-react';
@@ -28,7 +29,7 @@ export default function AuditLog({
     return (
         <Page title="Activity History" description="A record of registration decisions, account access, and platform changes.">
             <Card>
-                <form
+                <ValidatedForm
                     className="grid items-end gap-4 sm:grid-cols-[1fr_220px_auto_auto]"
                     onSubmit={(event) => {
                         event.preventDefault();
@@ -55,7 +56,7 @@ export default function AuditLog({
                     <Link href="/admin/audit-log" className={secondaryClass}>
                         Reset
                     </Link>
-                </form>
+                </ValidatedForm>
             </Card>
             {events.data.length ? (
                 <Card className="!py-2">

@@ -26,7 +26,18 @@ export interface SharedData {
     name: string;
     quote: { message: string; author: string };
     auth: Auth;
-    adminWorkspace?: { permissions: string[]; badges: Record<string, number> } | null;
+    adminWorkspace?: {
+        permissions: string[];
+        badges: Record<string, number>;
+        registrationCounts?: Record<'buyer' | 'seller' | 'logistics', number>;
+        registrationAlerts?: {
+            id: number;
+            role: 'buyer' | 'seller' | 'logistics';
+            label: string;
+            verificationPending: boolean;
+            submittedAt: string | null;
+        }[];
+    } | null;
     errors?: Record<string, string>;
     status?: string;
     [key: string]: unknown;
@@ -40,7 +51,7 @@ export interface User {
 
     status: 'unverified' | 'incomplete' | 'pending' | 'approved' | 'rejected' | 'suspended' | 'deactivated';
     email_verified: boolean;
-    sorting_center_id: number | null;
+    logistics_center_id: number | null;
     phone: string | null;
     avatar?: string;
     email_verified_at: string | null;
@@ -49,4 +60,4 @@ export interface User {
     [key: string]: unknown; // This allows for additional properties...
 }
 
-export type UserRole = 'buyer' | 'seller' | 'courier' | 'sorting_center' | 'admin';
+export type UserRole = 'buyer' | 'seller' | 'rider' | 'logistics' | 'admin';

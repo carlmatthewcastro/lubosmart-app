@@ -98,17 +98,12 @@ export default function VerifyEmail({ status, email, cooldown }: { status?: stri
                 </form>
                 {status === 'verification-link-sent' && (
                     <p role="status" className="text-primary text-sm">
-                        Your account details are saved. Check your inbox for the six-digit verification code. Buyer, Seller and Logistics applications
-                        need administrator approval after verification.
+                        Your account details are saved. Check your inbox for the six-digit verification code.
                     </p>
                 )}
                 {status === 'verification-mail-unavailable' && (
                     <AuthFeedback message="Your account is saved, but we could not send the verification email. Try resending shortly or contact support." />
                 )}
-                <p className="text-muted-foreground text-sm">
-                    Check your Spam or Promotions folder. This page checks automatically and continues once your email is verified, even on another
-                    tab or device.
-                </p>
                 <button
                     className={buttonClass}
                     disabled={busy || remaining > 0}

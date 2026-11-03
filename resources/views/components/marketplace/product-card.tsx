@@ -1,4 +1,4 @@
-import { money } from '@/components/shared/marketplace-ui';
+import { money, Select } from '@/components/shared/marketplace-ui';
 import type { SharedData } from '@/types';
 import { Link, useForm, usePage } from '@inertiajs/react';
 import { Heart, ImageIcon, LoaderCircle, ShoppingCart, Star, Store } from 'lucide-react';
@@ -16,6 +16,9 @@ export type ProductCardData = {
     originalPrice?: string | null;
     rating?: number | null;
     reviewCount?: number | null;
+    variants?: { id: number; name: string; stock: number; is_active: boolean }[];
+    reviews_avg_rating?: number | string | null;
+    reviews_count?: number;
 };
 
 export default function ProductCard({ product, saved = false }: { product: ProductCardData; saved?: boolean }) {
@@ -23,7 +26,14 @@ export default function ProductCard({ product, saved = false }: { product: Produ
     const [failedImage, setFailedImage] = useState<string | null>(null);
     const [feedback, setFeedback] = useState('');
     const [previewLiked, setPreviewLiked] = useState(false);
-    const cart = useForm({ quantity: 1, add: true });
+    const cart = useForm({ quantity: 1, add: true, product_variant_id: '' });
+    const variants = product.variants?.filter((variant) => variant.is_active) ?? [];
+    const selectedVariant = variants.find((variant) => String(variant.id) === cart.data.product_variant_id);
+    const hasVariants = !!product.variants?.length;
+    const stock = hasVariants ? (selectedVariant?.stock ?? 0) : product.stock;
+    const displayedStock = hasVariants ? variants.reduce((total, variant) => total + variant.stock, 0) : product.stock;
+    const rating = product.reviews_avg_rating != null ? Number(product.reviews_avg_rating) : product.rating;
+    const reviewCount = product.reviews_count ?? product.reviewCount;
     const favorite = useForm({ saved: !saved });
     const eligible = auth.user?.role === 'buyer' && auth.user.status === 'approved' && !!auth.user.email_verified_at;
     const live = !!product.id && !product.sample;
@@ -110,19 +120,19 @@ export default function ProductCard({ product, saved = false }: { product: Produ
             </div>
             <div className="flex flex-1 flex-col gap-2 p-3 sm:p-4">
                 <h2 className="h-10 text-sm leading-5 font-semibold">
-                    <span className="line-clamp-2 break-words" title={product.name}>
+                    <Link href={live ? `/products/${product.id}` : href} className="line-clamp-2 break-words hover:underline" title={product.name}>
                         {product.name}
-                    </span>
+                    </Link>
                 </h2>
                 <div className="text-muted-foreground flex min-h-5 flex-wrap items-center gap-x-2 text-xs leading-5">
-                    {product.rating != null && product.reviewCount != null ? (
+                    {rating != null && reviewCount != null ? (
                         <span className="flex items-center gap-1">
                             <span className="text-warning flex gap-0.5" aria-hidden="true">
                                 {Array.from({ length: 5 }, (_, index) => (
-                                    <Star key={index} className={'size-3.5 ' + (index < Math.round(product.rating!) ? 'fill-current' : '')} />
+                                    <Star key={index} className={'size-3.5 ' + (index < Math.round(rating) ? 'fill-current' : '')} />
                                 ))}
                             </span>
-                            {product.rating.toFixed(1)} ({product.reviewCount})
+                            {rating.toFixed(1)} ({reviewCount})
                         </span>
                     ) : (
                         <span className="flex flex-wrap items-center gap-x-1.5" aria-label="No ratings yet">
@@ -136,12 +146,26 @@ export default function ProductCard({ product, saved = false }: { product: Produ
                     )}
                 </div>
                 <p className="text-muted-foreground min-h-5 text-xs leading-5 tabular-nums">
-                    {product.stock != null
-                        ? product.stock === 0
+                    {displayedStock != null
+                        ? displayedStock === 0
                             ? 'Out of stock'
-                            : 'Stock: ' + product.stock.toLocaleString() + ' available'
+                            : 'Stock: ' + displayedStock.toLocaleString() + ' available'
                         : 'Stock not provided'}
                 </p>
+                {!!variants.length && (
+                    <Select
+                        label="Size / color"
+                        value={cart.data.product_variant_id}
+                        onChange={(event) => cart.setData('product_variant_id', event.target.value)}
+                    >
+                        <option value="">Choose an option</option>
+                        {variants.map((variant) => (
+                            <option key={variant.id} value={variant.id} disabled={!variant.stock}>
+                                {variant.name} ({variant.stock} available)
+                            </option>
+                        ))}
+                    </Select>
+                )}
                 {product.seller && (
                     <p className="text-muted-foreground flex min-w-0 items-center gap-1.5 text-xs">
                         <Store aria-hidden="true" className="size-3.5 shrink-0" />
@@ -158,7 +182,7 @@ export default function ProductCard({ product, saved = false }: { product: Produ
                     {live && eligible ? (
                         <button
                             type="button"
-                            disabled={product.stock === 0 || cart.processing}
+                            disabled={stock === 0 || cart.processing}
                             aria-label={'Add ' + product.name + ' to cart'}
                             onClick={() => cart.put('/cart/' + product.id, { preserveScroll: true, onSuccess: () => setFeedback('Added to cart') })}
                             className="bg-accent text-primary hover:bg-primary hover:text-primary-foreground focus-visible:ring-ring flex size-11 shrink-0 items-center justify-center rounded-full transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none"

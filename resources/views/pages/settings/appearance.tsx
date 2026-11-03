@@ -4,8 +4,7 @@ import AppearanceTabs from '@/components/settings/appearance-tabs';
 import HeadingSmall from '@/components/shared/heading-small';
 import { type BreadcrumbItem } from '@/types';
 
-import AppLayout from '@/layouts/app-layout';
-import SettingsLayout from '@/layouts/settings/layout';
+import SettingsPage from '@/components/settings/settings-page';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -16,15 +15,16 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 export default function Appearance() {
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <SettingsPage title="Appearance settings" breadcrumbs={breadcrumbs}>
             <Head title="Appearance settings" />
 
-            <SettingsLayout>
-                <div className="space-y-6">
-                    <HeadingSmall title="Website appearance" description="LubosMart uses a consistent light theme on every device." />
-                    <AppearanceTabs />
-                </div>
-            </SettingsLayout>
-        </AppLayout>
+            <div className="space-y-6">
+                <HeadingSmall
+                    title="Website appearance"
+                    description="Choose light or dark mode. Your preference stays on this browser, including after signing out."
+                />
+                <AppearanceTabs />
+            </div>
+        </SettingsPage>
     );
 }

@@ -16,10 +16,10 @@ import { useAuthRequestFeedback } from '@/hooks/use-auth-request-feedback';
 import { passwordRequirements, registrationErrors, registrationFieldError } from '@/lib/registration-validation';
 import type { SharedData } from '@/types';
 import { useForm, usePage } from '@inertiajs/react';
-import { ChevronLeft, ChevronRight, Eye, EyeOff, LoaderCircle, ShoppingCart, Store, Warehouse } from 'lucide-react';
+import { Eye, EyeOff, LoaderCircle, ShoppingCart, Store, Warehouse } from 'lucide-react';
 import { type InputHTMLAttributes, useRef, useState } from 'react';
 
-export type RegistrationRole = 'buyer' | 'seller' | 'courier' | 'sorting_center';
+export type RegistrationRole = 'buyer' | 'seller' | 'rider' | 'logistics';
 export const authInputClass = inputClass;
 export function normalizeRegistrationPhone(value: string) {
     const digits = value.replace(/\D/g, '');
@@ -29,8 +29,8 @@ export function normalizeRegistrationPhone(value: string) {
 export const registrationRoles = [
     { value: 'buyer', title: 'Buyer', description: 'Discover local favorites', icon: ShoppingCart },
     { value: 'seller', title: 'Seller', description: 'Grow your own store', icon: Store },
-    { value: 'courier', title: 'Rider', description: 'Sign up for Logistics approval', icon: MotorcycleIcon },
-    { value: 'sorting_center', title: 'Logistics', description: 'Manage deliveries and riders', icon: Warehouse },
+    { value: 'rider', title: 'Rider', description: 'Sign up for Logistics approval', icon: MotorcycleIcon },
+    { value: 'logistics', title: 'Logistics', description: 'Manage deliveries and riders', icon: Warehouse },
 ] as const;
 
 type Details = RiderDetails &
@@ -204,7 +204,7 @@ export default function RegistrationForm({
     const selectedRole = form.data.role;
     const steps = [
         'Personal information',
-        selectedRole === 'buyer' ? 'Address & ID' : selectedRole === 'courier' ? 'Rider details & documents' : 'Business information',
+        selectedRole === 'buyer' ? 'Address & ID' : selectedRole === 'rider' ? 'Rider details & documents' : 'Business information',
         'Review & submit',
     ];
     const personalFields = ['first_name', 'middle_initial', 'last_name', 'phone', 'email', 'birthday', 'sex'];
@@ -257,7 +257,7 @@ export default function RegistrationForm({
             const message = registrationFieldError(key, form.data[key], form.data);
             if (message) invalid[key] = message;
         }
-        if (step === 1 && selectedRole === 'sorting_center' && !form.data.service_regions.length)
+        if (step === 1 && selectedRole === 'logistics' && !form.data.service_regions.length)
             invalid.service_regions = 'Select at least one service area.';
         if (Object.keys(invalid).length) {
             setLocalErrors(invalid);
@@ -367,7 +367,7 @@ export default function RegistrationForm({
             </fieldset>
             {
                 <ol
-                    aria-label={selectedRole === 'courier' ? 'Rider registration progress' : 'Registration progress'}
+                    aria-label={selectedRole === 'rider' ? 'Rider registration progress' : 'Registration progress'}
                     className="grid grid-cols-3 gap-3 border-b pb-6"
                 >
                     {steps.map((label, index) => (
@@ -458,7 +458,6 @@ export default function RegistrationForm({
                             autoComplete="tel"
                             required
                             phonePrefix
-                            placeholder="9XXXXXXXXX"
                             maxLength={13}
                             inputMode="numeric"
                             disabled={busy}
@@ -509,13 +508,12 @@ export default function RegistrationForm({
                             <div className="flex justify-end sm:pt-7">
                                 <button type="button" disabled={busy} onClick={advance} className={`auth-action-button ${buttonClass}`}>
                                     Continue
-                                    <ChevronRight className="size-4" aria-hidden="true" />
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
-                {['seller', 'sorting_center'].includes(selectedRole) && (
+                {['seller', 'logistics'].includes(selectedRole) && (
                     <div
                         data-registration-step="1"
                         tabIndex={-1}
@@ -524,7 +522,7 @@ export default function RegistrationForm({
                         className="registration-section focus:outline-none"
                     >
                         <SellerRegistrationFields
-                            company={form.data.role === 'sorting_center'}
+                            company={form.data.role === 'logistics'}
                             data={form.data}
                             errors={allErrors}
                             disabled={busy}
@@ -532,7 +530,7 @@ export default function RegistrationForm({
                         />
                     </div>
                 )}
-                {selectedRole === 'courier' && (
+                {selectedRole === 'rider' && (
                     <div
                         data-registration-step="1"
                         tabIndex={-1}
@@ -572,12 +570,10 @@ export default function RegistrationForm({
                             onClick={() => changeStep(0)}
                             className="text-primary inline-flex min-h-11 items-center gap-2 rounded-xl border px-5"
                         >
-                            <ChevronLeft className="size-4" aria-hidden="true" />
                             Back
                         </button>
                         <button type="button" disabled={busy} onClick={advance} className={buttonClass + ' auth-action-button ml-auto'}>
                             Continue
-                            <ChevronRight className="size-4" aria-hidden="true" />
                         </button>
                     </div>
                 )}
@@ -626,7 +622,7 @@ export default function RegistrationForm({
                                 <span className="text-muted-foreground block text-xs">
                                     {selectedRole === 'buyer'
                                         ? 'Address'
-                                        : selectedRole === 'courier'
+                                        : selectedRole === 'rider'
                                           ? 'Vehicle / plate'
                                           : selectedRole === 'seller'
                                             ? 'Shop'
@@ -634,7 +630,7 @@ export default function RegistrationForm({
                                 </span>
                                 {selectedRole === 'buyer'
                                     ? `${form.data.line1}, ${form.data.zip}`
-                                    : selectedRole === 'courier'
+                                    : selectedRole === 'rider'
                                       ? `${form.data.vehicle_type} / ${form.data.plate_number}`
                                       : form.data.business_name}
                             </p>
@@ -713,10 +709,6 @@ export default function RegistrationForm({
                             }
                         />
                     </div>
-                    <p className="text-muted-foreground text-sm">
-                        After email verification, wait for {selectedRole === 'courier' ? 'your Logistics company' : 'the administrator'} to review
-                        your registration. The decision will be sent to your email.
-                    </p>
                 </div>
                 <div hidden={step !== 2}>
                     <div className="space-y-4">

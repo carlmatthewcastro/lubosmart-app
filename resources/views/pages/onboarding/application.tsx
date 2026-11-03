@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
 import { type SharedData } from '@/types';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
-import { Check, ChevronLeft, ChevronRight, Save, ShieldCheck } from 'lucide-react';
+import { Check, Save, ShieldCheck } from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 
 type Option = { id: number; name: string };
@@ -31,7 +31,7 @@ type Form = {
     business_category_id: string;
     vehicle_type: string;
     plate_number: string;
-    sorting_center_id: string;
+    logistics_center_id: string;
     identity: File | null;
     license: File | null;
     business_permit: File | null;
@@ -45,7 +45,7 @@ export default function ApplicationPage({
     profile,
     address,
     store,
-    courier,
+    rider,
     documents,
     categories,
     centers,
@@ -55,7 +55,7 @@ export default function ApplicationPage({
         status: string;
         rejection_reason: string | null;
         business_name: string | null;
-        sorting_center_id: number | null;
+        logistics_center_id: number | null;
         draft_data: Partial<Omit<Form, 'identity' | 'license' | 'business_permit' | 'vehicle_registration'>> | null;
         draft_saved_at: string | null;
         submitted_at: string | null;
@@ -64,7 +64,7 @@ export default function ApplicationPage({
     profile: Record<string, string> | null;
     address: { line1: string; zip: string; street: string | null; house_number: string | null } | null;
     store: { name: string; business_category_id: number | null } | null;
-    courier: { vehicle_type: string; plate_number: string | null } | null;
+    rider: { vehicle_type: string; plate_number: string | null } | null;
     documents: Document[];
     categories: Option[];
     centers: Option[];
@@ -91,9 +91,9 @@ export default function ApplicationPage({
         zip: address?.zip ?? '',
         business_name: application.business_name ?? store?.name ?? '',
         business_category_id: String(store?.business_category_id ?? ''),
-        vehicle_type: courier?.vehicle_type ?? '',
-        plate_number: courier?.plate_number ?? '',
-        sorting_center_id: String(application.sorting_center_id ?? ''),
+        vehicle_type: rider?.vehicle_type ?? '',
+        plate_number: rider?.plate_number ?? '',
+        logistics_center_id: String(application.logistics_center_id ?? ''),
         ...Object.fromEntries(Object.entries(draft ?? {}).map(([key, value]) => [key, value ?? ''])),
         identity: null,
         license: null,
@@ -104,7 +104,7 @@ export default function ApplicationPage({
     });
     const steps: { key: Step; title: string }[] = [
         { key: 'personal', title: 'Personal details' },
-        ...(role === 'buyer' ? [] : [{ key: 'role' as Step, title: role === 'courier' ? 'Rider details' : 'Business details' }]),
+        ...(role === 'buyer' ? [] : [{ key: 'role' as Step, title: role === 'rider' ? 'Rider details' : 'Business details' }]),
         { key: 'address', title: 'Address' },
         { key: 'documents', title: 'Documents' },
         { key: 'review', title: 'Review' },
@@ -122,7 +122,7 @@ export default function ApplicationPage({
         business_category_id: 'role',
         vehicle_type: 'role',
         plate_number: 'role',
-        sorting_center_id: 'role',
+        logistics_center_id: 'role',
         province_code: 'address',
         city_code: 'address',
         barangay_code: 'address',
@@ -258,7 +258,7 @@ export default function ApplicationPage({
     const select = (
         key: keyof Pick<
             Form,
-            'sex' | 'province_code' | 'city_code' | 'barangay_code' | 'business_category_id' | 'vehicle_type' | 'sorting_center_id'
+            'sex' | 'province_code' | 'city_code' | 'barangay_code' | 'business_category_id' | 'vehicle_type' | 'logistics_center_id'
         >,
         label: string,
         options: { value: string; label: string }[],
@@ -296,9 +296,9 @@ export default function ApplicationPage({
     );
     const locationOptions = (items: Location[]) => items.map((item) => ({ value: item.code, label: item.name }));
     const fileKinds: ('identity' | 'license' | 'business_permit' | 'vehicle_registration')[] = ['identity'];
-    if (role === 'courier') fileKinds.push('license');
-    if (role === 'seller' || role === 'sorting_center') fileKinds.push('business_permit');
-    if (role === 'courier') fileKinds.push('vehicle_registration');
+    if (role === 'rider') fileKinds.push('license');
+    if (role === 'seller' || role === 'logistics') fileKinds.push('business_permit');
+    if (role === 'rider') fileKinds.push('vehicle_registration');
     return (
         <AppLayout breadcrumbs={[{ title: 'Application', href: route('application.edit') }]}>
             <Head title="Your application" />
@@ -308,7 +308,7 @@ export default function ApplicationPage({
                     <p className="text-muted-foreground text-sm">{roleLabel(role)} registration</p>
                     <h1 className="mt-2 text-3xl font-semibold">Your application</h1>
                     <p className="text-muted-foreground mt-2">
-                        Complete your details for {role === 'courier' ? 'your sorting center' : 'administrator'} review.
+                        Complete your details for {role === 'rider' ? 'your logistics company' : 'administrator'} review.
                     </p>
                 </div>
                 {status && (
@@ -349,8 +349,8 @@ export default function ApplicationPage({
                         <p className="text-muted-foreground mt-3">We will email the decision. Your dashboard becomes available after approval.</p>
                         <p className="text-muted-foreground mt-3 text-sm">
                             Submitted: {application.submitted_at ? new Date(application.submitted_at).toLocaleString('en-PH') : 'Recorded'}. Reviewer:{' '}
-                            {role === 'courier'
-                                ? (centers.find((center) => center.id === application.sorting_center_id)?.name ?? 'Your chosen sorting center')
+                            {role === 'rider'
+                                ? (centers.find((center) => center.id === application.logistics_center_id)?.name ?? 'Your chosen logistics company')
                                 : 'LubosMart administrator'}
                             .
                         </p>
@@ -437,7 +437,7 @@ export default function ApplicationPage({
                             className={`bg-card gap-5 rounded-2xl border p-6 sm:grid-cols-2 ${step === 'address' ? 'grid' : 'hidden'}`}
                         >
                             <legend className="px-2 font-semibold">
-                                {role === 'courier' ? 'Contact address' : role === 'buyer' ? 'Registration address' : 'Business address'}
+                                {role === 'rider' ? 'Contact address' : role === 'buyer' ? 'Registration address' : 'Business address'}
                             </legend>
                             {select('province_code', 'Province / NCR', locationOptions(provinces))}
                             {select('city_code', 'City / municipality', locationOptions(cities), !province)}
@@ -454,7 +454,7 @@ export default function ApplicationPage({
                                 </div>
                             )}
                         </fieldset>
-                        {(role === 'seller' || role === 'sorting_center') && (
+                        {(role === 'seller' || role === 'logistics') && (
                             <fieldset
                                 hidden={step !== 'role'}
                                 disabled={form.processing || step !== 'role'}
@@ -470,7 +470,7 @@ export default function ApplicationPage({
                                     )}
                             </fieldset>
                         )}
-                        {role === 'courier' && (
+                        {role === 'rider' && (
                             <fieldset
                                 hidden={step !== 'role'}
                                 disabled={form.processing || step !== 'role'}
@@ -484,13 +484,13 @@ export default function ApplicationPage({
                                 )}
                                 {field('plate_number', 'Plate number')}
                                 {select(
-                                    'sorting_center_id',
+                                    'logistics_center_id',
                                     'Choose your Logistics center',
                                     centers.map((center) => ({ value: String(center.id), label: center.name })),
                                 )}
                                 {!centers.length && (
                                     <p className="text-muted-foreground text-sm">
-                                        Sorting centers must be approved before couriers can select them. You can save your draft and return later.
+                                        Logistics companies must be approved before riders can select them. You can save your draft and return later.
                                     </p>
                                 )}
                             </fieldset>
@@ -503,7 +503,7 @@ export default function ApplicationPage({
                             <legend className="px-2 font-semibold">Required documents</legend>
                             <p className="text-muted-foreground text-sm">
                                 Documents are private and accessible only to your authorized approver and Admin. JPG, PNG, or PDF, up to 5 MB each.
-                                Couriers must upload a photo ID and their driver’s license separately.
+                                Riders must upload a photo ID and their driver’s license separately.
                             </p>
                             {fileKinds.map((kind) => (
                                 <div key={kind} className="grid gap-2">
@@ -537,17 +537,17 @@ export default function ApplicationPage({
                                         Email: auth.user.email,
                                         Phone: form.data.phone,
                                         Birthday: form.data.birthday,
-                                        'Business name': role === 'seller' || role === 'sorting_center' ? form.data.business_name : null,
+                                        'Business name': role === 'seller' || role === 'logistics' ? form.data.business_name : null,
                                         Category:
                                             role === 'seller'
                                                 ? (categories.find((category) => category.id === Number(form.data.business_category_id))?.name ??
                                                   'Not selected')
                                                 : null,
-                                        Vehicle: role === 'courier' ? form.data.vehicle_type : null,
-                                        'Plate number': role === 'courier' ? form.data.plate_number || 'Not applicable' : null,
+                                        Vehicle: role === 'rider' ? form.data.vehicle_type : null,
+                                        'Plate number': role === 'rider' ? form.data.plate_number || 'Not applicable' : null,
                                         'Logistics center':
-                                            role === 'courier'
-                                                ? (centers.find((center) => center.id === Number(form.data.sorting_center_id))?.name ??
+                                            role === 'rider'
+                                                ? (centers.find((center) => center.id === Number(form.data.logistics_center_id))?.name ??
                                                   'Not selected')
                                                 : null,
                                         Address: [
@@ -611,7 +611,6 @@ export default function ApplicationPage({
                                     disabled={form.processing}
                                     onClick={() => form.setData('current_step', steps[stepIndex - 1].key)}
                                 >
-                                    <ChevronLeft className="size-4" />
                                     Back
                                 </button>
                             )}
@@ -626,7 +625,6 @@ export default function ApplicationPage({
                             ) : (
                                 <button type="button" className={buttonClass} disabled={form.processing} onClick={next}>
                                     Continue
-                                    <ChevronRight className="size-4" />
                                 </button>
                             )}
                         </div>

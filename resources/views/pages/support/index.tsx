@@ -1,5 +1,6 @@
 import { InfoModal } from '@/components/shared/info-modal';
 import { Badge, Card, Empty, Page, Pager, Select, buttonClass, secondaryClass, type Pagination } from '@/components/shared/marketplace-ui';
+import ValidatedForm from '@/components/shared/validated-form';
 import { NewConversation } from '@/components/support/new-conversation';
 import { type SharedData } from '@/types';
 import { Link, useForm, usePage } from '@inertiajs/react';
@@ -30,7 +31,7 @@ export default function Support({ cases, filters }: { cases: Pagination<Case>; f
         >
             <NewConversation open={creating} onOpenChange={setCreating} admin={admin} kind={filters.kind} />
             <Card>
-                <form
+                <ValidatedForm
                     className="grid items-end gap-4 sm:grid-cols-[1fr_1fr_auto]"
                     onSubmit={(e) => {
                         e.preventDefault();
@@ -51,7 +52,7 @@ export default function Support({ cases, filters }: { cases: Pagination<Case>; f
                     <button className={buttonClass} disabled={search.processing}>
                         Apply Filters
                     </button>
-                </form>
+                </ValidatedForm>
             </Card>
             {cases.data.length ? (
                 <Card className="!p-0">

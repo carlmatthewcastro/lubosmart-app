@@ -11,10 +11,10 @@ export default function Reviews({
     filters: { status: string };
 }) {
     const { auth } = usePage<SharedData>().props;
-    const center = auth.user.role === 'sorting_center';
+    const center = auth.user.role === 'logistics';
     return (
         <Page
-            title={center ? 'Courier applications' : 'Manage account registrations'}
+            title={center ? 'Rider applications' : 'Manage account registrations'}
             description={
                 center
                     ? 'Review riders who selected your Logistics company.'

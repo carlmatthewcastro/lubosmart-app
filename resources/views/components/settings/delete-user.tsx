@@ -1,3 +1,4 @@
+import ValidatedForm from '@/components/shared/validated-form';
 import { useForm } from '@inertiajs/react';
 import { FormEventHandler, useRef } from 'react';
 
@@ -50,7 +51,7 @@ export default function DeleteUser() {
                             Once your account is deleted, all of its resources and data will also be permanently deleted. Please enter your password
                             to confirm you would like to permanently delete your account.
                         </DialogDescription>
-                        <form className="space-y-6" onSubmit={deleteUser}>
+                        <ValidatedForm className="space-y-6" onSubmit={deleteUser}>
                             <div className="grid gap-2">
                                 <Label htmlFor="password" className="sr-only">
                                     Password
@@ -81,7 +82,7 @@ export default function DeleteUser() {
                                     <button type="submit">Delete account</button>
                                 </Button>
                             </DialogFooter>
-                        </form>
+                        </ValidatedForm>
                     </DialogContent>
                 </Dialog>
             </div>

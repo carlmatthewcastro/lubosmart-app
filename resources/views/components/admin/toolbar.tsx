@@ -1,6 +1,6 @@
 import { UserMenuContent } from '@/components/navigation/user-menu-content';
 import { InfoModal } from '@/components/shared/info-modal';
-import { inputClass } from '@/components/shared/marketplace-ui';
+import { inputClass, roleLabel } from '@/components/shared/marketplace-ui';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -21,8 +21,10 @@ export function AdminToolbar() {
     useEffect(() => setWorkspace(adminWorkspace), [adminWorkspace]);
     useEffect(() => {
         const controller = new AbortController();
+        let pending = false;
         const refresh = async () => {
-            if (document.visibilityState === 'hidden') return;
+            if (document.hidden || !navigator.onLine || pending) return;
+            pending = true;
             try {
                 const response = await fetch('/admin/notifications', {
                     headers: { Accept: 'application/json' },
@@ -37,18 +39,35 @@ export function AdminToolbar() {
                 }
             } catch {
                 if (!controller.signal.aborted) setNotificationError('Notifications could not be refreshed.');
+            } finally {
+                pending = false;
             }
         };
         void refresh();
-        const interval = setInterval(() => void refresh(), 30000);
+        const interval = setInterval(() => void refresh(), 5000);
+        const resume = () => void refresh();
+        window.addEventListener('focus', resume);
+        window.addEventListener('online', resume);
+        document.addEventListener('visibilitychange', resume);
         return () => {
             controller.abort();
             clearInterval(interval);
+            window.removeEventListener('focus', resume);
+            window.removeEventListener('online', resume);
+            document.removeEventListener('visibilitychange', resume);
         };
     }, [notificationsOpen, notificationAttempt]);
     const getInitials = useInitials();
     const alerts = [
         { key: 'registrations', label: 'Registrations', description: 'Applications waiting for review', url: '/reviews', icon: ClipboardCheck },
+        {
+            key: 'accountChanges',
+            permission: 'registrations',
+            label: 'Company change requests',
+            description: 'Company re-verification and protected account changes',
+            url: '/admin/change-requests',
+            icon: ClipboardCheck,
+        },
         { key: 'compliance', label: 'Seller Compliance', description: 'Blocked or mismatched listings', url: '/admin/compliance', icon: ShieldCheck },
         {
             key: 'disputes',
@@ -59,7 +78,7 @@ export function AdminToolbar() {
         },
         { key: 'messages', label: 'Messages', description: 'Conversations with unread replies', url: '/support?kind=message', icon: MessageCircle },
     ];
-    const visibleAlerts = alerts.filter((item) => workspace?.permissions.includes(item.key));
+    const visibleAlerts = alerts.filter((item) => workspace?.permissions.includes(item.permission ?? item.key));
     const alertCount = visibleAlerts.reduce((total, item) => total + (workspace?.badges[item.key] ?? 0), 0);
     const [open, setOpen] = useState(false);
     const [query, setQuery] = useState('');
@@ -138,7 +157,10 @@ export function AdminToolbar() {
                         )}
                     </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-[min(360px,calc(100vw_-_32px))] rounded-2xl p-2">
+                <DropdownMenuContent
+                    align="end"
+                    className="max-h-[calc(100dvh_-_6rem)] w-[min(360px,calc(100vw_-_32px))] overflow-y-auto rounded-2xl p-2"
+                >
                     <div className="border-b px-3 py-3">
                         <p className="font-semibold">Notifications</p>
                         <p className="text-muted-foreground mt-1 text-xs">Grouped by what needs your attention.</p>
@@ -172,6 +194,25 @@ export function AdminToolbar() {
                             </Link>
                         </DropdownMenuItem>
                     ))}
+                    {!!workspace?.registrationAlerts?.length && workspace.permissions.includes('registrations') && (
+                        <div className="mt-2 border-t pt-2">
+                            <p className="text-muted-foreground px-3 py-2 text-xs font-medium">Recent applications</p>
+                            {workspace.registrationAlerts.map((application) => (
+                                <DropdownMenuItem key={application.id} asChild>
+                                    <Link href={`/reviews/${application.id}`} className="min-w-0 rounded-xl p-3">
+                                        <div className="min-w-0 flex-1">
+                                            <p className="truncate text-sm font-medium">{application.label}</p>
+                                            <p className="text-muted-foreground mt-1 text-xs">
+                                                {roleLabel(application.role)} ·{' '}
+                                                {application.verificationPending ? 'Email verification pending' : 'Awaiting Admin approval'}
+                                            </p>
+                                        </div>
+                                        <span className="text-primary shrink-0 text-xs font-semibold">Review</span>
+                                    </Link>
+                                </DropdownMenuItem>
+                            ))}
+                        </div>
+                    )}
                 </DropdownMenuContent>
             </DropdownMenu>
             <DropdownMenu>

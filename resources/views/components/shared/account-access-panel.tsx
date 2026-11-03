@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import type { User } from '@/types';
 import { useEffect, useState } from 'react';
 
-export function AccountAccessPanel({ account }: { account: User }) {
+export function AccountAccessPanel({ account }: { account: Pick<User, 'id' | 'name' | 'status'> }) {
     const [open, setOpen] = useState(false);
     const [statuses, setStatuses] = useState<string[] | null>(null);
     const [error, setError] = useState('');

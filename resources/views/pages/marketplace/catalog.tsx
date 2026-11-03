@@ -1,5 +1,6 @@
 import ProductCard from '@/components/marketplace/product-card';
 import { buttonClass, Card, Empty, Field, Page, Pager, secondaryClass, Select, type Pagination } from '@/components/shared/marketplace-ui';
+import ValidatedForm from '@/components/shared/validated-form';
 import { type SharedData } from '@/types';
 import { Link, useForm, usePage } from '@inertiajs/react';
 
@@ -17,6 +18,9 @@ export type Product = {
     image_url?: string | null;
     category?: { name: string };
     store: { id: number; name: string };
+    variants?: { id: number; name: string; stock: number; is_active: boolean; is_legacy?: boolean }[];
+    reviews_avg_rating?: number | string | null;
+    reviews_count?: number;
 };
 export default function Catalog({
     products,
@@ -48,7 +52,7 @@ export default function Catalog({
             }
         >
             <Card>
-                <form
+                <ValidatedForm
                     onSubmit={(e) => {
                         e.preventDefault();
                         search.get(wishlist ? '/wishlist' : '/shop', { preserveState: true });
@@ -85,7 +89,7 @@ export default function Catalog({
                     <button className={buttonClass} disabled={search.processing}>
                         {search.processing ? 'Searching…' : 'Search'}
                     </button>
-                </form>
+                </ValidatedForm>
             </Card>
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex flex-wrap items-center gap-3">

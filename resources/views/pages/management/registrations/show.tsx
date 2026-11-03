@@ -2,6 +2,7 @@ import InputError from '@/components/auth/input-error';
 import { inputClass } from '@/components/shared/marketplace-ui';
 import { ReasonConfirmation } from '@/components/shared/reason-confirmation';
 import { RegistrationProfile } from '@/components/shared/registration-profile';
+import ValidatedForm from '@/components/shared/validated-form';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/app-layout';
@@ -14,7 +15,7 @@ export default function Review({
     profile,
     address,
     store,
-    courier,
+    rider,
     documents,
     reviewer,
     bankAccount,
@@ -46,7 +47,7 @@ export default function Review({
     profile: Record<string, string> | null;
     address: Record<string, string> | null;
     store: { name: string; business_category: { name: string } | null } | null;
-    courier: { vehicle_type: string; plate_number: string | null } | null;
+    rider: { vehicle_type: string; plate_number: string | null } | null;
     documents: { id: number; kind: string; url: string; mime_type: string }[];
 }) {
     const [confirming, setConfirming] = useState(false);
@@ -71,10 +72,10 @@ export default function Review({
             <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 p-4 md:p-8">
                 {!embedded && <h1 className="text-2xl font-semibold">Registration review</h1>}
                 <RegistrationProfile
-                    details={{ application, applicant, profile, address, store, courier, documents, reviewer, bankAccount, canReview }}
+                    details={{ application, applicant, profile, address, store, rider, documents, reviewer, bankAccount, canReview }}
                 />
                 {canReview && application.status === 'submitted' && (
-                    <form onSubmit={submit} className="bg-card grid gap-4 rounded-2xl border p-6 shadow-sm shadow-black/[.02]">
+                    <ValidatedForm onSubmit={submit} className="bg-card grid gap-4 rounded-2xl border p-6 shadow-sm shadow-black/[.02]">
                         <Label htmlFor="decision">Decision</Label>
                         <select
                             id="decision"
@@ -104,10 +105,10 @@ export default function Review({
                                 : [
                                       'Missing or unreadable supporting documents',
                                       'Registration information needs correction',
-                                      ...(['seller', 'sorting_center'].includes(application.requested_role)
+                                      ...(['seller', 'logistics'].includes(application.requested_role)
                                           ? ['Business information or permit needs verification']
                                           : []),
-                                      ...(application.requested_role === 'courier' ? ['Assigned logistics company needs correction'] : []),
+                                      ...(application.requested_role === 'rider' ? ['Assigned logistics company needs correction'] : []),
                                   ]
                             ).map((reason) => (
                                 <option key={reason}>{reason}</option>
@@ -115,7 +116,7 @@ export default function Review({
                         </select>
                         <InputError id="review-reason-error" message={form.errors.reason} />
                         <Button disabled={form.processing}>{form.processing ? 'Saving…' : 'Save decision'}</Button>
-                    </form>
+                    </ValidatedForm>
                 )}
                 <ReasonConfirmation
                     open={confirming}

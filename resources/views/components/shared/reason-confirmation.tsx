@@ -1,4 +1,5 @@
 import { buttonClass, secondaryClass, Select } from '@/components/shared/marketplace-ui';
+import ValidatedForm from '@/components/shared/validated-form';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export function ReasonConfirmation({
@@ -32,7 +33,7 @@ export function ReasonConfirmation({
                     <DialogTitle>{title}</DialogTitle>
                     <DialogDescription>Review your decision and reason before saving. This action is recorded in activity history.</DialogDescription>
                 </DialogHeader>
-                <form
+                <ValidatedForm
                     className="grid gap-4"
                     onSubmit={(event) => {
                         event.preventDefault();
@@ -58,7 +59,7 @@ export function ReasonConfirmation({
                             {processing ? 'Saving…' : 'Confirm Action'}
                         </button>
                     </div>
-                </form>
+                </ValidatedForm>
             </DialogContent>
         </Dialog>
     );

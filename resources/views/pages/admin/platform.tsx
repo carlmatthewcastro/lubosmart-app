@@ -11,6 +11,7 @@ import {
     secondaryClass,
     type Pagination,
 } from '@/components/shared/marketplace-ui';
+import ValidatedForm from '@/components/shared/validated-form';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { activityDate } from '@/lib/admin-display';
 import { Link, router, useForm } from '@inertiajs/react';
@@ -52,7 +53,7 @@ function ContentEditor({ content, onClose }: { content?: Content; onClose: () =>
                     </button>
                 ))}
             </div>
-            <form
+            <ValidatedForm
                 className="flex min-h-0 flex-1 flex-col gap-4"
                 onSubmit={(event) => {
                     event.preventDefault();
@@ -167,7 +168,7 @@ function ContentEditor({ content, onClose }: { content?: Content; onClose: () =>
                         {form.processing ? 'Saving...' : form.data.published ? 'Save & Publish' : 'Save Draft'}
                     </button>
                 </div>
-            </form>
+            </ValidatedForm>
         </>
     );
 }

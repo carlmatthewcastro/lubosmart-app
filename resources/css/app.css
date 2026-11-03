@@ -306,7 +306,7 @@
 
 .app-wordmark {
     display: inline-block;
-    color: #000;
+    color: var(--app-wordmark-color, #000);
     text-shadow: none;
     font-family: var(--font-serif);
     font-variant-caps: normal;
@@ -315,7 +315,12 @@
     white-space: nowrap;
 }
 
-.app-wordmark--inverse {
+.dark .app-wordmark {
+    color: var(--app-wordmark-color, #fff);
+}
+
+.app-wordmark--inverse,
+.dark .app-wordmark--inverse {
     color: #fff;
 }
 

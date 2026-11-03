@@ -1,4 +1,5 @@
 import '../css/app.css';
+import { ActionFeedbackProvider } from '../views/components/shared/action-feedback';
 
 import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
@@ -18,7 +19,11 @@ createInertiaApp({
     setup({ el, App, props }) {
         const root = createRoot(el);
 
-        root.render(<App {...props} />);
+        root.render(
+            <ActionFeedbackProvider>
+                <App {...props} />
+            </ActionFeedbackProvider>,
+        );
     },
     progress: {
         color: '#4B5563',

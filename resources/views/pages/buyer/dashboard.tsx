@@ -1,5 +1,5 @@
 import WorkspaceDashboard, { type WorkspaceDashboardContent, type WorkspaceDashboardProps } from '@/components/workspace/dashboard';
-import { Package, ShoppingBag } from 'lucide-react';
+import { Heart, MapPin, MessageCircle, Package, ShoppingBag } from 'lucide-react';
 
 const content: WorkspaceDashboardContent = {
     title: 'Your shopping space',
@@ -10,6 +10,10 @@ const content: WorkspaceDashboardContent = {
     links: [
         { title: 'Shopping bag', text: 'Review items and place a COD order.', href: '/cart', icon: ShoppingBag },
         { title: 'Your orders', text: 'Follow parcels and message your sellers.', href: '/orders', icon: Package },
+        { title: 'Saved products', text: 'Return to products in your wishlist.', href: '/wishlist', icon: Heart },
+        { title: 'Delivery addresses', text: 'Manage your saved recipients and addresses.', href: '/settings/addresses', icon: MapPin },
+        { title: 'Delivery issues', text: 'Check parcels that need follow-up.', href: '/orders?stage=issues', icon: Package },
+        { title: 'Help and complaints', text: 'Contact support about an order or delivery.', href: '/support', icon: MessageCircle },
     ],
 };
 

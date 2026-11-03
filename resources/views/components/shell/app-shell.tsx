@@ -1,5 +1,6 @@
 import { SkipLink } from '@/components/shell/skip-link';
 import { SidebarProvider } from '@/components/ui/sidebar';
+import { WorkspaceRuntime } from '@/components/workspace/workspace-runtime';
 import type { SharedData } from '@/types';
 import { usePage } from '@inertiajs/react';
 import { type CSSProperties, useState } from 'react';
@@ -25,20 +26,20 @@ export function AppShell({ children, variant = 'header' }: AppShellProps) {
         return (
             <div className="flex min-h-screen w-full flex-col">
                 <SkipLink />
-                {children}
+                <WorkspaceRuntime>{children}</WorkspaceRuntime>
             </div>
         );
     }
 
     return (
         <SidebarProvider
-            style={['admin', 'sorting_center'].includes(auth.user?.role) ? ({ '--sidebar-width-icon': '4.5rem' } as CSSProperties) : undefined}
+            style={['admin', 'logistics', 'rider'].includes(auth.user?.role) ? ({ '--sidebar-width-icon': '4.5rem' } as CSSProperties) : undefined}
             defaultOpen={isOpen}
             open={isOpen}
             onOpenChange={handleSidebarChange}
         >
             <SkipLink />
-            {children}
+            <WorkspaceRuntime>{children}</WorkspaceRuntime>
         </SidebarProvider>
     );
 }

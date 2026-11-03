@@ -1,5 +1,6 @@
 import AuthFeedback from '@/components/auth/auth-feedback';
 import AppWordmark from '@/components/branding/app-wordmark';
+import { ThemeToggle } from '@/components/navigation/theme-toggle';
 import { SkipLink } from '@/components/shell/skip-link';
 import { buttonVariants } from '@/components/ui/button';
 import { assets } from '@/config/assets';
@@ -10,7 +11,7 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import { type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes, useId } from 'react';
 
 export const money = (value: string | number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' }).format(Number(value));
-const roleLabels: Record<string, string> = { buyer: 'Buyer', seller: 'Seller', courier: 'Rider', sorting_center: 'Logistics', admin: 'Admin' };
+const roleLabels: Record<string, string> = { buyer: 'Buyer', seller: 'Seller', rider: 'Rider', logistics: 'Logistics', admin: 'Admin' };
 export const roleLabel = (role: string | null | undefined) => (role ? (roleLabels[role] ?? role.replaceAll('_', ' ')) : 'No Role Selected');
 export const buttonClass = buttonVariants();
 export const secondaryClass = buttonVariants({ variant: 'outline' });
@@ -47,11 +48,18 @@ export function Page({
     headerInNavbar?: boolean;
 }) {
     const { auth, status, errors } = usePage<SharedData>().props;
-    const useNavbarHeader =
-        (headerInNavbar || ['buyer', 'seller', 'courier', 'sorting_center'].includes(auth.user?.role ?? '')) && !embedded && !!auth.user;
+    const useNavbarHeader = (headerInNavbar || ['buyer', 'seller', 'rider', 'logistics'].includes(auth.user?.role ?? '')) && !embedded && !!auth.user;
     const pageHeader = (
         <div className="min-w-0">
-            <h1 className="text-muted-foreground text-xs font-bold tracking-widest uppercase">{title}</h1>
+            <h1
+                className={
+                    auth.user?.role === 'admin'
+                        ? 'text-muted-foreground text-xs font-bold tracking-widest uppercase'
+                        : 'text-foreground text-xl font-semibold tracking-tight sm:text-2xl'
+                }
+            >
+                {title}
+            </h1>
             {description && (
                 <p title={description} className="text-muted-foreground mt-1 text-xs leading-relaxed md:truncate md:text-sm">
                     {description}
@@ -72,7 +80,7 @@ export function Page({
                 </div>
             )}
             {useNavbarHeader && action}
-            {status && <Notice>{status}</Notice>}
+            {status && !['buyer', 'seller', 'rider', 'logistics'].includes(auth.user?.role ?? '') && <Notice>{status}</Notice>}
             {Object.keys(errors).length > 0 && (
                 <Notice tone="error">
                     {[...new Set(Object.values(errors))].map((error, i) => (
@@ -100,6 +108,7 @@ export function Page({
                         <AppWordmark />
                     </Link>
                     <nav aria-label="Marketplace navigation" className="flex items-center gap-4">
+                        <ThemeToggle />
                         <Link href="/" className="text-muted-foreground hover:text-primary hidden text-sm sm:inline-flex">
                             Home
                         </Link>
@@ -193,7 +202,7 @@ export function Field({
                     {hint}
                 </p>
             )}
-            <AuthFeedback id={`${id}-error`} message={error} />
+            <AuthFeedback id={`${id}-error`} message={error} reserveSpace />
         </div>
     );
 }
@@ -202,7 +211,7 @@ export function Select({
     children,
     error,
     className,
-    reserveFeedback = false,
+    reserveFeedback = true,
     ...props
 }: SelectHTMLAttributes<HTMLSelectElement> & { label: string; error?: string; reserveFeedback?: boolean }) {
     const generatedId = useId();
@@ -241,7 +250,7 @@ export function Textarea({ label, error, className, ...props }: TextareaHTMLAttr
                 aria-invalid={error ? true : props['aria-invalid']}
                 aria-describedby={[props['aria-describedby'], error && `${id}-error`].filter(Boolean).join(' ') || undefined}
             />
-            <AuthFeedback id={`${id}-error`} message={error} />
+            <AuthFeedback id={`${id}-error`} message={error} reserveSpace />
         </div>
     );
 }
