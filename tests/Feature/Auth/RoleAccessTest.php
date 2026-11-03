@@ -18,7 +18,12 @@ test('each verified active role receives its own dashboard', function (string $r
     $this->actingAs($user)->get(route('dashboard.role', $role))->assertOk()
         ->assertInertia(function (Assert $page) use ($role) {
             if ($role === 'logistics') {
-                $page->component('logistics/dashboard')->has('metrics', 8)->has('recentParcels', 0);
+                $page->component('logistics/dashboard')->where('metrics', [
+                    'pickupRequests' => 0, 'incoming' => 0, 'sorting' => 0,
+                    'dispatch' => 0, 'exceptions' => 0, 'cash' => 0,
+                    'activeDeliveries' => 0, 'riderApplications' => 0,
+                    'delivered' => 0, 'activeRiders' => 0, 'publishedRates' => 0,
+                ])->has('recentParcels', 0);
             } elseif ($role === 'rider') {
                 $page->component('rider/dashboard')->where('queues.all', 0)->has('recentParcels', 0);
             } elseif ($role === 'seller') {

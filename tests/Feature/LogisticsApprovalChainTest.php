@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Address;
+use App\Models\ChangeRequest;
 use App\Models\Order;
 use App\Models\RegistrationApplication;
 use App\Models\SellerOrder;
@@ -14,6 +15,16 @@ use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Inertia\Testing\AssertableInertia as Assert;
+
+function logisticsChainReverificationData(string $companyName): array
+{
+    $data = ['company_name' => $companyName, 'sec_registration_number' => 'CS202099999', 'tin' => '987-654-321-115'];
+    foreach (['identity', 'sec_certificate', 'bir_2303', 'business_permit'] as $kind) {
+        $data[$kind] = UploadedFile::fake()->create($kind.'.pdf', 10, 'application/pdf');
+    }
+
+    return $data;
+}
 
 test('unapproved roles cannot open settings orders conversations or operational APIs', function (string $role, string $status) {
     $user = User::factory()->create(['role' => $role, 'status' => $status]);
@@ -82,22 +93,36 @@ test('logistics manages rider restrictions while admins and other centers are de
 });
 
 test('logistics business changes block linked riders and reapproval reuses the same center', function () {
-    Notification::fake();
+    Storage::fake('local');
     $rider = User::factory()->create(['role' => 'rider']);
     $center = linkRiderToApprovedCenter($rider);
     $operator = $center->users()->where('role', 'logistics')->firstOrFail();
     $address = Address::query()->create(['user_id' => $operator->id, 'label' => 'Registration', 'recipient_name' => 'Operator', 'phone' => '09171234567', 'line1' => 'Test street', 'barangay' => 'Test', 'city' => 'Manila', 'province' => 'Metro Manila', 'region' => 'NCR', 'zip' => '1000']);
     $application = RegistrationApplication::query()->create(['user_id' => $operator->id, 'requested_role' => 'logistics', 'status' => 'approved', 'business_name' => 'Old company']);
     $application->forceFill(['address_id' => $address->id])->save();
-    $this->actingAs($operator)->patch('/settings/profile', ['name' => $operator->name, 'email' => $operator->email, 'business_name' => 'New company', 'bank_account' => 'Synthetic bank', 'current_password' => 'password'])->assertRedirect('/application/waiting')->assertSessionHasNoErrors();
-    expect($operator->fresh()->status)->toBe('pending');
-    expect($operator->fresh()->bank_account)->toBe('Synthetic bank');
-    expect(DB::table('users')->where('id', $operator->id)->value('bank_account'))->not->toBe('Synthetic bank');
-    $this->actingAs($rider)->get('/deliveries')->assertForbidden();
-    $this->actingAs(User::factory()->create(['role' => 'admin']))->patch('/reviews/'.$application->id, ['decision' => 'approved'])->assertSessionHasNoErrors();
+    $center->forceFill(['company_user_id' => $operator->id, 'name' => 'Old company'])->save();
+    $rider->forceFill(['logistics_company_id' => $operator->id])->save();
+
+    $this->actingAs($rider)->get('/deliveries')->assertOk();
+    $this->actingAs($operator, 'web')->patch('/settings/profile', ['name' => $operator->name, 'email' => $operator->email, 'business_name' => 'New company'])->assertForbidden();
+    expect($operator->fresh()->status)->toBe('approved');
+    $this->assertDatabaseCount('change_requests', 0);
+    $this->postJson('/api/account/reverification', logisticsChainReverificationData('New company'))->assertCreated();
+    $change = ChangeRequest::query()->where('account_id', $operator->id)->where('field', 'reverification')->sole();
+    expect($operator->fresh()->status)->toBe('pending_reverification');
+    expect($application->fresh()->business_name)->toBe('Old company');
+    expect($center->fresh()->name)->toBe('Old company');
+    $this->actingAs($rider->fresh(), 'web')->get('/deliveries')->assertForbidden();
+    expect($rider->fresh()->status)->toBe('approved');
+
+    $admin = User::factory()->create(['role' => 'admin']);
+    $this->actingAs($admin, 'web')->actingAs($admin, 'sanctum')->postJson('/api/admin/change-requests/'.$change->id.'/approve')->assertOk();
+    expect($change->fresh()->status)->toBe('approved');
+    expect($operator->fresh()->status)->toBe('approved');
+    expect($application->fresh()->business_name)->toBe('New company');
     $this->assertDatabaseCount('logistics_centers', 1);
     expect($center->fresh()->name)->toBe('New company');
-    $this->actingAs($rider)->get('/deliveries')->assertOk();
+    $this->actingAs($rider->fresh(), 'web')->get('/deliveries')->assertOk();
 });
 
 test('replacing an approved partner ID creates private documents and requests the correct re-review', function (string $role) {
@@ -105,6 +130,31 @@ test('replacing an approved partner ID creates private documents and requests th
     $user = User::factory()->create(['role' => $role]);
     $center = $role === 'rider' ? linkRiderToApprovedCenter($user) : null;
     $application = RegistrationApplication::query()->create(['user_id' => $user->id, 'requested_role' => $role, 'status' => 'approved', 'logistics_center_id' => $center?->id]);
+    if ($role === 'logistics') {
+        $this->actingAs($user, 'web')->post('/settings/profile', ['_method' => 'patch', 'name' => $user->name, 'email' => $user->email, 'identity' => UploadedFile::fake()->create('replacement.pdf', 10, 'application/pdf')])->assertForbidden();
+        expect($user->fresh()->status)->toBe('approved');
+        $this->assertDatabaseCount('change_requests', 0);
+        $this->assertDatabaseCount('registration_documents', 0);
+
+        $this->postJson('/api/account/reverification', logisticsChainReverificationData('Synthetic Logistics'))->assertCreated();
+        $change = ChangeRequest::query()->where('account_id', $user->id)->where('field', 'reverification')->sole();
+        expect($user->fresh()->status)->toBe('pending_reverification');
+        expect($application->fresh()->status)->toBe('approved');
+        $identity = collect($change->new_value['documents'])->firstWhere('kind', 'identity');
+        expect($identity['disk'])->toBe('local');
+        Storage::disk('local')->assertExists($identity['path']);
+        $this->assertDatabaseCount('registration_documents', 0);
+
+        $admin = User::factory()->create(['role' => 'admin']);
+        $this->actingAs($admin)->postJson('/api/admin/change-requests/'.$change->id.'/approve')->assertOk();
+        expect($user->fresh()->status)->toBe('approved');
+        $document = $application->documents()->where('kind', 'identity')->sole();
+        expect($document->disk)->toBe('local');
+        expect($document->path)->toBe($identity['path']);
+        $this->assertDatabaseHas('audit_logs', ['account_id' => $user->id, 'actor_id' => $admin->id, 'action' => 'approved', 'field' => 'reverification']);
+
+        return;
+    }
     $this->actingAs($user)->post('/settings/profile', ['_method' => 'patch', 'name' => $user->name, 'email' => $user->email, 'identity' => UploadedFile::fake()->create('replacement.pdf', 10, 'application/pdf')])->assertRedirect('/application/waiting')->assertSessionHasNoErrors();
     expect($user->fresh()->status)->toBe('pending');
     expect($application->fresh()->status)->toBe('submitted');

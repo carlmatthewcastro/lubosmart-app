@@ -72,14 +72,26 @@ or production acceptance.
 
 ## Known verification limits
 
-The November 3 handoff check reproduced **1,086 passing backend tests, 3 failures,
+The initial November 3 handoff check reproduced **1,086 passing backend tests, 3 failures,
 3 skipped, and 8,766 assertions**. TypeScript, ESLint, Prettier, PHP Pint,
 all 37 registration component tests and the production build passed after formatting
 cleanup. Browser journeys were not rerun for this handoff.
 
-The [November 1 role audit](ROLE_FEATURE_AUDIT_2026_11_01.md) records three backend
-failures: the Logistics dashboard metric count and two legacy Logistics profile
-mutation expectations. It also identifies stale browser-script selectors/fixtures.
+The three stale backend expectations have since been corrected: the dashboard test
+checks all 11 named metrics and their values; Logistics business/document changes
+exercise `/api/account/reverification` and Admin change-request approval. The tests
+retain the legacy profile endpoint's 403 boundary and verify linked Rider access
+is blocked while re-verification is pending and restored after approval. Application
+authorization and business logic were not changed.
+
+After the corrections, the full local backend suite passed **1,089 tests with
+3 skipped, zero failures and 8,798 assertions**. The focused dashboard, approval
+chain and account settings suite passed **81 tests / 519 assertions**. PHP Pint
+and Git whitespace checks passed. GitHub CI must be checked independently after
+pushing this correction.
+
+The [November 1 role audit](ROLE_FEATURE_AUDIT_2026_11_01.md) remains a historical
+record of those failures and identifies stale browser-script selectors/fixtures.
 The registration component tests emit mock-related React warnings.
 
 Physical scanners/printers, live mail and Google OAuth, MySQL contention, complete
