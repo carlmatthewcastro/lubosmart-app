@@ -707,3 +707,585 @@ User revised the wordmark preference to solid black without shadows. Removed the
 ### White footer wordmark - 2026-10-15
 
 Restored white fill for the existing inverse wordmark used on the purple homepage footer after the user's screenshot correction. Default wordmarks remain black; both have no shadow or outline. ESLint, formatting, TypeScript, build and 8 homepage tests (89 assertions) passed. Browser visual verification remains pending.
+
+### Theme-aware shared wordmark - 2026-10-15
+
+Shared AppWordmark now uses black in light mode and white in dark mode through the existing .dark theme class. Applied centrally to app logo/header/sidebar, public header, authentication and onboarding consumers. Inverse footer remains white in both themes. The fixed light storefront surface and white printable waybill explicitly retain black lettering even in dark mode. Existing purple/orange logo image assets, typography, size and no-shadow styling are preserved. Targeted ESLint, formatting, TypeScript, production build and 12 homepage/dashboard tests (123 assertions) passed. Source consumers and surface colors reviewed; actual browser switching, mobile/zoom and full accessibility verification remain pending.
+
+### Persisted public appearance and navbar controls - 2026-10-15
+
+Added a shared accessible Sun/Moon button using the existing saved appearance hook to the homepage navbar, guest marketplace navbar and authentication/registration layout. Existing browser-local preference already survives real logout; no authentication storage changes were needed. Homepage now supports dark surfaces and theme-aware wordmarks; seller invitation retains its purple gradient and white text. Mobile homepage navigation wraps to fit 320px. Updated appearance settings copy to describe both modes and persistence. ESLint, formatting, TypeScript, production build and 17 homepage/dashboard/authentication tests (153 assertions) passed. Extended isolated browser checks passed guest full-navigation persistence and actual Rider dashboard logout followed by dark homepage/registration, white wordmark and 320px reflow, along with existing registration/auth checks and zero runtime exceptions. Final homepage browser rerun passed after preserving seller-banner colors. Inspected light/dark mobile screenshots. Full screen-reader, zoom and WCAG contrast audit remain pending. Changes remain local.
+
+### Seller banner contrast isolation - 2026-10-15
+
+Seller banner now owns dedicated fixed purple gradient variables, independent of dark homepage foreground/accent variables. Excluded its white action button from general dark filled-button and hover overrides; text stays deep purple on white/orange. ESLint, formatting, TypeScript, build, 8 homepage tests (89 assertions) and homepage browser theme/reflow checks passed, including computed dark gradient and button text color assertions. Full contrast certification remains pending.
+
+### Remove registration review reminder - 2026-10-15
+
+Removed the role-specific after-email-verification review reminder paragraph from the shared registration form at the user's request. ESLint, formatting, TypeScript, production build and 34 registration tests (223 assertions) passed. Browser visual review of this copy removal was not performed.
+
+### Concise email verification copy - 2026-10-15
+
+Removed the administrator approval sentence and Spam/Promotions/automatic-checking paragraph from the verification screen as requested. Retained the concise saved-account/inbox confirmation and existing code instructions and actions. ESLint, formatting, TypeScript, production build and 9 email verification tests (54 assertions) passed. Browser visual review of this copy-only change remains unperformed.
+
+### Professional verification email presentation - 2026-10-15
+
+Refined shared transactional email presentation with a serif LubosMart wordmark, purple top accent, left-aligned Arial heading and greeting, clear action instructions, centered lavender code panel and quieter security/footer copy. Explicit font families prevent email-client heading font substitutions; narrower mobile code spacing keeps all six digits together. Kept escaped dynamic content, code expiry, notification routes and plain-text alternative. 45 transactional-mail/registration-code tests passed (285 assertions). Generated storage/app/verification-email-preview.html with a sample recipient and code. TypeScript and production build passed. Gmail/Outlook and email-client dark-mode rendering remain unverified; web app theme does not control email-client theme.
+
+### Professional application approval email - 2026-10-15
+
+Added a compact Approved badge, clearer sign-in next step and left-aligned dashboard action. Shared action emails now explain the fallback URL instead of displaying an unexplained raw link. Role dashboard routes, plain-text content and delivery remain intact. PHP formatting and 28 transactional-mail/approval-delivery tests passed (183 assertions). Rendered storage/app/approval-email-preview.html using a sample recipient and a clearly illustrative .example URL. Email-client visual rendering remains unverified. Screenshot localhost link follows current app URL configuration; production URL configuration was not changed.
+
+### Minimal branded email content - 2026-10-15
+
+Removed visible fallback URL, fallback explanation, footer tagline and footer divider from shared HTML transactional emails as requested. LubosMart wordmark and purple accent remain at the top; action buttons retain destination URLs. Plain-text links remain usable. Updated existing route-link assertions for a single button link. PHP formatting and 28 mail/approval tests (183 assertions) passed. Email-client visual review remains pending.
+
+### Concise code email security reminder - 2026-10-15
+
+Removed the duplicate Keep this code private lead-in from shared code emails. Retained Never share this code and the unsolicited-request guidance, branding, code and expiry. Transactional mail tests passed. Email-client visual review remains pending.
+
+### Blank registration mobile input - 2026-10-15
+
+Removed the 9XXXXXXXXX placeholder from the shared registration mobile input as requested. Targeted ESLint, TypeScript, production build and four phone registration tests (22 assertions) passed. Browser visual verification remains pending.
+
+### Logistics profile confirmation panel - 2026-10-15
+
+Removed the email-code panel for password-based logistics accounts in Account Settings; current-password confirmation remains available. Google-only logistics accounts retain email confirmation so sensitive changes remain possible. Updated the password label accordingly. ESLint, TypeScript, production build and 18 profile tests (92 assertions) passed. Browser visual verification remains pending.
+
+### Logistics password settings match admin - 2026-10-15
+
+Logistics now shares the admin Current Password, New Password and Confirm New Password form and description. Server validation requires the current password before sending a code and before saving; email confirmation remains required. Expanded existing password feature coverage for logistics, including incorrect and missing current passwords. All 18 password tests (127 assertions) and Pint passed. Browser visual verification remains pending.
+
+### API-based saved delivery addresses - 2026-10-15
+
+My addresses now uses registration-options for cascading Region, Province/NCR, City/Municipality and Barangay choices. Parent changes clear child selections and postal suggestions; exact city postal suggestions remain editable. Requests are aborted on changes/unmount; loading, API failure and retry feedback are provided. Save requires all location selections. Existing addresses require selecting locations again on edit because saved addresses contain names rather than PSGC codes. AddressRequest reuses PhilippineLocations hierarchy validation and AccountRules phone normalization/name validation, requires four-digit postal codes, and stores resolved location names rather than submitted labels. Ownership, registration-address protection, default handling and existing order snapshots remain intact. ESLint, TypeScript, Pint, production build and 22 relevant tests (110 assertions) passed. Browser visual, keyboard and responsive checks remain pending.
+
+### Edit registration addresses from settings - 2026-10-15
+
+Per user request, every saved address now offers Edit address, including the address linked to registration. Removed the update restriction while retaining ownership validation, API hierarchy validation and deletion protection for linked registration addresses. The card explains that edits also update the application address. Existing order shipping snapshots remain unchanged. ESLint, TypeScript, Pint, production build and 16 address tests (82 assertions) passed. Browser visual verification remains pending.
+
+### Simplified logistics profile options - 2026-10-15
+
+Removed the Make it yours shortcut card, Email Verified badge and Delete account section from logistics profiles as requested. Avoided an empty badge container; a connected Google badge remains where applicable. Other roles retain their existing UI. ESLint, TypeScript, production build and 18 profile tests (92 assertions) passed. Browser visual verification remains pending.
+
+### Remove logistics profile current-password input - 2026-10-15
+
+Removed Current password from logistics Account Settings as requested. Email confirmation appears only when email, phone or bank account is edited, preserving sensitive-change validation. The separate Change Password page retains its existing current-password requirement. ESLint, TypeScript, production build and 18 profile tests (92 assertions) passed. Browser visual verification remains pending.
+
+### Logistics registration details in Account Settings - 2026-10-15
+
+Added an owner-scoped registration details section for logistics: first/last name, optional middle initial, sex, birthday/age, company name, SEC number, TIN, contact position, service region names, registered business address and required document submission statuses. Missing legacy values are marked Not provided. Registration details are read-only references; existing profile editing remains available and the address section links to address editing. Document storage paths and file contents are not exposed. Add/Edit address now has separate House / unit number and Street / subdivision fields using registration limits, required-together validation and composed line1 storage. Existing clients with line1 remain compatible. ESLint, TypeScript, Pint, production build and 38 profile/address tests (207 assertions) passed. Browser visual, keyboard and responsive verification remains pending.
+
+### Logistics settings section navigation - 2026-10-15
+
+Added logistics sidebar links for Contact details, Personal information, Business details and Submitted documents. Links target focusable sections on the profile page, reflect the selected hash with aria-current and preserve existing Password and Addresses navigation. Replaced the logistics My Profile heading with the signed-in user's name. ESLint, TypeScript, production build and 20 profile tests (120 assertions) passed. Browser visual, mobile and keyboard verification remains pending.
+
+### Verified logistics account settings - 2026-10-15
+
+Approved logistics profiles now render verified Account Settings at
+`/settings/profile` and `/settings/account`, reusing Page, Card, Field, Select,
+Button, Notice and Badge. Identity/company fields are read-only with lock icons.
+Address/service proposals show current and proposed values, review status and
+rejection reasons. TIN is masked until owner reveal. Private document URLs expire
+in five minutes. Company changes require new documents and re-verification.
+Street/subdivision and house/unit number each appear once.
+
+SWR handles loading, errors/retry and refreshed data. The admin queue supports
+comparisons, signed document links, approval, required rejection reasons and
+pagination. Contact/security uses the existing email OTP and password workflows.
+The imported PSGC/postal table validates addresses; no production dataset was
+supplied, so import is required before address changes can be used.
+
+Validation: 291 relevant Laravel tests passed, one existing skip; 37 focused
+account tests passed after the final read-consistency change. ESLint, Prettier,
+TypeScript, Pint and production build passed. Isolated Chrome checks passed for
+320/768/1440 pixel reflow, cascading selects/postal fill, TIN reveal/hide,
+CSRF-protected proposals, pending comparisons, keyboard focus, and admin approval.
+Light/dark screenshots and results: storage/app/account-settings-ui-check/.
+Screen-reader behavior, complete keyboard paths, 200%/400% zoom and comprehensive
+contrast measurements remain unverified. This does not establish WCAG compliance.
+
+See [setup and assumptions](../ACCOUNT_SETTINGS.md). OTP uses the registered email;
+SMS ownership verification is not configured. Existing buyer/seller/rider settings
+and unrelated local work remain intact.
+### Remove notification preferences from logistics settings - 2026-10-15
+
+Removed the Notification preferences form, Email/SMS checkboxes and Save
+preferences button from Account Settings as requested. Contact/security fields
+and the Change password link remain. Targeted ESLint, TypeScript, formatting,
+37 account tests and production build were checked. No new controls or layout
+patterns were introduced. Manual visual verification remains pending.
+### Categorized logistics Account Settings - 2026-10-15
+
+Replaced the long stacked settings page with a category menu and one visible
+section at a time. Desktop uses a left menu, while small screens place categories
+above the selected section. Six categories cover personal details, company
+registration, registered address, service areas, submitted documents and contact
+and security; Password and Delivery addresses links remain reachable. Hash links
+support direct navigation and browser history, including the earlier profile
+section anchors. Hidden sections retain drafts. The active link uses aria-current
+and the existing lavender highlight. Only the latest review feedback for the
+selected category appears. Notification preferences remain removed.
+
+ESLint, TypeScript, Prettier, 37 account tests and production build passed.
+Browser checks cover category switching, one active menu link, preserved address
+drafts, 320/768/1440 reflow, address selects, owner TIN reveal and admin workflows.
+Artifacts: storage/app/account-settings-ui-check/. Full screen-reader, zoom and
+contrast verification remains pending; automated checks do not certify WCAG.
+### Remove redundant logistics sidebar settings link - 2026-10-15
+
+Removed Account Settings from the logistics workspace sidebar as requested.
+Settings remains available through the existing user account menu. Targeted
+ESLint, TypeScript, Prettier, 37 account tests and production build were checked.
+Manual visual verification remains pending for this removal.
+### Remove admin registration change-request link - 2026-10-16
+
+Removed the Review account change requests link from the admin registration
+review page and its unused Link import. Targeted ESLint, TypeScript and 35 admin
+management tests passed. Manual browser verification remains pending.
+
+Production build passed.
+
+### Rider account layout - 2026-10-16
+
+Removed the rider review header button and signup-link card as requested.
+Company riders now follows the existing account page pattern with name/email
+search, status filters, alphabetical sorting, a result count, initial avatars,
+and responsive account cards. Existing permission-based rider actions remain.
+Filtering applies locally to the complete server-provided company rider list.
+Prettier, targeted ESLint, TypeScript and production build passed. Logistics
+workspace and rider registration tests: 212 passed, 1 skipped.
+Manual browser, dark theme, keyboard, zoom and screen-reader checks remain pending.
+
+
+### Logistics dashboard and coverage refinement - 2026-10-16
+
+Replaced the decorative truck welcome panel and five-step workflow guide with
+a compact welcome, review queues, actual company metrics, workload bars and a
+delivery progress ring. Charts label overlapping queues and the limited
+active/delivered population; no time trends or financial figures are invented.
+Removed the welcome action arrow and management shortcut arrows. Fixed rider
+sort labels using plain ASCII text to avoid the broken dash encoding.
+Shipping rates now has a compact add action, inline publication counts, local
+coverage search/status filters, an actionable empty state and a concise pricing
+guide. Existing rate editor, publication confirmation and request behavior remain.
+
+Validation: Prettier, targeted ESLint, TypeScript, production build and 20
+logistics tests (163 assertions) passed. Isolated browser fixtures verified
+desktop/tablet/landscape/320px dashboard reflow, dark theme, workflow navigation,
+shipping empty state and editor opening, Escape and focus restoration.
+Reviewed dashboard and shipping desktop/mobile screenshots. Artifacts:
+storage/app/logistics-layout-ui-check/. No browser runtime or console errors.
+The broader workspace visit logged an existing HTTP 403 for /api/account/settings;
+account settings was not changed. Populated shipping filter interactions, full
+screen-reader, contrast and zoom verification remain pending.
+
+
+### Rider account details and access cards - 2026-10-16
+
+Company rider cards now match the account card reference: registration date,
+actual application status, View details and Manage access for eligible riders.
+The existing account detail and access dialogs use their authorized endpoints.
+Pending application review and legacy activation actions remain available.
+The rider payload adds only registration date, verified date and application
+status to the existing company-scoped list. Access components accept only the
+identity/status fields they use. InfoModal now uses DialogTrigger to restore
+keyboard focus to the details button after closing.
+
+Validation: PHP syntax, Prettier, targeted ESLint, TypeScript and production
+build passed. Logistics workspace/rider registration tests: 212 passed, 1 skipped
+(1322 assertions), including the rider card data contract.
+Isolated browser fixtures verified approved rider details and access dialogs,
+Escape, trigger focus restoration, 320px reflow and dark theme; desktop screenshot
+reviewed. Artifacts: storage/app/rider-cards-ui-check/. No runtime or console
+errors. The broader workspace visit still logs the unrelated account-settings
+HTTP 403 previously recorded. Full screen-reader/contrast/zoom checks remain pending.
+
+
+### Remove parcel coverage footer link - 2026-10-16
+
+Removed Need more coverage? Manage Shipping Rates from the shared logistics
+parcel page, covering all parcel operation stages. Removed the unused Link
+import. Targeted ESLint, TypeScript, production build and 20 logistics tests
+(184 assertions) passed. Manual browser verification is pending for this removal.
+
+
+### Dedicated rider coverage workspace - 2026-10-16
+
+Added /logistics/rider-coverage under Riders & Coverage in the sidebar between
+Rider Management and Shipping Rates. Removed the repeated parcel header action
+and coverage modal. The dashboard coverage shortcut opens the new page. Reused
+the existing barangay assignment form/save endpoint; added a paginated assignment
+list scoped to approved email-verified company riders and their own operational
+centers. Existing delivery assignment rules and rate publishing remain unchanged.
+
+Validation: PHP syntax, Prettier, targeted ESLint, TypeScript and production build
+checked. Three new page access/isolation/empty-state tests and the existing
+coverage-save authorization/validation test pass (48 assertions). Broader test
+run: 44 passed, 3 failed. Failures are in untouched receipt-condition expectations
+and profile re-verification flows: LogisticsWorkspaceTest line 196 submits no
+required receipt_condition; LogisticsApprovalChainTest lines 92 and 108 expect
+profile change redirects but receive 403. These were left for their workflow work.
+Browser checks passed for sidebar active state, form rendering, parcel action
+removal, desktop/320px/dark theme and broader workflow navigation. Desktop
+screenshot reviewed; artifacts: storage/app/rider-coverage-ui-check/. The existing
+account-settings fixture request still returns HTTP 403. Full screen-reader, zoom
+and contrast checks and submitting the form on the new page in-browser remain
+pending; endpoint save behavior is covered by the existing test.
+
+
+### Logistics scanning, dispatch, exceptions and cash evidence - 2026-10-16
+
+Implemented parcel tracking lookup, printable Code 39 labels, camera/scanner/manual
+capture, receipt condition, destination sorting/bin, separate rider dispatch
+acceptance, failed-attempt/retry/return-to-center actions and amount-checked COD
+handover with discrepancy history. Existing role gates and shared components are
+retained. Concurrent rider coverage page/sidebar changes were preserved.
+
+Validation: 316 relevant PHP tests passed, 1 existing password-masking test
+skipped (2320 assertions). Targeted ESLint, TypeScript, Prettier, Pint and production
+build passed. Nine isolated browser checks passed: receipt and sorting submissions,
+320px dark-theme reflow, unsupported and denied camera fallback, simulated camera
+capture and ignored URL payloads, camera track cleanup, offline not-submitted
+feedback, unknown tracking and audited waybill printing. Desktop, dark mobile and
+waybill screenshots were inspected. Artifacts: storage/app/logistics-operations-ui-check/.
+No runtime or console errors were observed. The earlier receipt-condition fixture
+failure is resolved in this batch. This subset does not certify the unrelated
+profile/account-settings tests reported by the previous entry.
+
+Real printed barcode/phone/scanner acceptance, actual camera hardware, simultaneous
+MySQL requests, interrupted in-flight submissions, screen-reader/contrast and
+200%/400% zoom verification remain pending. Full scope and policy-dependent gaps:
+[Logistics implementation and acceptance](LOGISTICS_IMPLEMENTATION_ACCEPTANCE.md).
+
+### Minimal seller invitation - 2026-10-16
+
+Simplified the public homepage seller section: solid semantic purple surface,
+compact spacing and heading, shorter copy, and no decorative rings or store
+emblem. The existing seller registration action is preserved.
+
+Validation: targeted ESLint, TypeScript, Prettier and production build passed;
+HomepageProductsTest passed (8 tests, 89 assertions). Browser visual inspection,
+mobile/zoom, keyboard and screen-reader verification remain pending for this batch.
+
+### Dedicated Logistics Scan Parcel workspace - 2026-10-16
+
+Moved Logistics camera and tracking capture to /logistics/scan, linked as Scan
+Parcel under Operations in the sidebar. The dedicated page keeps lookup, manual
+entry reason, parcel details and receipt/sorting/dispatch confirmations together.
+Parcel queues retain ordinary search and review; they link to Scan Parcel for
+physical scan operations. Courier scanning and server authorization are retained.
+An empty scanner exposes no parcel list, and exact-reference lookup stays scoped
+to the operator's operational centers. Editing the reference hides the previous
+parcel's action panel until the new lookup matches.
+
+Validation: 61 relevant Logistics/marketplace tests passed (784 assertions).
+Targeted ESLint, TypeScript, Prettier, Pint and production build passed. Isolated
+browser checks cover sidebar active state, queue camera removal, manual reason
+persistence in history, receipt/sorting submissions on the scanner, mobile dark
+reflow, camera capture/fallbacks, offline feedback, unknown reference and waybill
+printing. Desktop/light and 320px/dark screenshots were inspected. Artifacts:
+storage/app/logistics-operations-ui-check/. Physical hardware, screen readers,
+full contrast and zoom verification remain pending. No deployment was performed.
+
+### Seller invitation styling restored - 2026-10-16
+
+Supersedes the minimal seller invitation above at the user's request. Restored
+original gradient, decorative rings, spacing, typography and copy; only the store
+emblem is removed. Seller registration behavior is preserved. ESLint, TypeScript,
+Prettier, production build and 8 homepage tests passed (89 assertions).
+Browser visual and accessibility verification remain pending.
+
+### Logistics notifications styled like Admin - 2026-10-16
+
+Replaced the plain Logistics bell-menu links with the Admin notification pattern:
+Notifications header, descriptive icon rows, actual count badges and a bell badge.
+Counts are refreshed on opening and every 30 seconds while the page is visible.
+The authenticated /logistics/notifications endpoint returns only five queue counts
+for the operator's accessible operational centers, with private/no-store caching.
+Dashboard and toolbar share the queue-count definitions. The bell total includes
+review/handling tasks; ongoing deliveries are shown separately to avoid counting
+the same in-transit parcel twice in the attention total. Loading, refresh-error,
+retry and zero-pending states are explicit; unknown counts show a dash.
+
+Validation: 63 relevant Logistics/marketplace tests passed (797 assertions),
+including endpoint authorization, center isolation, queue transitions and empty
+centers. Targeted ESLint, TypeScript, Prettier, Pint and production build checked.
+Twelve isolated browser checks passed, including notification count/icon rows,
+320px dark menu width and Escape focus restoration. Desktop/light and 320px/dark
+notification screenshots were inspected. Artifacts:
+storage/app/logistics-operations-ui-check/logistics-notifications-desktop.png
+and logistics-notifications-dark-320.png. Full screen-reader, contrast and zoom
+verification remains pending. Existing in-progress search-form changes were
+preserved. No deployment was performed.
+
+### Dashboard inline form validation - 2026-10-16
+
+Forms across buyer, seller, rider, Logistics and Admin workspaces, including
+shared dialogs, support and account settings, now use ValidatedForm. Native
+required/type/range constraints show registration-style inline icon feedback.
+Invalid submissions focus the first invalid control; correcting a control clears
+its local message. Server validation and existing submit handlers remain in place.
+Shared fields reserve server feedback space; InputError uses compact icon feedback.
+
+Targeted ESLint, TypeScript, Prettier and production build passed. Dashboard,
+AdminManagement, MarketplaceFlow and LogisticsWorkspace: 98 Laravel tests passed
+(1,280 assertions). Isolated Admin browser checks passed mobile/tablet/desktop,
+dark theme and inline validation/focus/correction checks with no runtime errors.
+The 320px inline validation screenshot was visually inspected.
+The broader browser run passed buyer/seller/rider checks but stopped at the
+Logistics account menu: /api/account/settings returned 403 and the expected menu
+control was absent. Full all-role form, screen-reader, contrast and zoom checks
+remain pending; automated checks do not establish WCAG compliance.
+
+### Move parcel queue navigation and search to Logistics Dashboard - 2026-10-16
+
+Moved the eight parcel queue shortcuts and tracking/store search panel from parcel
+results pages to the dashboard, directly after the welcome section. Queue links
+use the existing stage routes and carry entered search text. Search opens all
+matching parcels. Results retain their cards, actions and pagination, show the
+search term when present, and link back to the dashboard for another search.
+The separate Scan Parcel page and sidebar navigation remain available.
+
+Validation: 63 relevant Logistics/marketplace tests passed (797 assertions),
+14 isolated browser checks passed, and targeted ESLint, TypeScript, Prettier and
+production build passed. Browser checks exercise dashboard queue navigation,
+search preservation and all-parcel search results, confirm the repeated panel is
+removed from results pages, and verify 320px dark-theme reflow. Desktop/light and
+mobile/dark dashboard screenshots were inspected. Artifacts:
+storage/app/logistics-operations-ui-check/dashboard-parcel-navigation-desktop.png
+and dashboard-parcel-navigation-dark-320.png. Full screen-reader, contrast and
+zoom verification remains pending. No deployment was performed.
+
+### Scan workspace reset action - 2026-10-16
+
+Styled Clear / next parcel with the shared outline Button and reset icon, retaining
+its existing Inertia navigation to /logistics/scan. The action now has the shared
+44px minimum height, visible border, hover and keyboard focus treatment.
+Browser visual, keyboard, dark theme and zoom verification remain pending.
+Validation: targeted ESLint, Prettier, TypeScript and production build passed;
+LogisticsWorkspaceTest passed (40 tests, 466 assertions).
+
+### Parcel queue search action - 2026-10-16
+
+Replaced the wide Dashboard / parcel search text action with a compact shared
+outline search icon button aligned to the right. Retains /dashboard navigation;
+the link has an accessible name and native Search parcels title. Shared icon
+sizing provides a 44px target with keyboard focus, hover and theme tokens.
+Browser visual, keyboard and screen-reader verification remain pending.
+Validation: ESLint, Prettier, TypeScript and production build passed;
+LogisticsWorkspaceTest passed (40 tests, 466 assertions).
+
+### Remove Scan Parcel clear link - 2026-10-16
+
+Removed the Clear / next parcel control from Scan Parcel and its unused Button,
+Link and RotateCcw imports. Operators can still enter or scan another reference.
+Targeted ESLint, TypeScript and Prettier passed; 44 Logistics tests passed
+(533 assertions). Production build checked separately. Manual browser review of
+this small removal remains pending.
+
+### Seller panel illustration and compact button - 2026-10-16
+
+Added the existing transparent auth-marketplace-3d.webp illustration to the public
+homepage seller panel, using the shared asset map. The smaller Become a seller
+button sits below the illustration, retains a minimum 44px touch target and opens
+the existing seller registration flow. Desktop keeps the image/button to the
+right of the copy; mobile stacks them below the copy. The below-fold image has
+explicit dimensions, lazy loading and async decoding. No image dependency added.
+
+Validation: 8 homepage tests passed (89 assertions). Targeted ESLint, TypeScript,
+Prettier and production build passed. Five isolated homepage browser checks passed,
+including illustration loading, button position/size at 1440/768/320px, no page
+overflow, theme persistence and seller registration navigation. Desktop and 320px
+seller-panel screenshots were inspected. Artifacts:
+storage/app/home-typography-ui-check/seller-panel-1440.png and seller-panel-320.png.
+Full screen-reader/contrast/zoom checks remain pending. No deployment performed.
+
+### Organize parcel scanning workspace - 2026-10-16
+
+Grouped tracking lookup and entry method in a responsive main column, with a
+separate camera panel and a clearly separated handover reminder. Added a scan
+section heading and replaced the oversized empty state with a compact parcel
+prompt. Retained lookup routes, manual evidence, camera behavior and parcel actions.
+
+Validation: targeted ESLint, TypeScript, Prettier and production build passed;
+LogisticsWorkspaceTest passed (40 tests, 466 assertions). All 14 existing isolated
+logistics browser checks passed, including 320px dark reflow, manual evidence,
+camera fallback/denial/capture, offline handling and unknown tracking. Inspected
+the desktop scan screenshot at storage/app/logistics-operations-ui-check/sorting-desktop.png.
+Full screen-reader, keyboard, contrast and zoom verification remains pending.
+
+### Seller panel decorative shopping elements - 2026-10-16
+
+Added dimensional parcel, shopping bag and location accents, sparkles and an
+orbital outline around the existing seller illustration. Decorations are hidden
+from assistive technology and contained within the responsive illustration area.
+Gentle floating animation finishes within five seconds and only runs when the
+visitor has no reduced-motion preference. Existing seller registration is retained.
+Validation: targeted ESLint, TypeScript, Prettier and production build passed;
+8 homepage tests passed (89 assertions). Browser visual review at mobile/desktop,
+light/dark themes, zoom and assistive technology checks remain pending.
+
+### Seller panel reference layout - 2026-10-16
+
+Moved the seller CTA below the copy on the left and enlarged the illustration
+on the right with decorative stacked parcels. Retained existing purple panel,
+text colors and font rules; applied the requested blue pill button with a darker
+hover state. Existing mobile stacking and reduced-motion behavior are retained.
+Validation: ESLint, TypeScript, Prettier, production build and 8 homepage tests
+(89 assertions) passed. Browser visual, theme, zoom and keyboard review pending.
+
+### Compact seller panel and yellow CTA - 2026-10-16
+
+Reduced seller panel padding and illustration height to remove excess vertical
+space. Changed the CTA to the existing warm yellow accent with deep purple text,
+including explicit dark-theme states. Fonts, purple background and reduced-motion
+aware floating animations remain intact. ESLint, TypeScript, Prettier, production
+build and 8 homepage tests (89 assertions) passed. Manual browser visual, zoom
+and keyboard verification remains pending.
+
+### Seller location decoration overlap fix - 2026-10-16
+
+Positioned the location charm above the parcel stack using the same bottom anchor
+plus the stack height and 24px clearance. This keeps the icon clear of the boxes,
+including its existing 10px floating movement. Colors, fonts and motion retained.
+Prettier, ESLint, TypeScript, production build and 8 homepage tests (89 assertions)
+passed. Manual browser visual verification remains pending.
+
+## 2026-10-18 — Rider and Logistics naming
+
+Standardized active application role identifiers to `rider` and `logistics`, including registration, policies, middleware, dashboard navigation, notifications, fixtures and tests. Renamed the Rider dashboard directory and the LogisticsCenter model; database tables now use logistics_centers/logistics_center_user and the affiliation key uses logistics_center_id. Current role guides use the same names. Historical migrations and audit evidence retain their original terminology; legacy dashboard redirects and migration compatibility tests intentionally reference old values.
+
+Added and applied a forward migration to the local MySQL database after creating a private SQL backup under storage/app/private. It preserves role/account IDs, affiliations and saved draft selections. The first application attempt stopped MySQL during an unscoped metadata query that reached a corrupt phpMyAdmin table; the query now scopes to this application's database, MySQL restarted, and the retry succeeded. Local verification found no legacy account/application roles or orphaned user affiliations; foreign key checks remain enabled.
+
+Validation: TypeScript, ESLint across resources and frontend scripts, targeted Prettier, PHP Pint, and production build passed. Registration/historical migration/terminology tests: 37 passed. Marketplace, terminology and approval-chain retest: 43 passed, 2 failed. The two remaining Logistics profile-edit tests expect mutation through the legacy /settings/profile endpoint; the existing working-tree authorization rule denies Logistics edits there in favor of the account-settings boundary. That rule was preserved. The initial full suite recorded 993 passed, 3 skipped and 5 failures; the three rename-related failures were corrected and their targeted tests pass. No complete green-suite claim is made. Browser visuals, keyboard, screen reader and zoom checks were not performed for this terminology-only batch. No deployment or Git commit/push occurred.
+
+## 2026-10-18 — Rider dashboard and local sample seeder
+
+Applied the Logistics visual shell to Rider: grouped delivery/cash/workspace navigation, matching collapsed sidebar width, shared search/notification/account toolbar, welcome/priorities panel, actionable queue metrics, shared parcel charts, scoped recent parcels, COD handover total and delivery checklist. Delivery queue navigation is present on both the dashboard and parcel list; filtered empty states distinguish no matches from no assignments. Charts explicitly describe the Rider's active-parcel population.
+
+RiderWorkspace scopes all dashboard, queue and COD figures to the signed-in Rider. Added a protected, no-store Rider notifications endpoint. Rider queue filters now apply to pickup, prepared dispatch, out-for-delivery, issues, pending COD and completed parcel lists. Existing proof, tracking-capture, dispatch acceptance, failed-attempt and cash-receipt authorization rules are preserved; company review, sorting, rates, rider assignment and cash receipt remain unavailable to Riders.
+
+Added optional local/testing-only RiderDemoSeeder and documentation/RIDER_DEMO.md. Applied it to the local database: creates a dedicated DEMO company/Rider with five tagged parcels and privately saved generated login credentials. Verified the saved password hash and account operational access. Repeated seeding preserves passwords and parcel progress, and creates no completed delivery, proof or COD collection. Real customer accounts are not used for the samples.
+
+Validation: 93 relevant feature tests passed with 1,115 assertions (Rider workspace, dashboard roles, Marketplace flow and Logistics suites), including cross-Rider isolation, rejected management access, dispatch handover, proof/COD completion, Logistics cash receipt, failed attempts, empty data and repeatable/production-refused seeding. TypeScript, targeted ESLint/Prettier, PHP Pint and production build passed. Headless Rider browser checks passed for search, six filtered queues, notifications, account menu, inline validation and zero runtime/console errors; responsive checks covered 1440px desktop, 768px tablet, 844px landscape and 320px mobile, light/dark themes, mobile menu Escape/Close and document overflow. Screenshots reviewed in storage/app/dashboard-ui-check. Screen reader, actual 200%/400% browser zoom and physical touch testing remain unverified. This batch does not establish complete WCAG compliance. No deployment or Git commit/push occurred.
+
+## 2026-10-18 — Rider settings categories
+
+Added a Rider-specific settings page at the existing /settings/profile route, matching the Logistics category layout. Categories cover personal details, vehicle/Logistics affiliation, registered address, submitted-document status and contact/security, with links to the existing password and address workflows. Rider registration fields remain read-only; existing display-name/contact edits, plate/bank re-review and photo-ID replacement continue through the existing Rider profile endpoint. Each save submits only its category's changes. Email confirmation/current-password behavior and existing account deletion controls remain available. Password/address pages expose the same Rider category navigation.
+
+Document metadata is restricted to the Rider's own application. The page displays submission status without issuing document URLs, preserving the existing reviewer-only document authorization. The Logistics change-request API and management permissions were not extended to Riders.
+
+Validation: 71 Settings/Rider feature tests passed (562 assertions), including own-registration isolation, document access refusal, protected role/affiliation, name saves and plate-change re-review. Focused new tests passed again after fixing their date for deterministic age assertions. TypeScript, targeted ESLint/Prettier, PHP Pint and production build passed. Headless browser checks exercised category navigation and an actual display-name save; desktop and 320px mobile/light/dark screenshots are under storage/app/dashboard-ui-check/rider-settings-*.png. Existing Rider dashboard/mobile/notification/password-validation browser checks still pass with no runtime/console errors. Screen reader, physical touch and true 200%/400% zoom remain unverified; automated checks do not certify WCAG conformance. No deployment, commit or push occurred.
+
+## 2026-10-18 — Rider queue tabs on dashboard only
+
+Removed the duplicate Rider queue-tab row from the deliveries page. The existing row remains on the Rider dashboard and continues opening the same filtered delivery URLs. Sidebar navigation and delivery actions remain intact. Targeted ESLint, TypeScript and production build were run; six Rider workspace feature tests passed (150 assertions). No new browser visual review was performed for this removal.
+
+## 2026-10-18 — Rider change-password form
+
+Applied the supplied three-field password form to Riders using the shared password page: Current Password, New Password and Confirm New Password, with the full-width Change Password action and current-password/email-code explanation. Rider current-password confirmation is now validated by the existing PasswordUpdateRequest at both code-request and final-save boundaries, matching Admin/Logistics. Email confirmation, session invalidation and Google-only handling remain in place. Associated current-password errors with their input.
+
+Expanded the existing password security tests to Riders: incorrect/missing current passwords cannot request a code, and a correct current password still cannot bypass email verification. All 21 password tests passed (146 assertions). Targeted ESLint, TypeScript, Prettier/Pint and the production build were run for this batch. Screen reader and actual browser zoom remain unverified.
+
+Rider headless browser verification also passed after the password change: settings category/save flow, desktop/mobile/dark reflow, password inline required-field feedback and zero runtime/console errors.
+
+## 2026-10-18 — Personal information presentation for Logistics and Rider
+
+Replaced separate first-name/last-name/middle-initial rows with a shared, prominent Full name summary in both settings pages. Middle initials are retained in the full name when supplied. Date of birth displays a readable month/day/year, sex values use consistent capitalization, and age includes units. A single read-only registration note replaces repeated lock icons. Existing registration values, approval badges, correction workflows and permissions are unchanged; missing data stays explicit rather than substituting an account nickname.
+
+Validation: 40 relevant Rider/Logistics Account feature tests passed (168 assertions), plus TypeScript, targeted ESLint/Prettier and production build. Logistics account and Rider headless browser workflows passed, including settings categories, save behavior, responsive reflow and existing authorization/security interactions. Added personal-details desktop/mobile screenshots to the Logistics account browser harness. No screen-reader or true 200%/400% zoom verification was performed; this is not a WCAG certification. No deployment or Git commit/push occurred.
+
+## 2026-10-22 - ZXing scanning and free barcode generation
+
+Added a lazy ZXing browser decoder fallback shared by Logistics and Rider, accepting existing Code 39 and new Code 128 labels. JsBarcode generates free Code 128 waybill SVGs with white quiet margins, black bars, readable text and proportional scaling. Manual/scanner input, explicit operational confirmation and scoped lookup remain in place. Capture stops tracks and clears the video source.
+
+Validation: 70 PHP tests passed (959 assertions), TypeScript, targeted ESLint, Prettier and production build passed. Browser checks exercise actual ZXing decoding of JsBarcode pixels for both formats, plus existing camera fallback/denial, capture cleanup, URL rejection, receipt/sorting, offline feedback, label printing and 320px dark reflow. The waybill screenshot was inspected. Physical camera/printer/scanner, full contrast, screen readers and actual 200%/400% zoom remain unverified. See [parcel scanning](../PARCEL_SCANNING.md). No deployment was performed.
+## 2026-10-22 - Seller operational workspace
+
+Applied the existing Rider/Logistics operational dashboard, toolbar, charts and sidebar patterns to Seller. Added store-scoped preparation/delivery queues, product and order searches, live task counts, low-stock and missing-weight filters, and query-preserving pagination. Existing inventory saves, ordered preparation transitions, barcode waybill requests, order conversations, proof access, support and reports retain their authorization and business rules. Product forms show upload progress and packed-weight guidance.
+
+Extracted the Rider settings presentation into a shared operational profile used by Rider and Seller. Seller categories show personal registration details, store/bank settings, registered address, document submission status, and contact/security. Documents remain private; store/bank and identity changes follow existing confirmation and admin review rules. No Seller pickup, dispatch or COD collection permissions were added.
+
+Validation: 299 relevant PHP tests passed (2 skipped, 2482 assertions). TypeScript, targeted ESLint, Prettier, PHP Pint and production build passed. Seven Seller headless browser scenarios passed: dashboard, live tasks, search/preparation, stock and weight saves, audited barcode printing, reports/messages/profile save, and light/dark reflow at 320/768/1280px. Desktop dashboard and 320px dark order screenshots were visually reviewed. Browser artifacts are in storage/app/seller-workspace-ui-check. Full screen-reader, physical touch, printer/scanner, comprehensive contrast, and actual 200%/400% browser zoom remain unverified; automated checks do not establish WCAG compliance. No deployment, commit or push was performed.
+
+Additional regression: the existing dashboard browser harness passed 14 Rider/Seller checks, including Rider queue/search/settings saves, Seller dashboard data, tablet/landscape and 320px navigation, Escape/Close handling, account menus, dark themes, inline validation and no runtime errors. The first attempt timed out while starting Chrome; the unchanged retry started successfully and completed all checks.
+
+## 2026-10-25 - Seller and buyer completion, variants, vouchers and ratings
+
+Connected the dedicated buyer dashboard to its route, added purchase-specific links and buyer shortcuts, and enabled scoped buyer search and order queues. Buyer and seller lists refresh every 30 seconds. Corrected out-for-delivery progress and seller-ready terminology; handover details display recorded pickup, receipt, sorting, dispatch acceptance and delivery timestamps without inventing events. The first saved checkout address is selected automatically.
+
+Added seller-managed size/color combinations with independent stock and retirement, separate variant cart/order lines, checkout snapshots and exact cancellation restoration. All options share product price and packed weight. Added fixed peso store vouchers with minimums, expiry, total capacity and per-buyer restrictions; discount previews and checkout recalculate on the server, snapshot the code/amount and keep shipping separate. Commission uses product sales after the seller-funded discount.
+
+Added public product details and verified-purchase reviews, restricted to owned delivered items. Buyers can edit one review per order item; authorized admins can hide/restore reviews with an audited reason. Moderated reviews stay hidden after buyer edits and are excluded from public counts/averages. Existing approval, logistics custody and COD boundaries remain intact.
+
+Full-suite verification: 1041 passed, 3 skipped, 2 failed (7815 assertions). Remaining failures are historical Logistics settings tests expecting writes through the deliberately blocked legacy /settings/profile endpoint. Dedicated buyer/seller dashboard assertions were corrected. A new supported /api/account/reverification journey verifies linked Rider blocking and restored access through the same center after approval. New feature tests cover store/buyer isolation, stock, cancellation, voucher limits, discounts, verified ratings and moderation. The five-role delivery/COD journey also passes with a variant and voucher.
+
+TypeScript, targeted ESLint/Prettier, PHP Pint and production build pass. Twelve disposable-database browser scenarios cover Seller preparation, inventory and variant saves, voucher creation, labels and settings; Buyer search/queues, public reviews, two-option checkout, first-address selection, voucher totals; Admin moderation; and 320/768/1280px light/dark reflow. Screenshot review caught and corrected a narrow-column mobile cart issue that overflow checks missed. Artifacts: storage/app/seller-workspace-ui-check.
+
+Started local XAMPP MySQL on localhost, verified a private application SQL backup, and successfully applied only the new marketplace migration. Read-only Buyer/Seller dashboard and order queries pass on MySQL; foreign key checks remain enabled. No deployment, commit or push occurred. Screen reader, physical touch/printer/scanner, comprehensive contrast and actual 200%/400% browser zoom remain unverified. See [seller/buyer completion and role connections](../SELLER_BUYER_COMPLETION.md) for the workflow and remaining payout/refund/ledger limits.
+
+## 2026-10-26 - System checklist, manual settlements, Logistics Rider pay and returns
+
+Added documentation/SYSTEM_FEATURE_CHECKLIST.md with 111 Admin/Seller/Buyer/Logistics/Rider/shared feature items, local implementation states and external acceptance limits. Applied the owner's decisions: Logistics handles all Rider management/compensation; Admin records seller payments after full COD reconciliation and controls return/refund decisions. No automatic bank transfer/provider integration was introduced.
+
+Added role-scoped settlement, Rider fee/payment, return/refund and Seller cost/profit pages using existing Page/Card/form/feedback components. Sidebar and completed-order links expose the correct role workflows. Seller CSV export remains separate from the Admin-only export endpoint and is store/date scoped. Reports retain historical sales and separately show refunds, commission reversals, Seller deductions and actual payouts.
+
+Return flow: owned delivered parcel request, Admin decision, original-provider Logistics assignment with current Rider/company/service-area eligibility, scanned Rider collection, scanned Seller receipt with condition and explicit restock, then bounded manual refund/reference after COD reconciliation. Received zero-COD/no-refund cases can be closed by Admin with a reason. Return history preserves actors/actions/notes. Incorrect labels, role/company/ownership violations and repeated effects are rejected. Manual financial records retain references and cannot be silently repeated; payout audit failure rolls back. Earlier seller refund debt reserves the store's later payout balance.
+
+Cancellation and return restoration share a locked inventory service. Original purchases restored after size/color options were introduced go into an inactive unallocated-stock bucket until Seller inspection/allocation; no size/color is invented. Held stock cannot be published and does not inflate active option availability. Cost mistakes are voided with reasons; profit and unpaid/owed balances remain distinct from actual bank transfers.
+
+Validation: latest full suite 1057 passed, 3 skipped, 2 failed (8122 assertions). Remaining failures are the previously documented legacy Logistics /settings/profile mutation expectations; supported company re-verification remains separately covered. Subsequent focused ledger/return suite: 17 passed, 313 assertions. TypeScript, targeted ESLint/Prettier, PHP Pint and production build passed. The disposable SQLite browser harness passes 13 scenarios, including actual forms across all five roles for seller payout, Logistics fee/payment, Buyer return, approval/assignment, Rider collection, Seller receipt/cost, refund and Seller debt display. Mobile finance screenshots were visually reviewed under storage/app/seller-workspace-ui-check. Automated checks do not certify WCAG compliance; screen-reader, true 200%/400% zoom, comprehensive contrast and physical device/return acceptance remain outstanding.
+
+Restarted the stopped local XAMPP MySQL service, verified a fresh private SQL backup, and applied only the new ledger migration. Read-only page-query checks passed on local MySQL for Admin, Seller, Buyer, Logistics and Rider; foreign key checks remain enabled. No sample payments/refunds were created in the configured database. No deployment, commit, push or financial transfer occurred. See documentation/FINANCE_AND_RETURNS.md for calculations and limits.
+
+## Four-role workspace acceptance - 2026-10-26
+
+Buyer, Seller, Logistics and Rider now share settings category/navigation and page-frame components; Admin keeps its existing visual output. Consequential actions use Radix dialogs and ordinary persisted actions use dismissible toast feedback with inline validation retained. Decorative action arrows are removed from the four-role and onboarding/public action surfaces; Admin and essential disclosure icons remain.
+
+GET /workspace/status is verified/active/role protected and returns scoped counts and opaque revisions. Active polling uses four seconds to leave network/render time within the local 2-5 second target, pauses hidden/offline, backs off on errors and respects Retry-After. Changed page props refresh without replacing drafts or filters. Status polling uses a separate limiter bucket after browser verification exposed interference with voucher actions. Buyer/Seller message activity is excluded from Rider/Logistics indicators. History-restored flashes are remembered to avoid replay; successful new mutations can repeat the same message.
+
+Cart quantities persist without reserving inventory. Checkout deducts stock transactionally and validates the reviewed item subtotal as well as stock, variants, vouchers and shipping. Cart shipping quotes invalidate when packed weights, addresses or rate revisions change. Waybill requests keep stable identity and require review; print media excludes confirmation dialogs, overlays and toasts. A PDF sample is available under storage/app/seller-workspace-ui-check/seller-waybill-print.pdf. This verifies a browser print request/PDF, not actual printer completion.
+
+Final verification: full suite 1067 passed, 3 skipped, 2 failed (8206 assertions). Only the existing LogisticsApprovalChainTest expectations for blocked Logistics /settings/profile mutations fail; supported company re-verification is independently covered. A temporary proof-file assertion failure during overlapping PHP suites disappeared when the complete suite ran without another PHP test suite. TypeScript, targeted ESLint/Prettier, PHP Pint and production build pass. Browser harnesses pass 38 scenarios (14 marketplace/finance/returns, 16 logistics/scanning/waybill, 8 account/settings/Admin review). Separate authenticated Seller HTTP messages appeared in an open Buyer page in 4578 ms, retaining the Buyer draft. Escape cancellation and trigger focus restoration, confirmation layouts, barcode/PDF and print-media feedback hiding pass. The local login returns HTTP 200.
+
+Screenshots reviewed: Buyer mobile cart/checkout confirmation, Seller desktop preparation confirmation and Logistics mobile company settings. Light/dark reflow is checked at 320, 768 and 1280/1440 widths in the harnesses. This is not WCAG certification. Physical printer/label sizing, real camera/scanner/touch devices, real email, fresh user-created account approvals, concurrent MySQL/load, screen-reader, true zoom and full contrast acceptance remain pending. Configured MySQL data/accounts/restrictions/payments were not reset or bypassed. No deployment, commit, push or financial transfer occurred. See documentation/WORKSPACE_ACCEPTANCE.md for the connected role journey and fresh-account checklist.
+
+## Admin registration approval notifications - 2026-10-26
+
+Confirmed mandatory Admin approval after email verification for Buyer, Seller and Logistics; Rider approval stays with Logistics. Added individual recent-application alerts (role and applicant/store/company label), direct review links and per-role counts to the existing Admin notification menu. Pending menu/badge/list updates use five seconds while visible/online; list refresh pauses for a review dialog. The notification limiter has its own bucket. Unverified applications are visible with an explicit label, but the review form cannot approve them; server authorization/validation remains authoritative. Approved/rejected applications and Rider requests are excluded from the Admin pending feed.
+
+Validation: 415 related feature tests pass, 3 existing manual/environment cases skipped; the account/settings browser harness passes 9 scenarios including the three role alerts, 320px dark-theme menu and opening the correct Seller review. The menu screenshot was visually reviewed. TypeScript, targeted ESLint/Prettier, Pint and production build pass; read-only Admin workspace queries pass on local MySQL. No new email channel or background worker dependency was added. This does not certify full accessibility or update the live website. No real accounts were approved/altered, and no push/merge/deployment occurred. See documentation/ADMIN_APPROVAL_NOTIFICATIONS.md.
+
+## Pickup approval and delivery assignment progression - 2026-10-26
+
+Fixed approved-but-unassigned parcels disappearing from Pickup Requests. The queue and notification count now keep them visible until pickup Rider assignment. The parcel dialog resolves newly claimed legacy parcels across both unallocated and owned results and derives availability from actual center ownership. Assignment controls are raised above long order/address details; unassigned pickup screens no longer prioritize receiving/sorting scan instructions. If an action moves a parcel outside the current filter, an explicit link opens that tracking reference across all queues.
+
+The dispatch queue parcel dialog now exposes label capture and delivery Rider assignment directly, while keeping server-required exact tracking/manual reason, receiving/sorting, company/center approval and destination coverage checks. Destination choices match the buyer address; missing eligible Rider coverage has an explicit setup message. Stage guidance tells Logistics and Rider the next physical action or whose acceptance is awaited, and repeat pre-handover dispatch assignment is labelled Reassign Delivery Rider. No scan or custody timestamp is fabricated and no workflow stage is skipped.
+
+Validation: 103 related feature tests pass (1806 assertions), including full regular and accepted-unallocated pickup journeys, same Rider and different delivery Rider, scan rejection, dispatch acceptance, proof and actual COD. The Logistics browser harness passes 19 scenarios: both pickup approval paths retain usable assignment controls, pickup assignment appears in the correct Rider account, dispatch assignment works directly from its queue and appears with the acceptance action for the delivery Rider. Existing camera/scanner/offline/waybill checks still pass. Latest mobile dark screenshots for approval/assignment were visually reviewed. TypeScript, targeted ESLint/Prettier, Pint, production build and whitespace checks pass. Browser data is isolated temporary SQLite. No real account/parcel/COD records were changed; physical-device/full accessibility and production deployment acceptance remain separate. No deployment, commit or push occurred.
+
+Mobile action polish: assignment controls precede long parcel details, and toast notifications now sit below modal dialogs so they cannot cover the assignment/confirmation buttons. Production build and formatting pass after this layering adjustment.
+
+## Buyer and Seller stock and checkout integrity - 2026-11-01
+
+Product and size/color editors now send original stock snapshots so a purchase
+while the Seller edits cannot be overwritten by an older form. Validation tells
+the Seller to close and reopen the editor; the entered draft remains available
+until then. Cart availability reflects category/department and store eligibility,
+and unavailable lines remain removable. The cart minus control reduces directly
+to remaining stock after a larger stock drop. Flat-fee checkout now sends the
+reviewed shipping amount, matching the provider-based quote protection. Branding,
+routes, COD, ownership and approval boundaries are preserved.
+
+Validation: 12 new integrity cases pass (163 assertions). Full backend run:
+1,086 passed, 3 skipped, the same 3 pre-existing Logistics expectation failures.
+The final Buyer/Seller browser run passes all 17 scenarios, including a separate
+Buyer purchase while a Seller stock editor remains open, rejection and reviewed
+retry, live cart stock recovery, request payload snapshots, mobile/light/dark
+reflow, and the connected finance/return journey. TypeScript, targeted ESLint,
+Prettier, PHP Pint and production build pass. See
+[Buyer/Seller verification](../BUYER_SELLER_VERIFICATION_2026_11_01.md).
+Physical devices, actual email/OAuth, production MySQL contention and comprehensive
+screen-reader/contrast/zoom acceptance remain unverified; this is not a WCAG
+certification. No deployment, commit or push occurred.

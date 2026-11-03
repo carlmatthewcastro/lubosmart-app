@@ -6,7 +6,7 @@
 
 **A Community-Focused E-Commerce and Logistics Management Platform**
 
-LubosMart is an e-commerce and delivery management platform for Filipino communities. It connects buyers, sellers, couriers, sorting centers and administrators in one system, covering product discovery, cash-on-delivery checkout and parcel fulfillment.
+LubosMart is an e-commerce and delivery management platform for Filipino communities. It connects buyers, sellers, riders, logistics companies and administrators in one system, covering product discovery, cash-on-delivery checkout and parcel fulfillment.
 
 **Live application:** [lubosmart.app](https://lubosmart.app)
 
@@ -26,15 +26,15 @@ LubosMart is an e-commerce and delivery management platform for Filipino communi
 | --- | --- |
 | Buyer | Browse and search products, manage cart and addresses, place COD orders, track deliveries and contact sellers/support |
 | Seller | Manage listings, prices and stock; prepare orders, print waybills, follow shipments and review sales |
-| Rider / Courier | Handle assigned pickups and deliveries, update parcel status, upload proof of delivery and confirm COD collection |
-| Sorting Center | Review couriers, manage shipping coverage/rates, receive and sort parcels, assign deliveries and receive COD handovers |
+| Rider | Handle assigned pickups and deliveries, update parcel status, upload proof of delivery and confirm COD collection |
+| Logistics | Review riders, manage shipping coverage/rates, receive and sort parcels, assign deliveries and receive COD handovers |
 | Admin | Review applications, manage account restrictions, monitor seller compliance, resolve complaints, reconcile COD and manage reports/platform content |
 
-Public accounts require email verification and application approval before operational access. Admin reviews buyer, seller and sorting-center applications; sorting centers review their couriers. Email/password and Google sign-in are supported.
+Public accounts require email verification and application approval before operational access. Admin reviews buyer, seller and logistics applications; logistics companies review their riders. Email/password and Google sign-in are supported.
 
 ## How the System Works
 
-A buyer's checkout creates separate orders for each seller. Sellers prepare the parcels, sorting centers coordinate pickup and dispatch, and couriers complete delivery with proof and COD collection. Sorting centers receive the cash; Admin performs final reconciliation.
+A buyer's checkout creates separate orders for each seller. Sellers prepare the parcels, logistics companies coordinate pickup and dispatch, and riders complete delivery with proof and COD collection. Logistics companies receive the cash; Admin performs final reconciliation.
 
 ![LubosMart system architecture: React, TypeScript and Inertia.js connect through Caddy HTTPS to Apache and Laravel application services backed by MySQL; a queue worker accesses MySQL, and the REST API with Sanctum is planned.](documentation/assets/system-architecture.png)
 
@@ -76,9 +76,11 @@ npm run build
 
 ## Project Status
 
-Current source includes account onboarding and approvals, marketplace shopping, seller fulfillment, courier/sorting-center operations, support and administration. Payments are COD only. Variants, vouchers, ratings and complete returns/payout accounting remain outside the implemented scope.
+Current source includes account onboarding and approvals, marketplace shopping, product variants, store vouchers, verified purchase reviews, seller fulfillment, rider/logistics operations, controlled returns, manually recorded payouts/refunds, support and administration. Payments are COD only; payouts and refunds do not perform automatic bank transfers.
 
-**Planned:** a versioned Laravel REST API under `/api/v1` with Laravel Sanctum, API Resources and OpenAPI documentation. The migration will retain existing web routes and share business logic between web and API controllers.
+For the shared frontend development branch, setup steps, source locations and known verification issues, see the [classmate development handoff](documentation/FRONTEND_HANDOFF.md).
+
+Sanctum is installed for the account settings endpoints. A broader versioned Laravel REST API under `/api/v1`, API Resources and OpenAPI documentation remain planned. Existing web routes continue to use Inertia.
 
 ## Deployment
 
