@@ -33,7 +33,7 @@ Http::fake([
     'https://psgc.gitlab.io/api/cities-municipalities/137404000/barangays/' => Http::response([['code' => '137404001', 'name' => 'Commonwealth']]),
 ]);
 $data['identity'] = UploadedFile::fake()->create('identity.pdf', 10, 'application/pdf');
-if (in_array($argv[5] ?? 'buyer', ['seller', 'sorting_center'], true)) {
+if (in_array($argv[5] ?? 'buyer', ['seller', 'logistics'], true)) {
     Http::preventStrayRequests();
     Http::fake([
         'https://psgc.gitlab.io/api/regions/' => Http::response([['code' => '130000000', 'name' => 'NCR']]),
@@ -46,18 +46,18 @@ if (in_array($argv[5] ?? 'buyer', ['seller', 'sorting_center'], true)) {
     foreach (['identity', 'business_permit', 'dti_certificate', 'bir_2303'] as $kind) {
         $data[$kind] = UploadedFile::fake()->create($kind.'.pdf', 10, 'application/pdf');
     }
-    if ($argv[5] === 'sorting_center') {
+    if ($argv[5] === 'logistics') {
         unset($data['business_category_id']);
-        $data = array_replace($data, ['role' => 'sorting_center', 'business_name' => 'Concurrent company', 'sec_number' => 'CS202012345', 'tin' => '234-567-890-000', 'position' => 'Manager', 'service_regions' => ['130000000']]);
+        $data = array_replace($data, ['role' => 'logistics', 'business_name' => 'Concurrent company', 'sec_number' => 'CS202012345', 'tin' => '234-567-890-000', 'position' => 'Manager', 'service_regions' => ['130000000']]);
         foreach (['sec_certificate', 'business_permit'] as $kind) {
             $data[$kind] = UploadedFile::fake()->create($kind.'.pdf', 10, 'application/pdf');
         }
     }
 }
-if (($argv[5] ?? 'buyer') === 'courier') {
+if (($argv[5] ?? 'buyer') === 'rider') {
     $data = ['first_name' => 'Pedro Jose', 'last_name' => 'Garcia', 'email' => 'race@example.com', 'phone' => '09170000001', 'birthday' => '1995-01-01', 'license_number' => 'N01-23-456789', 'license_expires_at' => '2030-03-22', 'plate_number' => '123ABC', 'vehicle_type' => 'motorcycle', 'license' => UploadedFile::fake()->create('license.pdf', 10, 'application/pdf'), 'vehicle_registration' => UploadedFile::fake()->create('orcr.pdf', 10, 'application/pdf')];
 }
-$request = ($argv[5] ?? 'buyer') === 'courier' ? new CreateRiderRequest : new RegisterAccountRequest;
+$request = ($argv[5] ?? 'buyer') === 'rider' ? new CreateRiderRequest : new RegisterAccountRequest;
 $request->merge($data);
 Validator::make($data, $request->rules())->validate();
 file_put_contents($argv[4], 'ready');
@@ -69,7 +69,7 @@ while (! is_file($argv[3])) {
     usleep(10000);
 }
 try {
-    if (($argv[5] ?? 'buyer') === 'courier') {
+    if (($argv[5] ?? 'buyer') === 'rider') {
         $company = User::where('email', 'race.company@example.com')->firstOrFail();
         [$rider,$delivery] = app(CreateCompanyRider::class)->create($company, $data);
         if (! app(RiderInvitations::class)->deliver($delivery)) {

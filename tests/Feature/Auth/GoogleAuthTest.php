@@ -16,8 +16,8 @@ test('Google registration saves a trusted provider ID with the selected role and
     session(['google_registration' => ['intent' => 'login', 'started_at' => now()->timestamp]]);
     $this->get(route('auth.google.callback'))->assertRedirect(route('register'));
     $data = match ($role) {
-        'seller' => sellerRegistrationData(), 'sorting_center' => logisticsRegistrationData(),
-        'courier' => riderRegistrationData(), default => sharedRegistrationData(),
+        'seller' => sellerRegistrationData(), 'logistics' => logisticsRegistrationData(),
+        'rider' => riderRegistrationData(), default => sharedRegistrationData(),
     };
     $this->post('/register', [...$data, 'email' => 'trusted@example.com', 'google_id' => 'forged-google', 'status' => 'approved', 'middle_initial' => 'C.'])
         ->assertSessionHasNoErrors()->assertRedirect(route('verification.notice'))->assertSessionMissing('pending_google_registration');
@@ -28,7 +28,7 @@ test('Google registration saves a trusted provider ID with the selected role and
     expect($user->email_verified_at)->toBeNull();
     $this->assertDatabaseHas('user_profiles', ['user_id' => $user->id, 'middle_initial' => 'C.', 'sex' => 'female']);
     Notification::assertSentTo($user, VerifyAccountEmail::class);
-})->with(['buyer', 'seller', 'courier', 'sorting_center']);
+})->with(['buyer', 'seller', 'rider', 'logistics']);
 
 test('pending Google registration rejects a changed email and expired identity', function () {
     session(['pending_google_registration' => ['id' => 'trusted-google', 'email' => 'trusted@example.com', 'expires_at' => now()->addMinutes(30)->timestamp]]);
@@ -63,7 +63,7 @@ test('Google links an existing account using its verified email without changing
     $user = User::factory()->create([
         'email' => 'existing@example.com',
         'google_id' => null,
-        'role' => 'courier',
+        'role' => 'rider',
     ]);
     Socialite::fake('google', GoogleUser::fake([
         'id' => 'google-existing-456',
@@ -85,7 +85,7 @@ test('Google links an existing account using its verified email without changing
     $this->assertDatabaseHas('users', [
         'id' => $user->id,
         'google_id' => 'google-existing-456',
-        'role' => 'courier',
+        'role' => 'rider',
     ]);
     $this->assertDatabaseCount('users', 1);
 });

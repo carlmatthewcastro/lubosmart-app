@@ -4,10 +4,14 @@ namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
+use App\Models\Address;
 use App\Models\Order;
 use App\Models\SupportCase;
 use App\Models\User;
+use App\Services\AccountSettings;
 use App\Services\EmailSecurityCodes;
+use App\Support\SellerRules;
+use Carbon\Carbon;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -25,16 +29,82 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
+        if ($request->user()->role === 'logistics' && in_array($request->user()->status, ['approved', 'pending_reverification'], true)) {
+            return Inertia::render('settings/account', ['logisticsRegistration' => $this->logisticsRegistration($request->user())]);
+        }
+
+        if (in_array($request->user()->role, ['rider', 'seller'], true)) {
+            $user = $request->user();
+            $registration = $this->logisticsRegistration($user);
+            $vehicle = DB::table('rider_profiles')->where('user_id', $user->id)->first();
+
+            $seller = $user->role === 'seller';
+
+            return Inertia::render($seller ? 'settings/seller' : 'settings/rider', [
+                'personalDetails' => $registration['Personal details'],
+                'registeredAddress' => $registration['Registered business address'],
+                'companyName' => $user->logisticsCenter?->name,
+                'vehicleType' => $vehicle?->vehicle_type,
+                'plateNumber' => $vehicle?->plate_number,
+                'bankAccount' => $seller ? $user->store?->bank_account : $user->bank_account,
+                ...($seller ? [
+                    'businessName' => $user->store?->name,
+                    'sellerType' => $user->application?->seller_type,
+                    'requiredDocuments' => SellerRules::documents($user->application?->seller_type ?? ''),
+                ] : []),
+                'sensitiveConfirmed' => $request->session()->has('profile_confirmation'),
+                'googleOnly' => ! $user->password,
+                'documents' => $user->application?->documents()->latest('id')->get()->unique('kind')->values()->map(fn ($document) => [
+                    'id' => $document->id, 'kind' => $document->kind,
+                ]) ?? [],
+            ]);
+        }
+
         return Inertia::render('settings/profile', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
             'googleConnected' => filled($request->user()->google_id),
             'googleOnly' => ! $request->user()->password,
             'sensitiveConfirmed' => $request->session()->has('profile_confirmation'),
-            'businessName' => $request->user()->role === 'sorting_center' ? $request->user()->application?->business_name : $request->user()->store?->name,
+            'businessName' => $request->user()->role === 'logistics' ? $request->user()->application?->business_name : $request->user()->store?->name,
             'bankAccount' => $request->user()->role === 'seller' ? $request->user()->store?->bank_account : $request->user()->bank_account,
             'plateNumber' => DB::table('rider_profiles')->where('user_id', $request->user()->id)->value('plate_number'),
+            'logisticsRegistration' => $request->user()->role === 'logistics' ? $this->logisticsRegistration($request->user()) : null,
         ]);
+    }
+
+    private function logisticsRegistration(User $user): array
+    {
+        $profile = DB::table('user_profiles')->where('user_id', $user->id)->first();
+        $application = $user->application;
+        $address = $application?->address_id ? Address::query()->where('user_id', $user->id)->find($application->address_id) : null;
+        $birthday = $profile?->birthday ? Carbon::parse($profile->birthday, 'Asia/Manila') : null;
+        $documents = $application?->documents()->latest('id')->get()->unique('kind')->pluck('kind')->all() ?? [];
+
+        return [
+            'Personal details' => [
+                'First name' => $profile?->first_name, 'Last name' => $profile?->last_name,
+                'Middle initial (optional)' => $profile?->middle_initial,
+                'Sex' => match ($profile?->sex) {
+                    'female' => 'Female', 'male' => 'Male', 'prefer_not_to_say' => 'Prefer not to say', default => null
+                },
+                'Date of birth' => $birthday?->format('F j, Y'), 'Age' => $birthday ? (string) (int) $birthday->diffInYears(now('Asia/Manila')) : null,
+            ],
+            'Company registration' => [
+                'Company name' => $application?->business_name, 'SEC registration number' => $application?->sec_number,
+                'TIN' => $application?->tin ? '***-***-***-'.substr(preg_replace('/\D/', '', $application->tin), -3) : null, 'Contact person position' => $application?->position,
+                'Service areas' => implode(', ', $application?->service_region_names ?? []),
+            ],
+            'Registered business address' => [
+                'Region' => app(AccountSettings::class)->regionName($application?->region_code ?: $address?->region), 'Province' => $address?->province, 'City / municipality' => $address?->city,
+                'Barangay' => $address?->barangay, 'House / unit number' => $address?->house_number,
+                'Street / subdivision' => $address?->street ?: $address?->line1, 'Postal code' => $address?->zip,
+            ],
+            'Submitted documents' => collect([
+                'identity' => 'Government-issued ID', 'sec_certificate' => 'SEC certificate',
+                'bir_2303' => 'BIR Form 2303', 'business_permit' => "Mayor's / business permit",
+            ])->mapWithKeys(fn ($label, $kind) => [$label => in_array($kind, $documents, true) ? 'Submitted' : 'Not submitted'])->all(),
+        ];
     }
 
     /**
@@ -53,7 +123,7 @@ class ProfileController extends Controller
                     $user->forceFill(['phone' => $request->validated('phone')]);
                 }
                 $store = $user->store;
-                $businessName = $user->role === 'sorting_center' ? $user->application?->business_name : $store?->name;
+                $businessName = $user->role === 'logistics' ? $user->application?->business_name : $store?->name;
                 $bankAccount = $user->role === 'seller' ? $store?->bank_account : $user->bank_account;
                 $rider = DB::table('rider_profiles')->where('user_id', $user->id)->first();
                 $partnerBefore = ['business_name' => $businessName, 'plate_number' => $rider?->plate_number];
@@ -95,13 +165,13 @@ class ProfileController extends Controller
                 if ($plateChanged) {
                     DB::table('rider_profiles')->where('user_id', $user->id)->update(['plate_number' => $request->validated('plate_number'), 'plate_normalized' => strtoupper(trim($request->validated('plate_number'))), 'updated_at' => now()]);
                 }
-                if ($important && in_array($user->role, ['buyer', 'seller', 'courier', 'sorting_center'], true)) {
+                if ($important && in_array($user->role, ['buyer', 'seller', 'rider', 'logistics'], true)) {
                     $user->status = 'pending';
                     $user->application()->updateOrCreate(['user_id' => $user->id], [
                         'requested_role' => $user->role, 'status' => 'submitted', 'submitted_at' => now(),
                         'reviewer_id' => null, 'reviewed_at' => null, 'rejection_reason' => null,
                         'business_name' => $businessName,
-                        'sorting_center_id' => $user->role === 'courier' ? $user->sorting_center_id : null,
+                        'logistics_center_id' => $user->role === 'rider' ? $user->logistics_center_id : null,
                     ]);
                     if ($request->hasFile('identity')) {
                         $application = $user->application()->firstOrFail();

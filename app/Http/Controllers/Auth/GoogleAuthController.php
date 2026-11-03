@@ -23,7 +23,7 @@ class GoogleAuthController extends Controller
     {
         $data = $request->validate([
             'intent' => ['required', Rule::in(['login', 'register'])],
-            'role' => ['exclude_unless:intent,register', 'required', Rule::in(['buyer', 'seller', 'sorting_center'])],
+            'role' => ['exclude_unless:intent,register', 'required', Rule::in(['buyer', 'seller', 'logistics'])],
             'policy_accepted' => ['exclude_unless:intent,register', 'sometimes', 'boolean'],
         ]);
         if (! config('services.google.client_id') || ! config('services.google.client_secret')) {
@@ -40,7 +40,7 @@ class GoogleAuthController extends Controller
         $registration = $request->session()->pull('google_registration');
         if ($request->filled('error') || ! is_array($registration) || ($registration['started_at'] ?? 0) < now()->subMinutes(15)->timestamp || $registration['started_at'] > now()->timestamp
             || ! in_array($registration['intent'] ?? null, ['login', 'register'], true)
-            || ($registration['intent'] === 'register' && (! in_array($registration['role'] ?? null, ['buyer', 'seller', 'sorting_center'], true)))) {
+            || ($registration['intent'] === 'register' && (! in_array($registration['role'] ?? null, ['buyer', 'seller', 'logistics'], true)))) {
             return to_route('home')->withErrors(['google' => 'Google sign-in expired or was cancelled. Please try again.']);
         }
         try {

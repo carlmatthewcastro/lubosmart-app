@@ -3,10 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Address;
+use App\Models\LogisticsCenter;
 use App\Models\RegistrationApplication;
-use App\Models\SortingCenter;
 use App\Models\User;
 use App\Notifications\ApplicationReviewed;
+use App\Services\AccountSettings;
 use App\Services\Admin\AuditLogger;
 use App\Services\LogisticsApplicationDetails;
 use App\Services\SellerApplicationDetails;
@@ -30,21 +31,21 @@ class ApplicationReviewController extends Controller
     public function index(Request $request): Response
     {
         $user = $request->user();
-        abort_unless(in_array($user->role, ['admin', 'sorting_center'], true), 403);
+        abort_unless(in_array($user->role, ['admin', 'logistics'], true), 403);
         $filters = $request->validate(['status' => ['nullable', Rule::in(['submitted', 'approved', 'rejected'])]]);
         $status = $filters['status'] ?? 'submitted';
         $query = RegistrationApplication::query()->where('status', $status);
         if ($user->role === 'admin') {
             $query->adminReviewable();
         }
-        if ($user->role === 'sorting_center') {
+        if ($user->role === 'logistics') {
             $query->whereHas('user', fn ($users) => $users->managedRiders($user));
-            $query->where('requested_role', 'courier')->whereIn('sorting_center_id', $user->sortingCenters()->operational()->pluck('sorting_centers.id'))
-                ->whereHas('user', fn ($users) => $users->where('role', 'courier')->whereColumn('users.sorting_center_id', 'registration_applications.sorting_center_id'));
+            $query->where('requested_role', 'rider')->whereIn('logistics_center_id', $user->logisticsCenters()->operational()->pluck('logistics_centers.id'))
+                ->whereHas('user', fn ($users) => $users->where('role', 'rider')->whereColumn('users.logistics_center_id', 'registration_applications.logistics_center_id'));
         }
 
         return Inertia::render('management/registrations/index', ['filters' => ['status' => $status], 'applications' => $query->with('user')->orderBy('submitted_at')->orderBy('id')->paginate(15)->withQueryString()->through(fn ($application) => [
-            ...$application->only(['id', 'status', 'requested_role', 'submitted_at', 'reviewed_at']), 'name' => in_array($application->requested_role, ['seller', 'sorting_center'], true) && filled($application->business_name) ? $application->business_name : $application->user->name, 'email' => $application->user->email,
+            ...$application->only(['id', 'status', 'requested_role', 'submitted_at', 'reviewed_at']), 'name' => in_array($application->requested_role, ['seller', 'logistics'], true) && filled($application->business_name) ? $application->business_name : $application->user->name, 'email' => $application->user->email,
         ])]);
     }
 
@@ -58,13 +59,13 @@ class ApplicationReviewController extends Controller
         $documentKinds = match ($application->requested_role) {
             'buyer' => ['identity'],
             'seller' => SellerRules::documents($application->seller_type ?? ''),
-            'sorting_center' => LogisticsRules::DOCUMENTS,
-            'courier' => ['identity', 'license', 'vehicle_registration'],
+            'logistics' => LogisticsRules::DOCUMENTS,
+            'rider' => ['identity', 'license', 'vehicle_registration'],
             default => [],
         };
 
         $data = [
-            'canReview' => Gate::allows('review', $application),
+            'canReview' => Gate::allows('review', $application) && $application->status === 'submitted' && $application->user->status === 'pending' && $application->user->hasVerifiedEmail() && $application->user->role === $application->requested_role,
             'application' => $application->only(['id', 'status', 'requested_role', 'business_name', 'rejection_reason', 'submitted_at', 'reviewed_at', 'seller_type', 'tin', 'region_code', 'sec_number', 'position', 'service_regions', 'service_region_names']),
             'reviewer' => User::query()->find($application->reviewer_id)?->only(['name']),
             'applicant' => $application->user->only(['name', 'email', 'phone', 'status', 'email_verified_at']),
@@ -72,7 +73,7 @@ class ApplicationReviewController extends Controller
             'address' => Address::query()->find($application->address_id),
             'store' => $application->user->store?->load('businessCategory'),
             'bankAccount' => $application->user->role === 'seller' ? $application->user->store?->bank_account : $application->user->bank_account,
-            'courier' => DB::table('rider_profiles')->where('user_id', $application->user_id)->first(),
+            'rider' => DB::table('rider_profiles')->where('user_id', $application->user_id)->first(),
             'documents' => $application->documents()->whereIn('kind', $documentKinds)->orderByDesc('id')->get()->unique('kind')->values()->map(fn ($document) => [
                 'id' => $document->id, 'kind' => $document->kind, 'mime_type' => $document->mime_type,
                 'url' => URL::temporarySignedRoute('registration-documents.show', now()->addMinutes(5), ['document' => $document->id]),
@@ -108,26 +109,29 @@ class ApplicationReviewController extends Controller
                 app(SellerApplicationDetails::class)->assertReviewable($application);
                 app(LogisticsApplicationDetails::class)->assertReviewable($application);
             }
-            if ($approved && $user->role === 'courier' && ! SortingCenter::query()->operational()->whereKey($application->sorting_center_id)->exists()) {
-                throw ValidationException::withMessages(['decision' => 'The courier needs an active sorting center before approval.']);
+            if ($approved && $user->role === 'rider' && ! LogisticsCenter::query()->operational()->whereKey($application->logistics_center_id)->exists()) {
+                throw ValidationException::withMessages(['decision' => 'The rider needs an active logistics company before approval.']);
             }
             $application->update(['status' => $data['decision'], 'reviewer_id' => $request->user()->id, 'reviewed_at' => now(), 'rejection_reason' => $approved ? null : $data['reason']]);
             $user->forceFill(['status' => $approved ? 'approved' : 'rejected'])->save();
+            if ($approved && $user->role === 'logistics') {
+                app(AccountSettings::class)->capture($user);
+            }
             if ($user->role === 'seller') {
                 $user->store()->update(['status' => $approved ? 'approved' : 'rejected']);
             }
-            if ($approved && $user->role === 'sorting_center') {
+            if ($approved && $user->role === 'logistics') {
                 $address = Address::query()->findOrFail($application->address_id);
-                $center = $user->sortingCenters()->first() ?? new SortingCenter(['code' => 'APP-'.$application->id]);
+                $center = $user->logisticsCenters()->first() ?? new LogisticsCenter(['code' => 'APP-'.$application->id]);
                 $center->fill(['is_active' => true, 'name' => $application->business_name, 'address' => implode(', ', [$address->line1, $address->barangay, $address->city, $address->province]), 'phone' => $user->phone])->save();
                 if ($application->registration_contract === 'logistics-2026-10') {
                     $center->forceFill(['company_user_id' => $user->id])->save();
                 }
-                $user->sortingCenters()->syncWithoutDetaching([$center->id => ['granted_by' => $request->user()->id]]);
+                $user->logisticsCenters()->syncWithoutDetaching([$center->id => ['granted_by' => $request->user()->id]]);
             }
-            if ($approved && $user->role === 'courier') {
-                $user->forceFill(['sorting_center_id' => $application->sorting_center_id])->save();
-                $user->sortingCenters()->sync([$application->sorting_center_id => ['granted_by' => $request->user()->id]]);
+            if ($approved && $user->role === 'rider') {
+                $user->forceFill(['logistics_center_id' => $application->logistics_center_id])->save();
+                $user->logisticsCenters()->sync([$application->logistics_center_id => ['granted_by' => $request->user()->id]]);
             }
             app(AuditLogger::class)->record([
                 'actor_id' => $request->user()->id, 'subject_type' => 'registration_application', 'subject_id' => $application->id,

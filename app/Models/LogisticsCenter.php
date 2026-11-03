@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-class SortingCenter extends Model
+class LogisticsCenter extends Model
 {
     protected $fillable = ['code', 'name', 'address', 'phone', 'is_active'];
 
@@ -18,8 +18,8 @@ class SortingCenter extends Model
 
     public function scopeOperational(Builder $query): void
     {
-        $query->where('is_active', true)->where(fn ($centers) => $centers->whereNull('company_user_id')->orWhereHas('company', fn ($owners) => $owners->where('role', 'sorting_center')->where('status', 'approved')->whereNotNull('email_verified_at')))->whereHas('users', fn (Builder $users) => $users
-            ->where('role', 'sorting_center')->where('status', 'approved')->whereNotNull('email_verified_at'));
+        $query->where('is_active', true)->where(fn ($centers) => $centers->whereNull('company_user_id')->orWhereHas('company', fn ($owners) => $owners->where('role', 'logistics')->where('status', 'approved')->whereNotNull('email_verified_at')))->whereHas('users', fn (Builder $users) => $users
+            ->where('role', 'logistics')->where('status', 'approved')->whereNotNull('email_verified_at'));
     }
 
     public function company(): BelongsTo

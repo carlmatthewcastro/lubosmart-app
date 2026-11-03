@@ -34,6 +34,7 @@ class ApplicationReviewed extends Notification implements ShouldQueue
 
         if ($this->decision === 'approved') {
             return $message->line('Your application was approved. Welcome to LubosMart!')
+                ->line('Sign in to access your dashboard and get started.')
                 ->action('Open your dashboard', route('dashboard.role', ['role' => $notifiable->role]));
         }
 

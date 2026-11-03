@@ -17,7 +17,7 @@ class AdminSearchController extends Controller
         $search = '%'.addcslashes($data['search'], '%_\\').'%';
         $results = collect();
         if ($actor->canAdmin('accounts')) {
-            $results = $results->concat(User::query()->whereNotIn('role', ['admin', 'courier'])->where(fn ($q) => $q->where('name', 'like', $search)->orWhere('email', 'like', $search))->limit(5)->get()->map(fn ($user) => ['id' => $user->id, 'kind' => 'account', 'label' => $user->name, 'detail' => $user->email]));
+            $results = $results->concat(User::query()->whereNotIn('role', ['admin', 'rider'])->where(fn ($q) => $q->where('name', 'like', $search)->orWhere('email', 'like', $search))->limit(5)->get()->map(fn ($user) => ['id' => $user->id, 'kind' => 'account', 'label' => $user->name, 'detail' => $user->email]));
         }
         if ($actor->canAdmin('registrations')) {
             $results = $results->concat(RegistrationApplication::query()->adminReviewable()->with('user:id,name,email')->whereHas('user', fn ($q) => $q->where('name', 'like', $search)->orWhere('email', 'like', $search))->limit(5)->get()->map(fn ($application) => ['id' => $application->id, 'kind' => 'registration', 'label' => $application->user->name, 'detail' => 'Application #'.$application->id.' · '.$application->status]));

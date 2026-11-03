@@ -128,9 +128,12 @@ test('password settings show confirmation only while its session token is valid'
     'mismatched' => ['mismatched', false],
 ]);
 
-test('admin password changes require email confirmation before saving', function () {
+test('admin logistics and rider password changes require email confirmation before saving', function (string $role) {
     Notification::fake();
-    $admin = User::factory()->create(['role' => 'admin']);
+    $admin = User::factory()->create(['role' => $role]);
+    if ($role === 'rider') {
+        linkRiderToApprovedCenter($admin);
+    }
     $password = $admin->password;
     $proposed = ['current_password' => 'password', 'password' => 'ProposedPassword123', 'password_confirmation' => 'ProposedPassword123'];
     $this->actingAs($admin)->from('/settings/password')->put('/settings/password', $proposed)
@@ -144,13 +147,16 @@ test('admin password changes require email confirmation before saving', function
     $this->put('/settings/password', $proposed)->assertSessionHasNoErrors()->assertSessionMissing('password_confirmation');
     expect(Hash::check('ProposedPassword123', $admin->fresh()->password))->toBeTrue();
     $this->assertDatabaseCount('email_security_codes', 0);
-});
+})->with(['admin', 'logistics', 'rider']);
 
-test('admin must confirm current password before requesting a change code', function () {
+test('admin logistics and rider must confirm current password before requesting a change code', function (string $role, string $currentPassword) {
     Notification::fake();
-    $admin = User::factory()->create(['role' => 'admin']);
+    $admin = User::factory()->create(['role' => $role]);
+    if ($role === 'rider') {
+        linkRiderToApprovedCenter($admin);
+    }
     $password = $admin->password;
-    $this->actingAs($admin)->post('/settings/password/confirm', ['current_password' => 'incorrect', 'password' => 'ProposedPassword123', 'password_confirmation' => 'ProposedPassword123'])->assertSessionHasErrors('current_password');
+    $this->actingAs($admin)->post('/settings/password/confirm', ['current_password' => $currentPassword, 'password' => 'ProposedPassword123', 'password_confirmation' => 'ProposedPassword123'])->assertSessionHasErrors('current_password');
     Notification::assertNothingSent();
     expect($admin->fresh()->password)->toBe($password);
-});
+})->with(['admin', 'logistics', 'rider'])->with(['incorrect', '']);

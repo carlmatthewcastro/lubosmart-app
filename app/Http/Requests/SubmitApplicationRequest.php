@@ -3,7 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Category;
-use App\Models\SortingCenter;
+use App\Models\LogisticsCenter;
 use App\Rules\UniqueAccountIdentifier;
 use App\Rules\UniqueRiderPlate;
 use App\Support\AccountRules;
@@ -32,7 +32,7 @@ class SubmitApplicationRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return in_array($this->user()->status, ['incomplete', 'pending', 'rejected'], true) && in_array($this->user()->role, ['buyer', 'seller', 'courier', 'sorting_center'], true);
+        return in_array($this->user()->status, ['incomplete', 'pending', 'rejected'], true) && in_array($this->user()->role, ['buyer', 'seller', 'rider', 'logistics'], true);
     }
 
     public function rules(): array
@@ -56,15 +56,15 @@ class SubmitApplicationRequest extends FormRequest
             'street' => [Rule::requiredIf($this->hasAny(['street', 'house_number'])), 'nullable', 'string', 'max:160'],
             'house_number' => [Rule::requiredIf($this->hasAny(['street', 'house_number'])), 'nullable', 'string', 'max:30'],
             'zip' => ['required', 'regex:/^\d{4}$/'],
-            'business_name' => [Rule::requiredIf(in_array($role, ['seller', 'sorting_center'], true)), 'nullable', 'string', 'max:160'],
+            'business_name' => [Rule::requiredIf(in_array($role, ['seller', 'logistics'], true)), 'nullable', 'string', 'max:160'],
             'business_category_id' => [Rule::requiredIf($role === 'seller'), 'nullable', 'integer', Rule::exists(Category::class, 'id')->whereNull('parent_id')->where('is_active', true)],
-            'vehicle_type' => [Rule::requiredIf($role === 'courier'), 'nullable', Rule::in(['motorcycle', 'bicycle', 'car', 'van', 'truck'])],
-            'plate_number' => [Rule::requiredIf($role === 'courier'), 'nullable', 'bail', 'string', 'max:30', new UniqueRiderPlate($this->user()->id)],
-            'sorting_center_id' => [Rule::requiredIf($role === 'courier'), 'nullable', 'integer', Rule::in(SortingCenter::query()->operational()->when($this->user()->logistics_company_id, fn ($centers) => $centers->where('company_user_id', $this->user()->logistics_company_id))->pluck('id')->all())],
+            'vehicle_type' => [Rule::requiredIf($role === 'rider'), 'nullable', Rule::in(['motorcycle', 'bicycle', 'car', 'van', 'truck'])],
+            'plate_number' => [Rule::requiredIf($role === 'rider'), 'nullable', 'bail', 'string', 'max:30', new UniqueRiderPlate($this->user()->id)],
+            'logistics_center_id' => [Rule::requiredIf($role === 'rider'), 'nullable', 'integer', Rule::in(LogisticsCenter::query()->operational()->when($this->user()->logistics_company_id, fn ($centers) => $centers->where('company_user_id', $this->user()->logistics_company_id))->pluck('id')->all())],
             'identity' => $file('identity', true),
-            'license' => $file('license', $role === 'courier'),
-            'business_permit' => $file('business_permit', in_array($role, ['seller', 'sorting_center'], true)),
-            'vehicle_registration' => $file('vehicle_registration', $role === 'courier'),
+            'license' => $file('license', $role === 'rider'),
+            'business_permit' => $file('business_permit', in_array($role, ['seller', 'logistics'], true)),
+            'vehicle_registration' => $file('vehicle_registration', $role === 'rider'),
             'policy_accepted' => ['accepted'],
         ];
         if ($role === 'seller' && ($application?->registration_contract === 'buyer-seller-2026-10' || $this->filled('seller_type'))) {
@@ -72,7 +72,7 @@ class SubmitApplicationRequest extends FormRequest
             $rules['sex'] = ['required', Rule::in(['female', 'male', 'prefer_not_to_say'])];
             $rules['birthday'] = ['required', ...AccountRules::birthday($role)];
         }
-        if ($role === 'sorting_center' && ($application?->registration_contract === 'logistics-2026-10' || $this->filled('sec_number'))) {
+        if ($role === 'logistics' && ($application?->registration_contract === 'logistics-2026-10' || $this->filled('sec_number'))) {
             $rules = array_replace($rules, LogisticsRules::rules($this->user()->id, $existing));
             $rules['sex'] = ['required', Rule::in(['female', 'male', 'prefer_not_to_say'])];
             $rules['birthday'] = ['required', ...AccountRules::birthday($role)];

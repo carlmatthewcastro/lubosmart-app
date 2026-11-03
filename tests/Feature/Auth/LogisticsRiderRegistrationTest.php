@@ -1,8 +1,8 @@
 <?php
 
+use App\Models\LogisticsCenter;
 use App\Models\RegistrationApplication;
 use App\Models\RegistrationDocument;
-use App\Models\SortingCenter;
 use App\Models\User;
 use App\Notifications\ApplicationReviewed;
 use App\Notifications\RiderActivation;
@@ -23,10 +23,10 @@ use Laravel\Socialite\Facades\Socialite;
 
 function approvedRiderCompany(): User
 {
-    $company = User::factory()->create(['role' => 'sorting_center']);
-    $center = SortingCenter::create(['code' => 'COMPANY-'.$company->id, 'name' => 'Bilis Hatid Express Inc.', 'address' => 'Synthetic address']);
+    $company = User::factory()->create(['role' => 'logistics']);
+    $center = LogisticsCenter::create(['code' => 'COMPANY-'.$company->id, 'name' => 'Bilis Hatid Express Inc.', 'address' => 'Synthetic address']);
     $center->forceFill(['company_user_id' => $company->id])->save();
-    $company->sortingCenters()->attach($center->id, ['granted_by' => $company->id]);
+    $company->logisticsCenters()->attach($center->id, ['granted_by' => $company->id]);
 
     return $company;
 }
@@ -127,7 +127,7 @@ test('case reports every mandatory field on an empty form', function (string $ro
     Notification::fake();
     Storage::fake('local');
     if ($role === 'log') {
-        $this->post('/register', ['role' => 'sorting_center'])->assertSessionHasErrors(['first_name', 'last_name', 'email', 'phone', 'business_name', 'sec_number', 'tin', 'position', 'service_regions', 'region_code', 'province_code', 'city_code', 'barangay_code', 'line1', 'zip', 'identity', 'sec_certificate', 'bir_2303', 'business_permit', 'password', 'policy_accepted']);
+        $this->post('/register', ['role' => 'logistics'])->assertSessionHasErrors(['first_name', 'last_name', 'email', 'phone', 'business_name', 'sec_number', 'tin', 'position', 'service_regions', 'region_code', 'province_code', 'city_code', 'barangay_code', 'line1', 'zip', 'identity', 'sec_certificate', 'bir_2303', 'business_permit', 'password', 'policy_accepted']);
     } else {
         $this->actingAs(approvedRiderCompany())->post(route('logistics.riders.store'), [])->assertSessionHasErrors(['first_name', 'last_name', 'birthday', 'email', 'phone', 'license_number', 'license_expires_at', 'vehicle_type', 'plate_number', 'license', 'vehicle_registration']);
     }
@@ -165,7 +165,7 @@ test('case detects globally duplicated identifiers', function (string $role, str
         $data = logisticsRegistrationData();
         $other = User::factory()->create(['role' => 'buyer', 'email' => $field === 'email' ? $data['email'] : 'other@example.com', 'phone' => $field === 'phone' ? $data['phone'] : null]);
         if (in_array($field, ['business_name', 'sec_number', 'tin'])) {
-            RegistrationApplication::create(['user_id' => $other->id, 'requested_role' => 'sorting_center', ...($field === 'business_name' ? ['business_name' => $data[$field]] : [$field => $data[$field]])]);
+            RegistrationApplication::create(['user_id' => $other->id, 'requested_role' => 'logistics', ...($field === 'business_name' ? ['business_name' => $data[$field]] : [$field => $data[$field]])]);
         }
         if ($alternate) {
             $data[$field] = $field === 'email' ? strtoupper($data[$field]) : '+639285551234';
@@ -191,7 +191,7 @@ test('TC-LOG-001 full company signup persists every business field and sends one
     Notification::fake();
     Storage::fake('local');
     $this->post('/register', logisticsRegistrationData())->assertSessionHasNoErrors()->assertRedirect(route('verification.notice'));
-    $user = User::where('role', 'sorting_center')->firstOrFail();
+    $user = User::where('role', 'logistics')->firstOrFail();
     expect($user->status)->toBe('unverified');
     $this->assertDatabaseHas('registration_applications', ['user_id' => $user->id, 'sec_number' => 'CS202012345', 'tin' => '234-567-890-000', 'position' => 'Operations Manager', 'status' => 'submitted']);
     $this->assertDatabaseCount('registration_documents', 4);
@@ -201,7 +201,7 @@ test('TC-LOG-024 three selected service regions persist', function () {
     Notification::fake();
     Storage::fake('local');
     $this->post('/register', logisticsRegistrationData(['service_regions' => ['130000000', '030000000', '040000000']]))->assertSessionHasNoErrors();
-    expect(User::where('role', 'sorting_center')->firstOrFail()->application->service_regions)->toBe(['130000000', '030000000', '040000000']);
+    expect(User::where('role', 'logistics')->firstOrFail()->application->service_regions)->toBe(['130000000', '030000000', '040000000']);
 });
 test('TC-LOG-027 province options are filtered to the chosen region', function () {
     logisticsRegistrationData();
@@ -221,7 +221,7 @@ test('case incorrect malformed or expired company OTP cannot verify', function (
     Storage::fake('local');
     $this->freezeTime();
     $this->post('/register', logisticsRegistrationData())->assertSessionHasNoErrors();
-    $user = User::where('role', 'sorting_center')->firstOrFail();
+    $user = User::where('role', 'logistics')->firstOrFail();
     $code = Notification::sent($user, VerifyAccountEmail::class)->last()->code;
     if ($mode === 'expired') {
         $this->travel(301)->seconds();
@@ -234,7 +234,7 @@ test('TC-LOG-036 resending rejects the first OTP and verifies the new one', func
     Notification::fake();
     Storage::fake('local');
     $this->post('/register', logisticsRegistrationData())->assertSessionHasNoErrors();
-    $company = User::where('role', 'sorting_center')->firstOrFail();
+    $company = User::where('role', 'logistics')->firstOrFail();
     $old = Notification::sent($company, VerifyAccountEmail::class)->last()->code;
     $this->travel(61)->seconds();
     $this->post(route('verification.send'))->assertSessionHasNoErrors();
@@ -248,7 +248,7 @@ test('TC-LOG-037 unverified company login remains restricted', function () {
     $this->post('/register', logisticsRegistrationData());
     $this->post('/logout');
     $this->post('/login', ['email' => 'operations@bilishatid.example.com', 'password' => 'Hatid@2026'])->assertRedirect(route('verification.notice'));
-    $this->get('/dashboard/sorting_center')->assertRedirect(route('verification.notice'));
+    $this->get('/dashboard/logistics')->assertRedirect(route('verification.notice'));
 });
 test('TC-LOG-038 pending company login cannot add riders or operate deliveries', function () {
     Notification::fake();
@@ -278,11 +278,11 @@ test('TC-LOG-040 administrator approval creates a company-owned center and allow
     $this->post('/logout');
     $this->actingAs(User::factory()->create(['role' => 'admin']))->patch('/reviews/'.$company->application->id, ['decision' => 'approved'])->assertSessionHasNoErrors();
     expect($company->fresh()->status)->toBe('approved');
-    $this->assertDatabaseHas('sorting_centers', ['company_user_id' => $company->id, 'name' => 'Bilis Hatid Express Inc.']);
+    $this->assertDatabaseHas('logistics_centers', ['company_user_id' => $company->id, 'name' => 'Bilis Hatid Express Inc.']);
     Notification::assertSentTo($company, ApplicationReviewed::class);
     $this->post('/logout');
     $this->post('/login', ['email' => $company->email, 'password' => 'Hatid@2026'])->assertRedirect('/dashboard');
-    $this->get('/dashboard/sorting_center')->assertOk();
+    $this->get('/dashboard/logistics')->assertOk();
 });
 test('TC-LOG-041 rejection emails the reason and prevents logistics access', function () {
     Notification::fake();
@@ -320,12 +320,12 @@ test('TC-LOG-043 non-admin cannot read approve or reject company applications', 
 });
 test('case foreign role dashboards are denied', function (string $role) {
     $user = User::factory()->create(['role' => $role]);
-    if ($role === 'courier') {
+    if ($role === 'rider') {
         linkRiderToApprovedCenter($user);
-    }foreach (array_diff(['buyer', 'seller', 'courier', 'sorting_center', 'admin'], [$role]) as $target) {
+    }foreach (array_diff(['buyer', 'seller', 'rider', 'logistics', 'admin'], [$role]) as $target) {
         $this->actingAs($user)->get('/dashboard/'.$target)->assertForbidden();
     }
-})->with(['TC-LOG-044' => 'sorting_center', 'TC-RID-032' => 'courier']);
+})->with(['TC-LOG-044' => 'logistics', 'TC-RID-032' => 'rider']);
 
 test('TC-RID-001 company creates a pending activation rider with private documents and one email', function () {
     Notification::fake();
@@ -415,7 +415,7 @@ test('TC-RID-027 activated rider logs in and sees its own company', function () 
     $rider = invitedRider(approvedRiderCompany());
     activateInvitedRider($rider);
     $this->post('/login', ['email' => $rider->email, 'password' => 'Rider@2026'])->assertSessionHasNoErrors()->assertRedirect('/dashboard');
-    $this->get('/dashboard/courier')->assertInertia(fn (Assert $p) => $p->where('auth.user.name', 'Pedro Jose Garcia')->where('companyName', 'Bilis Hatid Express Inc.'));
+    $this->get('/dashboard/rider')->assertInertia(fn (Assert $p) => $p->where('auth.user.name', 'Pedro Jose Garcia')->where('companyName', 'Bilis Hatid Express Inc.'));
 });
 test('TC-RID-028 another company cannot list view modify resend or activate a foreign rider', function () {
     Notification::fake();
@@ -445,8 +445,8 @@ test('public rider signup requires verification and cannot bypass Logistics appr
     Notification::assertSentTo($rider, VerifyAccountEmail::class);
     $this->post('/logout');
     $user = User::factory()->create(['role' => null, 'status' => 'incomplete']);
-    $this->actingAs($user)->post(route('role.store'), ['role' => 'courier'])->assertSessionHasNoErrors()->assertRedirect(route('application.edit'));
-    expect($user->fresh()->role)->toBe('courier');
+    $this->actingAs($user)->post(route('role.store'), ['role' => 'rider'])->assertSessionHasNoErrors()->assertRedirect(route('application.edit'));
+    expect($user->fresh()->role)->toBe('rider');
     expect($user->fresh()->status)->toBe('incomplete');
 });
 test('TC-RID-030 buyers and sellers cannot create riders', function (string $role) {
@@ -458,7 +458,7 @@ test('TC-RID-030 buyers and sellers cannot create riders', function (string $rol
 })->with(['buyer', 'seller']);
 test('TC-RID-031 pending logistics cannot create or invite a rider', function () {
     Notification::fake();
-    $this->actingAs(User::factory()->create(['role' => 'sorting_center', 'status' => 'pending']))->get(route('logistics.riders.create'))->assertRedirect(route('application.waiting'));
+    $this->actingAs(User::factory()->create(['role' => 'logistics', 'status' => 'pending']))->get(route('logistics.riders.create'))->assertRedirect(route('application.waiting'));
     $this->post(route('logistics.riders.store'), companyRiderData())->assertRedirect(route('application.waiting'));
     $this->assertDatabaseCount('rider_activation_invitations', 0);
     Notification::assertNothingSent();
@@ -537,10 +537,10 @@ test('forged company role status and center fields cannot redirect rider ownersh
     Storage::fake('local');
     $a = approvedRiderCompany();
     $b = approvedRiderCompany();
-    $this->actingAs($a)->post(route('logistics.riders.store'), companyRiderData(['logistics_company_id' => $b->id, 'sorting_center_id' => $b->sortingCenters()->first()->id, 'role' => 'admin', 'status' => 'approved', 'email_verified_at' => now()]))->assertSessionHasNoErrors();
+    $this->actingAs($a)->post(route('logistics.riders.store'), companyRiderData(['logistics_company_id' => $b->id, 'logistics_center_id' => $b->logisticsCenters()->first()->id, 'role' => 'admin', 'status' => 'approved', 'email_verified_at' => now()]))->assertSessionHasNoErrors();
     $rider = User::where('email', 'pedrojose.garcia@example.com')->firstOrFail();
     expect($rider->logistics_company_id)->toBe($a->id);
-    expect($rider->role)->toBe('courier');
+    expect($rider->role)->toBe('rider');
     expect($rider->status)->toBe('unverified');
 });
 test('shared legacy center membership cannot override a created riders company ownership', function () {
@@ -549,9 +549,9 @@ test('shared legacy center membership cannot override a created riders company o
     $a = approvedRiderCompany();
     $rider = invitedRider($a);
     $b = approvedRiderCompany();
-    $center = $a->sortingCenters()->first();
+    $center = $a->logisticsCenters()->first();
     $center->forceFill(['company_user_id' => null])->save();
-    $b->sortingCenters()->attach($center->id, ['granted_by' => $b->id]);
+    $b->logisticsCenters()->attach($center->id, ['granted_by' => $b->id]);
     $this->actingAs($b)->getJson('/accounts/'.$rider->id)->assertForbidden();
     $this->getJson('/reviews/'.$rider->application->id)->assertForbidden();
     $this->post(route('logistics.riders.resend', $rider->id))->assertNotFound();
@@ -627,19 +627,19 @@ test('ambiguous shared legacy centers require ownership reconciliation before ne
     Storage::fake('local');
     $a = approvedRiderCompany();
     $b = approvedRiderCompany();
-    $aCenter = $a->sortingCenters()->first();
+    $aCenter = $a->logisticsCenters()->first();
     $aCenter->forceFill(['company_user_id' => null])->save();
-    $b->sortingCenters()->attach($aCenter->id, ['granted_by' => $b->id]);
+    $b->logisticsCenters()->attach($aCenter->id, ['granted_by' => $b->id]);
     $this->actingAs($a)->post(route('logistics.riders.store'), companyRiderData())->assertForbidden();
     $this->assertDatabaseCount('rider_activation_invitations', 0);
     Notification::assertNothingSent();
 });
 test('new Google logistics applications cannot bypass full company validation', function () {
     Socialite::fake('google', Laravel\Socialite\Two\User::fake(['id' => 'new-company-google', 'email' => 'google-company@example.com', 'verified_email' => true]));
-    session(['google_registration' => ['intent' => 'register', 'role' => 'sorting_center', 'started_at' => now()->timestamp]]);
+    session(['google_registration' => ['intent' => 'register', 'role' => 'logistics', 'started_at' => now()->timestamp]]);
     $this->get(route('auth.google.callback'))->assertRedirect(route('register'));
     $this->assertGuest();
-    $this->post('/register', sharedRegistrationData(['role' => 'sorting_center', 'email' => 'google-company@example.com']))->assertSessionHasErrors(['sec_number', 'tin', 'service_regions', 'sec_certificate', 'bir_2303']);
+    $this->post('/register', sharedRegistrationData(['role' => 'logistics', 'email' => 'google-company@example.com']))->assertSessionHasErrors(['sec_number', 'tin', 'service_regions', 'sec_certificate', 'bir_2303']);
     $this->assertDatabaseCount('users', 0);
 });
 test('Google verification of a complete unverified company applies the shared pending transition', function () {
@@ -692,10 +692,10 @@ test('another approved center member cannot keep a suspended companys riders ope
     $rider = invitedRider($company);
     activateInvitedRider($rider);
     $other = approvedRiderCompany();
-    $other->sortingCenters()->attach($rider->sorting_center_id, ['granted_by' => $other->id]);
+    $other->logisticsCenters()->attach($rider->logistics_center_id, ['granted_by' => $other->id]);
     $company->forceFill(['status' => 'suspended'])->save();
     expect($rider->fresh()->canOperate())->toBeFalse();
-    $this->actingAs($rider->fresh())->get('/dashboard/courier')->assertForbidden();
+    $this->actingAs($rider->fresh())->get('/dashboard/rider')->assertForbidden();
 });
 
 test('a company-created rider cannot transfer itself through legacy application resubmission', function () {
@@ -707,8 +707,8 @@ test('a company-created rider cannot transfer itself through legacy application 
     $rider->forceFill(['status' => 'rejected'])->save();
     $rider->application->update(['status' => 'rejected']);
     $b = approvedRiderCompany();
-    $this->actingAs($rider->fresh())->post('/application', ['first_name' => 'Pedro Jose', 'last_name' => 'Garcia', 'sex' => 'male', 'birthday' => '1995-03-22', 'phone' => $rider->phone, 'province_code' => '130000000', 'city_code' => '137403000', 'barangay_code' => '137403016', 'line1' => 'Synthetic street', 'zip' => '1603', 'vehicle_type' => 'motorcycle', 'plate_number' => '123ABC', 'sorting_center_id' => $b->sortingCenters()->first()->id, 'identity' => UploadedFile::fake()->create('id.pdf', 10, 'application/pdf'), 'policy_accepted' => true])->assertSessionHasErrors('sorting_center_id');
-    expect($rider->fresh()->sorting_center_id)->toBe($rider->sorting_center_id);
+    $this->actingAs($rider->fresh())->post('/application', ['first_name' => 'Pedro Jose', 'last_name' => 'Garcia', 'sex' => 'male', 'birthday' => '1995-03-22', 'phone' => $rider->phone, 'province_code' => '130000000', 'city_code' => '137403000', 'barangay_code' => '137403016', 'line1' => 'Synthetic street', 'zip' => '1603', 'vehicle_type' => 'motorcycle', 'plate_number' => '123ABC', 'logistics_center_id' => $b->logisticsCenters()->first()->id, 'identity' => UploadedFile::fake()->create('id.pdf', 10, 'application/pdf'), 'policy_accepted' => true])->assertSessionHasErrors('logistics_center_id');
+    expect($rider->fresh()->logistics_center_id)->toBe($rider->logistics_center_id);
     expect($rider->fresh()->logistics_company_id)->toBe($a->id);
 });
 

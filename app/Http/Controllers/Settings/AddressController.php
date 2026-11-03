@@ -33,7 +33,7 @@ class AddressController extends Controller
             if ($default) {
                 $addresses->update(['is_default' => false]);
             }
-            Address::query()->create([...$request->validated(), 'user_id' => $request->user()->id, 'is_default' => $default]);
+            Address::query()->create([...$request->addressData(), 'user_id' => $request->user()->id, 'is_default' => $default]);
         }, 3);
 
         return to_route('settings.addresses.index')->with('status', 'Address saved.');
@@ -44,12 +44,11 @@ class AddressController extends Controller
         DB::transaction(function () use ($request, $address) {
             User::query()->whereKey($request->user()->id)->lockForUpdate()->firstOrFail();
             $address->refresh();
-            $this->ensureEditable($address);
             $default = $request->boolean('is_default') || $address->is_default;
             if ($default) {
                 Address::query()->where('user_id', $request->user()->id)->whereKeyNot($address->id)->update(['is_default' => false]);
             }
-            $address->update([...$request->validated(), 'is_default' => $default]);
+            $address->update([...$request->addressData(), 'is_default' => $default]);
         }, 3);
 
         return to_route('settings.addresses.index')->with('status', 'Address updated. Existing orders keep their original delivery details.');

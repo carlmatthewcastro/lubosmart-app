@@ -102,7 +102,7 @@ test('all admin management pages reject non admin roles', function (string $role
     $this->post('/admin/platform', ['kind' => 'policy', 'title' => 'Policy', 'body' => 'Rules', 'published' => true])->assertForbidden();
     $this->assertDatabaseCount('product_moderations', 0);
     $this->assertDatabaseCount('platform_contents', 0);
-})->with(['buyer', 'seller', 'courier', 'sorting_center']);
+})->with(['buyer', 'seller', 'rider', 'logistics']);
 
 test('admin warns blocks and restores listings with audit and seller notification', function () {
     $this->actingAs($this->admin)->patch('/admin/compliance/'.$this->product->id, ['action' => 'warn', 'reason' => 'Correct the product photo.'])->assertRedirect();
@@ -337,25 +337,25 @@ test('registration review from a modal returns to its original page', function (
 test('pending account details direct admins to registration instead of access changes', function () {
     $applicant = User::factory()->create(['role' => 'buyer', 'status' => 'pending']);
     $application = RegistrationApplication::query()->create(['user_id' => $applicant->id, 'requested_role' => 'buyer', 'status' => 'submitted']);
-    $this->actingAs($this->admin)->getJson('/accounts/'.$applicant->id)->assertOk()->assertJsonPath('allowedStatuses', [])->assertJsonPath('applicationId', $application->id)->assertJsonPath('courier', null);
+    $this->actingAs($this->admin)->getJson('/accounts/'.$applicant->id)->assertOk()->assertJsonPath('allowedStatuses', [])->assertJsonPath('applicationId', $application->id)->assertJsonPath('rider', null);
 });
 
 test('admin account summaries exclude riders and sorting remains scoped to matching accounts', function () {
-    $rider = User::factory()->create(['role' => 'courier', 'name' => 'Excluded rider']);
+    $rider = User::factory()->create(['role' => 'rider', 'name' => 'Excluded rider']);
     $this->actingAs($this->admin)->get('/accounts?sort=newest')->assertInertia(fn (Assert $page) => $page
         ->where('summary.total', 2)->where('summary.approved', 2)
         ->where('accounts.data', fn ($accounts) => ! collect($accounts)->contains('id', $rider->id)));
     $this->get('/accounts?role=seller')->assertInertia(fn (Assert $page) => $page->where('summary.total', 1)->where('accounts.data.0.id', $this->seller->id));
     $this->getJson('/accounts/'.$rider->id)->assertForbidden();
     $this->get('/accounts?sort=invalid')->assertSessionHasErrors('sort');
-    $this->get('/accounts?role=courier')->assertSessionHasErrors('role');
+    $this->get('/accounts?role=rider')->assertSessionHasErrors('role');
     $this->getJson('/admin/search?search=Excluded')->assertOk()->assertJsonCount(0, 'results');
 });
 
 test('notification counts refresh and exclude rider applications', function () {
     $application = RegistrationApplication::create(['user_id' => $this->buyer->id, 'requested_role' => 'buyer', 'status' => 'submitted']);
-    $rider = User::factory()->create(['role' => 'courier']);
-    RegistrationApplication::create(['user_id' => $rider->id, 'requested_role' => 'courier', 'status' => 'submitted']);
+    $rider = User::factory()->create(['role' => 'rider']);
+    RegistrationApplication::create(['user_id' => $rider->id, 'requested_role' => 'rider', 'status' => 'submitted']);
 
     $this->actingAs($this->admin)->getJson('/admin/notifications')
         ->assertOk()->assertHeader('Cache-Control', 'no-store, private')->assertJsonPath('badges.registrations', 1);

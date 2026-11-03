@@ -20,14 +20,14 @@ class ChooseRoleController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $data = $request->validate(['role' => ['required', Rule::in(['buyer', 'seller', 'courier', 'sorting_center'])]]);
+        $data = $request->validate(['role' => ['required', Rule::in(['buyer', 'seller', 'rider', 'logistics'])]]);
         DB::transaction(function () use ($request, $data) {
             $user = User::query()->whereKey($request->user()->id)->lockForUpdate()->firstOrFail();
             abort_unless($user->role === null && $user->status === 'incomplete', 403);
             $user->forceFill(['role' => $data['role']])->save();
             $user->application()->create(['requested_role' => $data['role'], 'registration_contract' => match ($data['role']) {
-                'sorting_center' => 'logistics-2026-10',
-                'courier' => 'self-service-rider-2026-10',
+                'logistics' => 'logistics-2026-10',
+                'rider' => 'self-service-rider-2026-10',
                 default => null,
             }]);
             $request->user()->setRawAttributes($user->getAttributes(), true);

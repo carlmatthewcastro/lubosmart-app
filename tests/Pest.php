@@ -1,7 +1,7 @@
 <?php
 
 use App\Models\Category;
-use App\Models\SortingCenter;
+use App\Models\LogisticsCenter;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\Factory;
@@ -50,13 +50,13 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function linkRiderToApprovedCenter(User $rider): SortingCenter
+function linkRiderToApprovedCenter(User $rider): LogisticsCenter
 {
-    $operator = User::factory()->create(['role' => 'sorting_center']);
-    $center = SortingCenter::query()->create(['code' => 'TEST-'.$rider->id, 'name' => 'Test center', 'address' => 'Synthetic address']);
-    $operator->sortingCenters()->attach($center->id, ['granted_by' => $operator->id]);
-    $rider->sortingCenters()->attach($center->id, ['granted_by' => $operator->id]);
-    $rider->forceFill(['sorting_center_id' => $center->id])->save();
+    $operator = User::factory()->create(['role' => 'logistics']);
+    $center = LogisticsCenter::query()->create(['code' => 'TEST-'.$rider->id, 'name' => 'Test center', 'address' => 'Synthetic address']);
+    $operator->logisticsCenters()->attach($center->id, ['granted_by' => $operator->id]);
+    $rider->logisticsCenters()->attach($center->id, ['granted_by' => $operator->id]);
+    $rider->forceFill(['logistics_center_id' => $center->id])->save();
 
     return $center;
 }
@@ -91,15 +91,15 @@ function riderRegistrationData(array $changes = []): array
         'https://psgc.gitlab.io/api/cities-municipalities/' => Http::response([['code' => '043404000', 'name' => 'Test City', 'provinceCode' => '043400000', 'regionCode' => '040000000']]),
         'https://psgc.gitlab.io/api/cities-municipalities/043404000/barangays/' => Http::response([['code' => '043404001', 'name' => 'Test Barangay']]),
     ]);
-    if (! isset($changes['sorting_center_id'])) {
-        $company = User::factory()->create(['role' => 'sorting_center']);
-        $center = SortingCenter::create(['code' => 'SIGNUP-'.$company->id, 'name' => 'Test company', 'address' => 'Synthetic address']);
+    if (! isset($changes['logistics_center_id'])) {
+        $company = User::factory()->create(['role' => 'logistics']);
+        $center = LogisticsCenter::create(['code' => 'SIGNUP-'.$company->id, 'name' => 'Test company', 'address' => 'Synthetic address']);
         $center->forceFill(['company_user_id' => $company->id])->save();
-        $company->sortingCenters()->attach($center->id, ['granted_by' => $company->id]);
+        $company->logisticsCenters()->attach($center->id, ['granted_by' => $company->id]);
     }
 
     return sharedRegistrationData(array_replace([
-        'role' => 'courier', 'sex' => 'female', 'sorting_center_id' => $changes['sorting_center_id'] ?? $center->id,
+        'role' => 'rider', 'sex' => 'female', 'logistics_center_id' => $changes['logistics_center_id'] ?? $center->id,
         'province_code' => '043400000', 'city_code' => '043404000', 'barangay_code' => '043404001', 'line1' => 'Synthetic street', 'zip' => '4000',
         'vehicle_type' => 'motorcycle', 'plate_number' => 'SELF123',
         'identity' => UploadedFile::fake()->create('id.pdf', 10, 'application/pdf'),
@@ -140,7 +140,7 @@ function logisticsRegistrationData(array $changes = []): array
         'https://psgc.gitlab.io/api/cities-municipalities/' => Http::response([['code' => '137403000', 'name' => 'Pasig City', 'regionCode' => '130000000']]),
         'https://psgc.gitlab.io/api/cities-municipalities/137403000/barangays/' => Http::response([['code' => '137403016', 'name' => 'Kapitolyo']]),
     ]);
-    $data = sharedRegistrationData(['role' => 'sorting_center', 'first_name' => 'Carlos Antonio', 'last_name' => 'Mendoza', 'email' => 'operations@bilishatid.example.com', 'phone' => '09285551234', 'birthday' => '1990-01-01',
+    $data = sharedRegistrationData(['role' => 'logistics', 'first_name' => 'Carlos Antonio', 'last_name' => 'Mendoza', 'email' => 'operations@bilishatid.example.com', 'phone' => '09285551234', 'birthday' => '1990-01-01',
         'password' => 'Hatid@2026', 'password_confirmation' => 'Hatid@2026', 'business_name' => 'Bilis Hatid Express Inc.', 'sec_number' => 'CS202012345', 'tin' => '234-567-890-000', 'position' => 'Operations Manager',
         'region_code' => '130000000', 'province_code' => '130000000', 'city_code' => '137403000', 'barangay_code' => '137403016', 'line1' => 'Unit 5B, 88 West Capitol Drive', 'zip' => '1603', 'service_regions' => ['130000000', '040000000']]);
     foreach (['identity', 'sec_certificate', 'bir_2303', 'business_permit'] as $kind) {

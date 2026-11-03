@@ -10,7 +10,7 @@ class LogisticsContacts
 {
     public function parcels(User $operator): Builder
     {
-        return SellerOrder::query()->whereHas('delivery', fn ($query) => $query->whereIn('sorting_center_id', $operator->sortingCenters()->operational()->pluck('sorting_centers.id')));
+        return SellerOrder::query()->whereHas('delivery', fn ($query) => $query->whereIn('logistics_center_id', $operator->logisticsCenters()->operational()->pluck('logistics_centers.id')));
     }
 
     public function recipients(User $operator): Builder
@@ -19,6 +19,6 @@ class LogisticsContacts
         $ids = $parcels->pluck('order.buyer_id')->merge($parcels->pluck('store.user_id'))->unique();
 
         return User::query()->where('status', 'approved')->whereNotNull('email_verified_at')->where(fn ($query) => $query
-            ->where('role', 'admin')->orWhereIn('id', $ids)->orWhere(fn ($query) => $query->managedRiders($operator)->where('role', 'courier')->whereIn('sorting_center_id', $operator->sortingCenters()->operational()->pluck('sorting_centers.id'))));
+            ->where('role', 'admin')->orWhereIn('id', $ids)->orWhere(fn ($query) => $query->managedRiders($operator)->where('role', 'rider')->whereIn('logistics_center_id', $operator->logisticsCenters()->operational()->pluck('logistics_centers.id'))));
     }
 }

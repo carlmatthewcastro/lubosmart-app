@@ -16,7 +16,7 @@ class RiderActivationController extends Controller
     {
         $record = $invitations->eligible($token);
         if ($request->user() && $record) {
-            abort_unless($request->user()->role === 'sorting_center' && $request->user()->id === $record->company_id, 403);
+            abort_unless($request->user()->role === 'logistics' && $request->user()->id === $record->company_id, 403);
         }
 
         return Inertia::render('auth/activate-rider', ['token' => $token, 'valid' => $record !== null, 'requiresLogout' => $request->user() !== null]);

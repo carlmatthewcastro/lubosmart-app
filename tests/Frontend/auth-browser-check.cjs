@@ -226,8 +226,29 @@ async function until(predicate, label) {
                 true,
             );
             await screenshot('homepage-typography-' + width);
+            await evaluate('document.querySelector(".storefront__seller-cta").scrollIntoView({block:"center"})');
+            await until(() => evaluate('document.querySelector(".storefront__seller-illustration").complete && document.querySelector(".storefront__seller-illustration").naturalWidth > 0'), 'seller illustration loaded');
+            assert.equal(await evaluate(`(()=>{const image=document.querySelector('.storefront__seller-illustration').getBoundingClientRect();const button=document.querySelector('.storefront__seller-action button').getBoundingClientRect();return button.top >= image.bottom && button.width <= 200 && button.height >= 44;})()`),true);
+            const sellerClip = await evaluate(`(()=>{const rect=document.querySelector('.storefront__seller-cta').getBoundingClientRect();return {x:rect.x+scrollX,y:rect.y+scrollY,width:rect.width,height:rect.height,scale:1};})()`);
+            const sellerImage = await cdp('Page.captureScreenshot', {format:'png',clip:sellerClip,captureBeyondViewport:true});
+            fs.writeFileSync(path.join(output,'seller-panel-'+width+'.png'),Buffer.from(sellerImage.data,'base64'));
         }
         record('Homepage typography', 'Serif hero and supporting text fit desktop/tablet/mobile widths without overlap or horizontal overflow');
+        record('Seller illustration and compact CTA', 'Existing illustration loads above a smaller seller button at desktop/tablet/mobile widths; touch target remains at least 44px');
+        await click('button[aria-label="Switch to dark mode"]');
+        assert.equal(await evaluate('localStorage.getItem("appearance")'), 'dark');
+        assert.equal(await evaluate('getComputedStyle(document.querySelector(".storefront__seller-cta")).backgroundImage.includes("rgb(53, 20, 90)")'), true);
+        assert.equal(await evaluate('getComputedStyle(document.querySelector(".storefront__button--light")).color'), 'rgb(53, 20, 90)');
+        await screenshot('homepage-mobile-dark');
+        await navigate('/register');
+        assert.equal(await evaluate('document.documentElement.classList.contains("dark")'), true);
+        await click('button[aria-label="Switch to light mode"]');
+        await navigate('/');
+        assert.equal(await evaluate('document.documentElement.classList.contains("dark")'), false);
+        record('Guest theme persistence', 'Navbar switches persist across full homepage and registration navigation');
+        await click('.storefront__seller-action button');
+        await until(()=>evaluate('location.pathname==="/register" && new URLSearchParams(location.search).get("role")==="seller"'),'seller registration link');
+        record('Seller call to action', 'Compact button opens the existing seller registration flow');
         await viewport(1440, 1000);
         await navigate('/');
         assert.equal(await evaluate('document.querySelectorAll(".product-card").length'), 4);
@@ -267,7 +288,7 @@ async function until(predicate, label) {
         await navigate('/register');
         assert.equal(await evaluate('!!document.querySelector("aside img[src*=auth-marketplace]")'), false);
         const brandingGeometry = await readBrandingGeometry();
-        for (const registrationRole of ['buyer', 'seller', 'courier', 'sorting_center']) {
+        for (const registrationRole of ['buyer', 'seller', 'rider', 'logistics']) {
             await navigate('/register');
             await click('[data-role-choice=' + registrationRole + ']');
             await until(() => evaluate('!!document.querySelector("input[name=first_name]")'), 'selected role form');
@@ -354,7 +375,7 @@ async function until(predicate, label) {
         record('Registration input stability', 'Input spacing remains unchanged when required-field errors appear at 320px');
         record('Registration empty form and focus', 'All-field Laravel errors, summary and focus on first name');
         await screenshot('register-mobile-errors');
-        await navigate('/register?role=courier');
+        await navigate('/register?role=rider');
         assert.equal(await evaluate(`!!document.querySelector('[aria-label="Rider registration progress"]')`), true);
         assert.equal(await evaluate('!!document.querySelector("h2#rider-registration-heading")'), false);
         assert.equal(await evaluate('!!document.querySelector("button[type=submit]")'), true);
@@ -413,7 +434,7 @@ async function until(predicate, label) {
             ),
             true,
         );
-        await navigate('/register?role=sorting_center');
+        await navigate('/register?role=logistics');
         await viewport(320, 900);
         await set('input[name=first_name]', 'Preview');
         await set('input[name=last_name]', 'Company');
@@ -541,7 +562,7 @@ async function until(predicate, label) {
             await cdp('DOM.setFileInputFiles', { nodeId: el.nodeId, files: [png] });
             await delay(150);
         };
-        for (const role of ['seller', 'sorting_center']) {
+        for (const role of ['seller', 'logistics']) {
             await logoutFixture();
             await navigate('/register?role=' + role);
             await viewport(1440, 1100);
@@ -572,7 +593,7 @@ async function until(predicate, label) {
             await click('button[aria-label="Remove Government-issued ID"]');
             assert.equal(await evaluate('document.querySelector("input[name=identity]").files.length'), 0);
             await attach('identity');
-            if (role === 'sorting_center') {
+            if (role === 'logistics') {
                 await attach('sec_certificate');
                 await attach('bir_2303');
                 await attach('business_permit');
@@ -593,7 +614,7 @@ async function until(predicate, label) {
             record(role + ' OTP pending-approval transition', 'Verification reaches under-review page without operational access');
         }
         await logoutFixture();
-        await navigate('/register?role=courier');
+        await navigate('/register?role=rider');
         await viewport(320, 900);
         await set('input[name=first_name]', 'Browser');
         await set('input[name=last_name]', 'Rider');
@@ -607,7 +628,7 @@ async function until(predicate, label) {
 
         await set('#rider-vehicle_type', 'motorcycle');
         await set('#rider-plate_number', 'BROWSER123');
-        await set('#rider-sorting_center_id', '1');
+        await set('#rider-logistics_center_id', '1');
         await set('#rider-province_code', '130000000');
         await set('#rider-city_code', '137404000');
         await set('#rider-barangay_code', '137404001');
@@ -644,7 +665,7 @@ async function until(predicate, label) {
         await set('#login-email', 'logistics.approver@example.com');
         await set('#login-password', 'Browser@2026');
         await click('button[type=submit]');
-        await until(() => evaluate('location.pathname === "/dashboard/sorting_center"'), 'Logistics approver login');
+        await until(() => evaluate('location.pathname === "/dashboard/logistics"'), 'Logistics approver login');
         await navigate('/logistics/riders');
         assert.equal(await evaluate('document.documentElement.scrollWidth <= innerWidth'), true);
         assert.equal(await evaluate('document.querySelectorAll("#main-content").length'), 1, 'Company riders uses one application layout');
@@ -662,12 +683,32 @@ async function until(predicate, label) {
         await set('#login-email', 'browser.rider@example.com');
         await set('#login-password', 'Rider@2026');
         await click('button[type=submit]');
-        await until(() => evaluate('location.pathname === "/dashboard/courier"'), 'approved rider login');
+        await until(() => evaluate('location.pathname === "/dashboard/rider"'), 'approved rider login');
         assert.equal(await evaluate('document.documentElement.scrollWidth <= innerWidth'), true);
         record(
             'Logistics approves Rider then Rider login opens own dashboard',
             'Actual review confirmation and password login; approved Rider dashboard at 320px',
         );
+        await viewport(1440, 1000);
+        await until(() => evaluate('!!document.querySelector(\'button[aria-label="Switch to dark mode"]\')'), 'desktop dashboard theme control');
+        await click('button[aria-label="Switch to dark mode"]');
+        assert.equal(await evaluate('localStorage.getItem("appearance")'), 'dark');
+        assert.equal(await evaluate(`(async () => {
+            const cookie = document.cookie.split('; ').find(value => value.startsWith('XSRF-TOKEN='));
+            const response = await fetch('/logout', { method: 'POST', headers: { 'X-XSRF-TOKEN': decodeURIComponent(cookie.slice(11)), Accept: 'text/html' } });
+            return response.ok;
+        })()`), true);
+        await viewport(320, 900);
+        await navigate('/');
+        assert.equal(await evaluate('document.documentElement.classList.contains("dark")'), true);
+        assert.equal(await evaluate('getComputedStyle(document.querySelector(".storefront")).backgroundColor === getComputedStyle(document.body).backgroundColor'), true);
+        assert.equal(await evaluate('getComputedStyle(document.querySelector(".storefront__header .app-wordmark")).color'), 'rgb(255, 255, 255)');
+        assert.equal(await evaluate('document.documentElement.scrollWidth <= innerWidth'), true);
+        await screenshot('homepage-mobile-dark');
+        await navigate('/register');
+        assert.equal(await evaluate('document.documentElement.classList.contains("dark")'), true);
+        await click('button[aria-label="Switch to light mode"]');
+        record('Dashboard logout theme persistence', 'Actual logout retains dark mode on homepage and registration; mobile navbar fits');
         await logoutFixture();
         await navigate('/login');
         await viewport(320, 900);

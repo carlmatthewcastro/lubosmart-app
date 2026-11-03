@@ -20,12 +20,16 @@ class SellerOrder extends Model
         'commission_amount',
         'seller_proceeds',
         'status',
+        'store_voucher_id',
+        'voucher_code',
+        'discount_amount',
     ];
 
     protected function casts(): array
     {
         return [
             'subtotal' => 'decimal:2',
+            'discount_amount' => 'decimal:2',
             'shipping_fee' => 'decimal:2',
             'shipping_quote' => 'array',
             'shipping_weight_grams' => 'integer',
@@ -53,5 +57,15 @@ class SellerOrder extends Model
     public function delivery(): HasOne
     {
         return $this->hasOne(Delivery::class);
+    }
+
+    public function payout(): HasOne
+    {
+        return $this->hasOne(SellerPayout::class);
+    }
+
+    public function parcelReturn(): HasOne
+    {
+        return $this->hasOne(ParcelReturn::class);
     }
 }

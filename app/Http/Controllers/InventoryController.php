@@ -19,8 +19,20 @@ class InventoryController extends Controller
     {
         abort_unless($request->user()->role === 'seller', 403);
         $store = $request->user()->store;
+        $filters = $request->validate(['search' => 'nullable|string|max:100', 'status' => ['nullable', Rule::in(['all', 'active', 'hidden', 'low-stock', 'missing-weight'])]]);
+        $products = Product::query()->where('store_id', $store?->id)->with(['category:id,name', 'variants']);
+        $search = trim($filters['search'] ?? '');
+        if ($search !== '') {
+            $products->where('name', 'like', '%'.$search.'%');
+        }
+        match ($filters['status'] ?? 'all') {
+            'active', 'hidden' => $products->where('status', $filters['status']),
+            'low-stock' => $products->where('stock', '<', 5),
+            'missing-weight' => $products->whereNull('weight_grams'),
+            default => null,
+        };
 
-        return Inertia::render('marketplace/inventory', ['products' => Product::query()->where('store_id', $store?->id)->with('category:id,name')->latest('id')->paginate(12), 'categories' => $this->categories($store?->business_category_id)->get(['id', 'name']), 'store' => $store,
+        return Inertia::render('marketplace/inventory', ['products' => $products->latest('id')->paginate(12)->withQueryString(), 'filters' => $filters, 'categories' => $this->categories($store?->business_category_id)->get(['id', 'name']), 'store' => $store,
             'complianceNotices' => DB::table('product_moderations')->join('products', 'products.id', '=', 'product_moderations.product_id')->where('products.store_id', $store?->id)->orderByDesc('product_moderations.id')->limit(10)->get(['product_moderations.id', 'products.name', 'product_moderations.action', 'product_moderations.reason']),
         ]);
     }
@@ -35,19 +47,26 @@ class InventoryController extends Controller
             throw ValidationException::withMessages(['category_id' => 'Choose an active category within your registered department.']);
         }
         unset($data['image']);
+        $expectedStock = $request->validate(['expected_stock' => 'sometimes|integer|min:0|max:1000000'])['expected_stock'] ?? null;
         $imagePath = $request->hasFile('image') ? $request->file('image')->store('products', 'public') : null;
         if ($imagePath) {
             $data['image_path'] = $imagePath;
         }
         try {
-            DB::transaction(function () use ($request, $product, $store, $data) {
+            DB::transaction(function () use ($request, $product, $store, $data, $expectedStock) {
                 $seller = User::query()->whereKey($request->user()->id)->lockForUpdate()->firstOrFail();
                 $store = Store::query()->whereKey($store->id)->lockForUpdate()->firstOrFail();
                 abort_unless($seller->status === 'approved' && $store->status === 'approved', 403);
                 if ($product) {
                     $lockedProduct = Product::query()->whereKey($product->id)->lockForUpdate()->firstOrFail();
+                    if ($expectedStock !== null && $lockedProduct->stock !== (int) $expectedStock) {
+                        throw ValidationException::withMessages(['stock' => 'Stock changed while this form was open. Close and reopen the product editor before saving.']);
+                    }
                     if ($lockedProduct->blocked_at && $data['status'] === 'active') {
                         throw ValidationException::withMessages(['status' => 'This listing needs admin clearance before publishing.']);
+                    }
+                    if ($lockedProduct->variants()->exists()) {
+                        $data['stock'] = $lockedProduct->variants()->sum('stock');
                     }
                     $lockedProduct->update($data);
                 } else {

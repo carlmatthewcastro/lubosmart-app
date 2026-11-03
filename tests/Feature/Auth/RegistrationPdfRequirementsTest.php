@@ -9,8 +9,8 @@ test('all registration roles require sex and birthday and keep middle initial op
     Notification::fake();
     Storage::fake('local');
     $data = match ($role) {
-        'seller' => sellerRegistrationData(), 'courier' => riderRegistrationData(),
-        'sorting_center' => logisticsRegistrationData(), default => sharedRegistrationData(),
+        'seller' => sellerRegistrationData(), 'rider' => riderRegistrationData(),
+        'logistics' => logisticsRegistrationData(), default => sharedRegistrationData(),
     };
     $this->post('/register', [...$data, 'sex' => null])->assertSessionHasErrors('sex');
     $this->post('/register', [...$data, 'birthday' => null])->assertSessionHasErrors('birthday');
@@ -21,7 +21,7 @@ test('all registration roles require sex and birthday and keep middle initial op
     $this->assertDatabaseHas('user_profiles', ['user_id' => $user->id, 'sex' => 'female', 'birthday' => $data['birthday'], 'middle_initial' => null]);
     expect($user->application->address_id)->not->toBeNull();
     expect(DB::table('addresses')->where('id', $user->application->address_id)->value('line1'))->toBe($data['line1']);
-})->with(['buyer', 'seller', 'courier', 'sorting_center']);
+})->with(['buyer', 'seller', 'rider', 'logistics']);
 
 test('seller requires a business permit and duplicate emails show a specific error', function () {
     Notification::fake();

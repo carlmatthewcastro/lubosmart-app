@@ -20,20 +20,20 @@ class AccountController extends Controller
     public function index(Request $request): Response
     {
         $actor = $request->user();
-        abort_unless(in_array($actor->role, ['admin', 'sorting_center'], true), 403);
-        $filters = $request->validate(['search' => 'nullable|string|max:160', 'role' => ['nullable', Rule::in($actor->role === 'admin' ? ['buyer', 'seller', 'sorting_center', 'unassigned'] : ['courier'])], 'status' => ['nullable', Rule::in(['unverified', 'incomplete', 'pending', 'approved', 'rejected', 'suspended', 'deactivated'])]]);
+        abort_unless(in_array($actor->role, ['admin', 'logistics'], true), 403);
+        $filters = $request->validate(['search' => 'nullable|string|max:160', 'role' => ['nullable', Rule::in($actor->role === 'admin' ? ['buyer', 'seller', 'logistics', 'unassigned'] : ['rider'])], 'status' => ['nullable', Rule::in(['unverified', 'incomplete', 'pending', 'approved', 'rejected', 'suspended', 'deactivated'])]]);
         $query = User::query()->nonAdmin();
         $filters += $request->validate(['sort' => ['nullable', Rule::in(['name', 'newest', 'oldest'])]]);
         if ($actor->role === 'admin') {
-            $query->where(fn ($query) => $query->whereNull('role')->orWhere('role', '!=', 'courier'));
+            $query->where(fn ($query) => $query->whereNull('role')->orWhere('role', '!=', 'rider'));
         }
         $query->when($filters['search'] ?? null, fn ($q, $search) => $q->where(fn ($q) => $q->where('name', 'like', '%'.$search.'%')->orWhere('email', 'like', '%'.$search.'%')));
         $query->when($filters['role'] ?? null, fn ($q, $role) => $role === 'unassigned' ? $q->whereNull('role') : $q->where('role', $role));
         $query->when($filters['status'] ?? null, fn ($q, $status) => $q->where('status', $status));
-        if ($actor->role === 'sorting_center') {
+        if ($actor->role === 'logistics') {
             $query->where(fn ($q) => $q->whereNull('logistics_company_id')->orWhere('logistics_company_id', $actor->id));
             $query->whereIn('status', ['approved', 'suspended', 'deactivated']);
-            $query->where('role', 'courier')->whereIn('sorting_center_id', $actor->sortingCenters()->operational()->pluck('sorting_centers.id'))->whereHas('application', fn ($query) => $query->where('status', 'approved'));
+            $query->where('role', 'rider')->whereIn('logistics_center_id', $actor->logisticsCenters()->operational()->pluck('logistics_centers.id'))->whereHas('application', fn ($query) => $query->where('status', 'approved'));
         }
 
         $counts = (clone $query)->selectRaw('status, COUNT(*) as total')->groupBy('status')->toBase()->get()->pluck('total', 'status');
@@ -56,9 +56,9 @@ class AccountController extends Controller
             'profile' => DB::table('user_profiles')->where('user_id', $user->id)->first(),
             'store' => $user->store?->only(['id', 'name', 'status']),
             'address' => DB::table('addresses')->where('user_id', $user->id)->first(['line1', 'barangay', 'city', 'province', 'zip']),
-            'courier' => $user->role === 'courier' ? DB::table('rider_profiles')->where('user_id', $user->id)->first() : null,
-            'centers' => $user->role === 'sorting_center' ? $user->sortingCenters()->get(['sorting_centers.id', 'name']) : [],
-            'assignedCenter' => $user->role === 'courier' ? $user->logisticsCenter?->name : null,
+            'rider' => $user->role === 'rider' ? DB::table('rider_profiles')->where('user_id', $user->id)->first() : null,
+            'centers' => $user->role === 'logistics' ? $user->logisticsCenters()->get(['logistics_centers.id', 'name']) : [],
+            'assignedCenter' => $user->role === 'rider' ? $user->logisticsCenter?->name : null,
             'allowedStatuses' => in_array($user->status, ['approved', 'suspended', 'deactivated'], true) ? ['approved', 'suspended', 'deactivated'] : [],
             'applicationId' => $user->application?->id,
             'history' => DB::table('audit_events')->leftJoin('users as actor', 'actor.id', '=', 'audit_events.actor_id')->where(fn ($query) => $query->where('subject_type', 'user')->where('subject_id', $user->id))
@@ -83,8 +83,8 @@ class AccountController extends Controller
             $previous = $user->status;
             abort_if($previous === $data['status'], 409, 'This account already has that status.');
             $user->forceFill(['status' => $data['status']])->save();
-            if ($user->role === 'sorting_center') {
-                $user->sortingCenters()->update(['is_active' => $data['status'] === 'approved']);
+            if ($user->role === 'logistics') {
+                $user->logisticsCenters()->update(['is_active' => $data['status'] === 'approved']);
             }
             app(AuditLogger::class)->record(['actor_id' => $request->user()->id, 'subject_type' => 'user', 'subject_id' => $user->id, 'action' => $data['status'] === 'approved' ? 'reactivated' : $data['status'], 'old_status' => $previous, 'new_status' => $data['status'], 'reason' => $data['reason'], 'changes' => json_encode(['from' => $previous, 'to' => $data['status'], 'reason' => $data['reason']]), 'occurred_at' => now()]);
             $user->notify(new AccountStatusChanged($data['status'], $data['reason']));

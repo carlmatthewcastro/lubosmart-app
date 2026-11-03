@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
+use Inertia\Testing\AssertableInertia as Assert;
 
 function workbookSignup(string $role, array $changes = []): array
 {
@@ -185,7 +186,7 @@ test('workbook detects existing identifiers across roles', function (string $rol
         Store::create(['user_id' => $other->id, 'name' => ' MARIA CLARA HANDICRAFTS ']);
     }
     if ($field === 'tin') {
-        RegistrationApplication::create(['user_id' => $other->id, 'requested_role' => 'sorting_center', 'tin' => '123-456-789-000']);
+        RegistrationApplication::create(['user_id' => $other->id, 'requested_role' => 'logistics', 'tin' => '123-456-789-000']);
     }
     $this->post('/register', $data)->assertSessionHasErrors($field);
     $this->assertDatabaseCount('users', 1);
@@ -273,7 +274,7 @@ test('TC-BUY-029 verified active buyer logs in and retains the correct name', fu
 
 test('workbook role dashboards deny foreign roles', function (string $role) {
     $user = User::factory()->create(['role' => $role]);
-    foreach (array_diff(['buyer', 'seller', 'courier', 'sorting_center', 'admin'], [$role]) as $target) {
+    foreach (array_diff(['buyer', 'seller', 'rider', 'logistics', 'admin'], [$role]) as $target) {
         $this->actingAs($user)->get('/dashboard/'.$target)->assertForbidden();
     }
 })->with(['TC-BUY-030' => 'buyer', 'TC-SEL-044' => 'seller']);
@@ -310,7 +311,13 @@ test('TC-SEL-039 admin review exposes saved details and private document links',
     $admin = User::factory()->create(['role' => 'admin']);
     $this->post('/logout');
     $this->actingAs($admin)->getJson('/reviews/'.$seller->application->id)->assertOk()->assertJsonPath('application.tin', '123-456-789-000')->assertJsonPath('application.seller_type', 'sole_proprietorship')->assertJsonCount(4, 'documents');
-    $this->get('/reviews')->assertOk();
+    $this->get('/reviews')->assertInertia(fn (Assert $page) => $page
+        ->component('management/registrations/index')
+        ->where('filters.status', 'submitted')
+        ->has('applications.data', 1)
+        ->where('applications.data.0.id', $seller->application->id)
+        ->where('applications.data.0.requested_role', 'seller')
+        ->where('applications.data.0.name', $seller->store->name));
 });
 
 test('TC-SEL-040 admin approval enables seller operations and sends decision email', function () {

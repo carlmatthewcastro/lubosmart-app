@@ -13,6 +13,16 @@ use Illuminate\Validation\Rule;
 
 class ProfileUpdateRequest extends FormRequest
 {
+    public function authorize(): bool
+    {
+        if ($this->user()->role !== 'logistics') {
+            return true;
+        }
+
+        // Logistics settings have one mutation boundary, including OTP enforcement.
+        return false;
+    }
+
     protected function prepareForValidation(): void
     {
         if (is_string($this->input('name'))) {
@@ -39,10 +49,10 @@ class ProfileUpdateRequest extends FormRequest
             'name' => ['bail', 'required', ...AccountRules::name(160)],
             'phone' => ['bail', 'sometimes', 'nullable', 'regex:/\A09[0-9]{9}\z/', Rule::prohibitedIf($isAdmin), new UniqueAccountIdentifier('phone', $this->user()->id)],
             'current_password' => ['nullable', 'string', 'max:255'],
-            'business_name' => ['sometimes', 'bail', 'required', 'string', 'max:160', Rule::prohibitedIf(! in_array($this->user()->role, ['seller', 'sorting_center'], true)), ...($this->user()->role === 'seller' ? [new UniqueShopName($this->user()->id)] : ($this->user()->role === 'sorting_center' ? [new UniqueCompanyName($this->user()->id)] : []))],
-            'bank_account' => ['sometimes', 'nullable', 'string', 'max:500', Rule::prohibitedIf(! in_array($this->user()->role, ['seller', 'courier', 'sorting_center'], true))],
-            'plate_number' => ['sometimes', 'bail', 'required', 'string', 'max:30', Rule::prohibitedIf($this->user()->role !== 'courier'), new UniqueRiderPlate($this->user()->id)],
-            'identity' => ['nullable', ...AccountRules::upload(), Rule::prohibitedIf(! in_array($this->user()->role, ['buyer', 'seller', 'courier', 'sorting_center'], true))],
+            'business_name' => ['sometimes', 'bail', 'required', 'string', 'max:160', Rule::prohibitedIf(! in_array($this->user()->role, ['seller', 'logistics'], true)), ...($this->user()->role === 'seller' ? [new UniqueShopName($this->user()->id)] : ($this->user()->role === 'logistics' ? [new UniqueCompanyName($this->user()->id)] : []))],
+            'bank_account' => ['sometimes', 'nullable', 'string', 'max:500', Rule::prohibitedIf(! in_array($this->user()->role, ['seller', 'rider', 'logistics'], true))],
+            'plate_number' => ['sometimes', 'bail', 'required', 'string', 'max:30', Rule::prohibitedIf($this->user()->role !== 'rider'), new UniqueRiderPlate($this->user()->id)],
+            'identity' => ['nullable', ...AccountRules::upload(), Rule::prohibitedIf(! in_array($this->user()->role, ['buyer', 'seller', 'rider', 'logistics'], true))],
 
             'email' => [
                 ...($isAdmin ? ['sometimes'] : []),

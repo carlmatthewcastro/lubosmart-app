@@ -194,7 +194,7 @@ async function until(predicate, label) {
             );
         for (const role of process.env.LUBOSMART_BROWSER_ROLES
             ? process.env.LUBOSMART_BROWSER_ROLES.split(',')
-            : ['buyer', 'seller', 'courier', 'sorting_center', 'admin']) {
+            : ['buyer', 'seller', 'rider', 'logistics', 'admin']) {
             await cdp('Network.clearBrowserCookies');
             await viewport(1440, 1000);
             await navigate('/login');
@@ -207,14 +207,14 @@ async function until(predicate, label) {
             await delay(400);
             const page = await evaluate('JSON.parse(document.querySelector("#app").dataset.page).props');
             if (role === 'buyer') assert.equal(page.stats.Orders, 1);
-            if (role === 'seller') assert.equal(page.stats['Seller orders'], 1);
-            if (role === 'courier') assert.equal(page.stats.Parcels, 1);
-            if (role === 'sorting_center') assert.equal(page.metrics.incoming, 1);
+            if (role === 'seller') assert.equal(page.queues.all, 1);
+            if (role === 'rider') assert.equal(page.queues.all, 1);
+            if (role === 'logistics') assert.equal(page.metrics.incoming, 1);
             if (role === 'admin') assert.equal(page.stats.Accounts, 3);
             assert.equal(await evaluate('document.querySelectorAll("h1").length'), 1);
             assert.equal(await evaluate('document.documentElement.scrollWidth <= innerWidth'), true);
             assert.equal(await evaluate(`!!document.querySelector('a[href="/dashboard"][aria-current="page"]')`), true);
-            if (['admin', 'sorting_center'].includes(role)) {
+            if (['admin', 'logistics'].includes(role)) {
                 assert.equal(await evaluate(`!!document.querySelector('[aria-label="Open account menu"]')`), true);
             } else {
                 assert.equal(await evaluate(`!!document.querySelector('a[href="/settings/profile"]')`), true);
@@ -272,7 +272,7 @@ async function until(predicate, label) {
                     'Mixed photo orientations have equal square containers/card heights; save/remove persists; cart mutation works; mobile grid and image fallback work',
                 );
             }
-            if (role === 'sorting_center') {
+            if (role === 'logistics') {
                 for (const stage of ['pickups', 'incoming', 'sorting', 'dispatch', 'monitoring']) {
                     assert.equal(
                         await evaluate('!!document.querySelector(' + JSON.stringify('a[href="/deliveries?stage=' + stage + '"]') + ')'),
@@ -295,7 +295,7 @@ async function until(predicate, label) {
                     await until(() => evaluate('!!document.querySelector("main h1")'), 'logistics workspace ' + url);
                     assert.equal(await evaluate('document.documentElement.scrollWidth <= innerWidth'), true);
                 }
-                await navigate('/dashboard/sorting_center');
+                await navigate('/dashboard/logistics');
                 await click('[aria-label="Search logistics workspace"]');
                 await until(() => evaluate('!!document.querySelector("#logistics-search")'), 'logistics search dialog');
                 await set('#logistics-search-target', 'riders');
@@ -305,10 +305,10 @@ async function until(predicate, label) {
                 await navigate('/accounts?search=Browser');
                 const accountData = await evaluate('JSON.parse(document.querySelector("#app").dataset.page).props.accounts.data');
                 assert.equal(
-                    accountData.every((account) => account.role === 'courier'),
+                    accountData.every((account) => account.role === 'rider'),
                     true,
                 );
-                await navigate('/dashboard/sorting_center');
+                await navigate('/dashboard/logistics');
                 await click('[aria-label="Open logistics queues"]');
                 await until(() => evaluate('!!document.querySelector("[role=menu]")'), 'logistics queues');
                 assert.equal(await evaluate('!!document.querySelector(' + JSON.stringify('[role=menu] a[href="/reviews"]') + ')'), true);
@@ -321,6 +321,56 @@ async function until(predicate, label) {
                     'Logistics workflow navigation and rider-only search',
                     'Every parcel stage and workspace page opens; search returns Rider accounts; queues and logout menu are available',
                 );
+            }
+            if (role === 'rider') {
+                assert.equal(await evaluate(`!!document.querySelector('a[href="/reviews"]')`), false);
+                assert.equal(await evaluate(`!!document.querySelector('a[href="/logistics/scan"]')`), false);
+                await click('[aria-label="Search rider workspace"]');
+                await until(() => evaluate('!!document.querySelector("#logistics-search")'), 'rider parcel search');
+                assert.equal(await evaluate(`document.querySelector('#logistics-search-target option[value="riders"]') === null`), true);
+                await set('#logistics-search', 'Browser Store');
+                await click('[role="dialog"] button[type="submit"]');
+                await until(() => evaluate('location.pathname === "/deliveries" && location.search.includes("search=")'), 'rider search results');
+                await until(() => evaluate('document.body.innerText.includes("Browser Store")'), 'rider matching parcel');
+                for (const queue of ['pickups', 'dispatch', 'monitoring', 'exceptions', 'cash', 'completed']) {
+                    await navigate('/deliveries?stage=' + queue);
+                    assert.equal(await evaluate('document.documentElement.scrollWidth <= innerWidth'), true);
+                }
+                await navigate('/dashboard/rider');
+                await click('[aria-label^="Rider notifications"]');
+                await until(
+                    () =>
+                        evaluate('!!document.querySelector("[role=menu]") && !document.querySelector("[role=menu]").textContent.includes("Loading")'),
+                    'rider notifications',
+                );
+                assert.equal(await evaluate('document.querySelectorAll("[role=menuitem]").length'), 5);
+                assert.equal(await evaluate('document.querySelector("[role=menu]").textContent.includes("Rider applications")'), false);
+                await cdp('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 });
+                record('Rider workflows', 'Assigned-parcel search, six filtered queues and live notifications work without company management links');
+                await navigate('/settings/profile');
+                await until(() => evaluate('document.body.innerText.includes("Personal details")'), 'rider settings');
+                for (const category of ['rider-details', 'registered-address', 'submitted-documents', 'contact-details']) {
+                    await click('a[href="#' + category + '"]');
+                    await until(() => evaluate('location.hash === "#' + category + '"'), 'rider settings category ' + category);
+                    assert.equal(await evaluate('document.documentElement.scrollWidth <= innerWidth'), true);
+                }
+                await until(() => evaluate('!!document.querySelector("#name")'), 'rider contact editor');
+                await set('#name', 'Browser Rider Updated');
+                await click('form[aria-busy] button[type="submit"], form[aria-busy] button:not([type])');
+                await until(() => evaluate('document.body.innerText.includes("Changes saved.")'), 'save rider display name');
+                await screenshot('rider-settings-desktop');
+                await viewport(320, 900);
+                assert.equal(await evaluate('document.documentElement.scrollWidth <= innerWidth'), true);
+                await screenshot('rider-settings-mobile');
+                await evaluate('document.documentElement.classList.add("dark")');
+                await screenshot('rider-settings-mobile-dark');
+                await evaluate('document.documentElement.classList.remove("dark")');
+                record(
+                    'Rider settings categories and save',
+                    'Personal, rider, address, document and contact categories render; display name saves; mobile light/dark layouts have no overflow',
+                );
+                await viewport(1440, 1000);
+                await navigate('/dashboard/rider');
             }
             await viewport(768, 1024);
             await delay(300);
@@ -372,13 +422,33 @@ async function until(predicate, label) {
             await screenshot(role + '-mobile-dark');
             record(role + ' dark theme', 'Dark semantic tokens and mobile layout rendered');
             await evaluate('document.documentElement.classList.remove("dark")');
-            if (['buyer', 'seller', 'courier'].includes(role)) {
+            if (['buyer', 'seller', 'rider'].includes(role)) {
                 await click('[aria-label="Open account menu"]');
                 await until(() => evaluate(`!!document.querySelector('[role="menu"]')`), 'account menu');
                 assert.equal(await evaluate(`document.querySelector('[role="menu"]').textContent.includes("Log out")`), true);
                 record(role + ' account menu', 'Topbar account menu exposes existing logout action');
             }
         }
+        // Exercise shared validation through authenticated settings.
+        await navigate('/settings/password');
+        await evaluate(`document.querySelector('#password').form.requestSubmit()`);
+        await until(() => evaluate(`document.querySelectorAll('[data-client-invalid]').length > 0`), 'inline required feedback');
+        assert.equal(await evaluate(`document.activeElement === document.querySelector('form :invalid')`), true);
+        assert.equal(
+            await evaluate(`(() => {
+            const field = document.querySelector('[data-client-invalid]');
+            const ids = field.getAttribute('aria-describedby').split(/\\s+/);
+            return field.getAttribute('aria-invalid') === 'true' && ids.some(id => document.getElementById(id)?.textContent.includes('This field is required.'));
+        })()`),
+            true,
+        );
+        await set('#password', 'ValidPassword@2026');
+        await until(() => evaluate(`!document.querySelector('#password').hasAttribute('data-client-invalid')`), 'inline feedback clears');
+        await screenshot('dashboard-inline-validation');
+        record(
+            'Dashboard inline validation',
+            'Empty submission shows associated inline feedback, focuses the first invalid field, and clears corrected feedback',
+        );
         if (process.env.LUBOSMART_BROWSER_ROLES) {
             assert.deepEqual(errors, []);
             assert.deepEqual(consoleErrors, []);
@@ -403,12 +473,12 @@ async function until(predicate, label) {
             record('Admin page ' + url, 'Page renders without horizontal overflow');
         }
         await navigate('/accounts');
-        assert.equal(await evaluate(`Array.from(document.querySelectorAll('select option')).some(el=>el.value==='courier')`), false);
+        assert.equal(await evaluate(`Array.from(document.querySelectorAll('select option')).some(el=>el.value==='rider')`), false);
         await click('[aria-label="Search Admin Workspace"]');
         await until(() => evaluate(`!!document.querySelector('input[aria-label="Search term"]')`), 'search dialog');
         await set('input[aria-label="Search term"]', 'Browser');
         await until(() => evaluate(`!!document.querySelector('[role="dialog"] li')`), 'search results');
-        assert.equal(await evaluate(`document.querySelector('[role="dialog"]').textContent.includes('Browser courier')`), false);
+        assert.equal(await evaluate(`document.querySelector('[role="dialog"]').textContent.includes('Browser rider')`), false);
         await evaluate(`[...document.querySelectorAll('[role="dialog"] button')].find(el=>el.textContent.trim()==='Close').click()`);
         record('Admin role filters and workspace search', 'Rider option and Rider search results are absent');
         await evaluate(`[...document.querySelectorAll('button')].find(el=>el.textContent.trim()==='View details').click()`);

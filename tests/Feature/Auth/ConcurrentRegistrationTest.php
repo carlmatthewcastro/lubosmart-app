@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\SortingCenter;
+use App\Models\LogisticsCenter;
 use App\Models\User;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -19,12 +19,12 @@ test('simultaneous validated registrations create exactly one account and verifi
         if ($role === 'seller') {
             DB::connection('account_race')->table('categories')->insert(['name' => 'Home & Living', 'slug' => 'home-living', 'is_active' => true]);
         }
-        if ($role === 'courier') {
-            $company = User::on('account_race')->create(['name' => 'Race company', 'email' => 'race.company@example.com', 'role' => 'sorting_center', 'password' => null]);
+        if ($role === 'rider') {
+            $company = User::on('account_race')->create(['name' => 'Race company', 'email' => 'race.company@example.com', 'role' => 'logistics', 'password' => null]);
             $company->forceFill(['status' => 'approved', 'email_verified_at' => now()])->save();
-            $center = SortingCenter::on('account_race')->create(['code' => 'RACE', 'name' => 'Race company', 'address' => 'Synthetic address']);
+            $center = LogisticsCenter::on('account_race')->create(['code' => 'RACE', 'name' => 'Race company', 'address' => 'Synthetic address']);
             $center->forceFill(['company_user_id' => $company->id])->save();
-            $company->sortingCenters()->attach($center->id, ['granted_by' => $company->id]);
+            $company->logisticsCenters()->attach($center->id, ['granted_by' => $company->id]);
         }
         foreach ($ready as $signal) {
             $worker = new Process([PHP_BINARY, base_path('tests/Fixtures/account-registration-worker.php'), base_path(), $database, $barrier, $signal, $role], base_path());
@@ -49,9 +49,9 @@ test('simultaneous validated registrations create exactly one account and verifi
         sort($results);
         expect($results)->toBe(['created', 'duplicate']);
         foreach (['users', 'user_profiles', 'registration_applications'] as $table) {
-            expect(DB::connection('account_race')->table($table)->count())->toBe($role === 'courier' && $table === 'users' ? 2 : 1);
+            expect(DB::connection('account_race')->table($table)->count())->toBe($role === 'rider' && $table === 'users' ? 2 : 1);
         }
-        if ($role === 'courier') {
+        if ($role === 'rider') {
             expect(DB::connection('account_race')->table('rider_activation_invitations')->value('send_count'))->toBe(1);
             expect(DB::connection('account_race')->table('registration_documents')->count())->toBe(2);
         } else {
@@ -81,4 +81,4 @@ test('simultaneous validated registrations create exactly one account and verifi
             }
         }
     }
-})->with(['TC-BUY-022 actual concurrency' => 'buyer', 'TC-SEL-020 actual concurrency' => 'seller', 'TC-LOG-020 actual concurrency' => 'sorting_center', 'TC-RID-019 actual concurrency' => 'courier']);
+})->with(['TC-BUY-022 actual concurrency' => 'buyer', 'TC-SEL-020 actual concurrency' => 'seller', 'TC-LOG-020 actual concurrency' => 'logistics', 'TC-RID-019 actual concurrency' => 'rider']);

@@ -17,8 +17,8 @@ class EnsureAccountIsNotSuspended
         }
         $message = match (true) {
             in_array($user?->status, ['suspended', 'deactivated'], true) => 'Your account is '.$user->status.'. Contact LubosMart support.',
-            $user?->role === 'courier' && $user->status === 'approved' && ! $user->sorting_center_id => 'Your courier account needs an approved sorting center. Contact LubosMart support.',
-            $user?->role === 'courier' && $user->sorting_center_id && ! $user->logisticsCenter()->operational()->exists() => 'Your sorting center is unavailable. Courier access is blocked until the center is approved and active.',
+            $user?->role === 'rider' && $user->status === 'approved' && ! $user->logistics_center_id => 'Your rider account needs an approved logistics company. Contact LubosMart support.',
+            $user?->role === 'rider' && $user->logistics_center_id && ! $user->logisticsCenter()->operational()->exists() => 'Your logistics company is unavailable. Rider access is blocked until the center is approved and active.',
             default => null,
         };
         if ($message) {

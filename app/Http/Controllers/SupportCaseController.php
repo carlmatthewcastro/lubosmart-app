@@ -39,10 +39,10 @@ class SupportCaseController extends Controller
 
     public function options(Request $request): JsonResponse
     {
-        abort_unless($request->user()->canAdmin('messages') || $request->user()->role === 'sorting_center', 403);
-        $logistics = $request->user()->role === 'sorting_center';
+        abort_unless($request->user()->canAdmin('messages') || $request->user()->role === 'logistics', 403);
+        $logistics = $request->user()->role === 'logistics';
         $contacts = app(LogisticsContacts::class);
-        $filters = $request->validate(['search' => ['nullable', 'string', 'max:100'], 'role' => ['nullable', Rule::in(['buyer', 'seller', 'courier', 'sorting_center', 'admin'])]]);
+        $filters = $request->validate(['search' => ['nullable', 'string', 'max:100'], 'role' => ['nullable', Rule::in(['buyer', 'seller', 'rider', 'logistics', 'admin'])]]);
         $search = $filters['search'] ?? '';
         $recipients = ($logistics ? $contacts->recipients($request->user()) : User::query()->where('role', '!=', 'admin')->where('status', 'approved')->whereNotNull('email_verified_at'))
             ->when($filters['role'] ?? null, fn ($q, $role) => $q->where('role', $role))
@@ -63,18 +63,18 @@ class SupportCaseController extends Controller
         if (! empty($data['seller_order_id'])) {
             $order = SellerOrder::query()->with(['order', 'store', 'delivery'])->findOrFail($data['seller_order_id']);
             $orderUsers = array_filter([$order->order->buyer_id, $order->store->user_id, $order->delivery?->rider_id]);
-            abort_unless($user->role === 'admin' || ($user->role === 'sorting_center' && app(LogisticsContacts::class)->parcels($user)->whereKey($order->id)->exists()) || in_array($user->id, $orderUsers, true), 403);
+            abort_unless($user->role === 'admin' || ($user->role === 'logistics' && app(LogisticsContacts::class)->parcels($user)->whereKey($order->id)->exists()) || in_array($user->id, $orderUsers, true), 403);
             $participants = array_merge($participants, $orderUsers);
         }
         if (! empty($data['recipient_email'])) {
-            abort_unless(in_array($user->role, ['admin', 'sorting_center'], true), 403);
-            $recipient = ($user->role === 'sorting_center' ? app(LogisticsContacts::class)->recipients($user) : User::query()->where('role', '!=', 'admin'))->where('email', strtolower(trim($data['recipient_email'])))->first();
+            abort_unless(in_array($user->role, ['admin', 'logistics'], true), 403);
+            $recipient = ($user->role === 'logistics' ? app(LogisticsContacts::class)->recipients($user) : User::query()->where('role', '!=', 'admin'))->where('email', strtolower(trim($data['recipient_email'])))->first();
             if (! $recipient) {
                 throw ValidationException::withMessages(['recipient_email' => 'No account found for this email.']);
             }
             $participants[] = $recipient->id;
         }
-        if (in_array($user->role, ['admin', 'sorting_center'], true) && count(array_unique($participants)) < 2) {
+        if (in_array($user->role, ['admin', 'logistics'], true) && count(array_unique($participants)) < 2) {
             throw ValidationException::withMessages(['recipient_email' => 'Enter a recipient email or a parcel order number.']);
         }
         $path = $request->hasFile('attachment') ? $request->file('attachment')->store('support-evidence', 'local') : null;

@@ -13,7 +13,7 @@ test('the account alignment migration can resume while preserving completed acco
     DB::setDefaultConnection('migration_preservation');
     try {
         $paths = collect(glob(database_path('migrations/*.php')))
-            ->reject(fn ($path) => basename($path) === '2026_10_09_055208_align_account_registration_flow.php')
+            ->reject(fn ($path) => in_array(basename($path), ['2026_10_09_055208_align_account_registration_flow.php', '2026_10_18_000000_standardize_rider_and_logistics_names.php'], true))
             ->map(fn ($path) => 'database/migrations/'.basename($path))->all();
         Artisan::call('migrate', ['--database' => 'migration_preservation', '--path' => $paths]);
         $user = User::factory()->create(['role' => 'rider']);

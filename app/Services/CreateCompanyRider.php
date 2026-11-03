@@ -22,18 +22,18 @@ class CreateCompanyRider
                     DB::table('users')->where('id', $actor->id)->update(['updated_at' => DB::raw('updated_at')]);
                 }
                 $company = User::whereKey($actor->id)->lockForUpdate()->firstOrFail();
-                abort_unless($company->role === 'sorting_center' && $company->canOperate(), 403);
-                $center = $company->riderCreationCenters()->orderBy('sorting_centers.id')->lockForUpdate()->first();
+                abort_unless($company->role === 'logistics' && $company->canOperate(), 403);
+                $center = $company->riderCreationCenters()->orderBy('logistics_centers.id')->lockForUpdate()->first();
                 abort_unless($center, 403);
                 if (! $center->company_user_id) {
                     $center->forceFill(['company_user_id' => $company->id])->save();
                 }
-                $rider = User::create(['name' => $data['first_name'].' '.$data['last_name'], 'email' => $data['email'], 'role' => 'courier', 'password' => null]);
-                $rider->forceFill(['status' => 'unverified', 'phone' => $data['phone'], 'logistics_company_id' => $company->id, 'sorting_center_id' => $center->id])->save();
+                $rider = User::create(['name' => $data['first_name'].' '.$data['last_name'], 'email' => $data['email'], 'role' => 'rider', 'password' => null]);
+                $rider->forceFill(['status' => 'unverified', 'phone' => $data['phone'], 'logistics_company_id' => $company->id, 'logistics_center_id' => $center->id])->save();
                 DB::table('user_profiles')->insert(['user_id' => $rider->id, 'first_name' => $data['first_name'], 'last_name' => $data['last_name'], 'birthday' => $data['birthday'], 'created_at' => now(), 'updated_at' => now()]);
                 DB::table('rider_profiles')->insert(['user_id' => $rider->id, 'license_number' => $data['license_number'], 'license_expires_at' => $data['license_expires_at'], 'plate_number' => $data['plate_number'], 'plate_normalized' => strtoupper(trim($data['plate_number'])), 'vehicle_type' => $data['vehicle_type'], 'created_at' => now(), 'updated_at' => now()]);
-                $application = $rider->application()->create(['requested_role' => 'courier', 'registration_contract' => 'company-rider-2026-10', 'status' => 'approved', 'sorting_center_id' => $center->id, 'reviewer_id' => $company->id, 'submitted_at' => now()]);
-                $rider->sortingCenters()->attach($center->id, ['granted_by' => $company->id]);
+                $application = $rider->application()->create(['requested_role' => 'rider', 'registration_contract' => 'company-rider-2026-10', 'status' => 'approved', 'logistics_center_id' => $center->id, 'reviewer_id' => $company->id, 'submitted_at' => now()]);
+                $rider->logisticsCenters()->attach($center->id, ['granted_by' => $company->id]);
                 foreach (['license', 'vehicle_registration'] as $kind) {
                     $file = $data[$kind];
                     $path = $file->store('registration/'.$application->id, 'local');

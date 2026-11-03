@@ -39,7 +39,7 @@ class AccountRules
     public static function birthday(string $role): array
     {
         return ['date_format:Y-m-d', 'after:1900-01-01', 'before_or_equal:'.now('Asia/Manila')->format('Y-m-d'),
-            ...(in_array($role, ['buyer', 'courier'], true) ? ['before_or_equal:'.now('Asia/Manila')->subYearsNoOverflow(18)->format('Y-m-d')] : []),
+            ...(in_array($role, ['buyer', 'rider'], true) ? ['before_or_equal:'.now('Asia/Manila')->subYearsNoOverflow(18)->format('Y-m-d')] : []),
         ];
     }
 
