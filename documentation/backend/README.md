@@ -2,6 +2,8 @@
 
 Laravel handles authentication, approvals, products, checkout, delivery operations and administration. Existing routes return Inertia pages, redirects, downloads and selected JSON responses.
 
+November 5, 2026 update: `routes/api.php` adds stateless mobile API v1 routing alongside the website. See [the API guide](../api/README.md) for device-token lifecycle, safe Resources, shared checkout/custody operations, tests and remaining parity. `routes/account.php` retains its existing session-based account endpoints.
+
 ## Code organization
 
 | Location | Responsibility |

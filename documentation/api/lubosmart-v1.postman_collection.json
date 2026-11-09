@@ -1,0 +1,3313 @@
+{
+  "info": {
+    "name": "LubosMart v1 Buyer Seller Rider",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "82 operations. Fill placeholder values and role-specific fields before sending. Generate intent UUIDs once per action and reuse on uncertain retries. Never export populated credentials/tokens."
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "product",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "order",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "sellerOrder",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "delivery",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "address",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "item",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "return",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "cost",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "voucher",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "case",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "message",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication and enrollment",
+      "item": [
+        {
+          "name": "POST /auth/tokens",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{base_url}}/auth/tokens",
+            "description": "\nAccess: \nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"\",\n  \"password\": \"\",\n  \"device_name\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) { const data = pm.response.json().data; if (data.access_token) pm.collectionVariables.set(\"access_token\", data.access_token); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DELETE /auth/tokens",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/auth/tokens",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken:logout\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "DELETE /auth/token",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/auth/token",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken:logout\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "POST /auth/google",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{base_url}}/auth/google",
+            "description": "\nAccess: \nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"access_token\": \"\",\n  \"device_name\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) { const data = pm.response.json().data; if (data.access_token) pm.collectionVariables.set(\"access_token\", data.access_token); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /auth/password/code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{base_url}}/auth/password/code",
+            "description": "\nAccess: \nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"\",\n  \"purpose\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "POST /auth/password/reset",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{base_url}}/auth/password/reset",
+            "description": "\nAccess: \nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"\",\n  \"confirmation_token\": \"\",\n  \"password\": \"\",\n  \"password_confirmation\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "POST /auth/password/verify",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{base_url}}/auth/password/verify",
+            "description": "\nAccess: \nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"\",\n  \"purpose\": \"\",\n  \"code\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "POST /auth/register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{base_url}}/auth/register",
+            "description": "For multipart PUT/PATCH send POST with _method=PUT/PATCH so PHP parses files. Shared website validation/ownership/approval rules apply.\nAccess: \nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "first_name",
+                  "value": "",
+                  "type": "text",
+                  "disabled": false,
+                  "description": ""
+                },
+                {
+                  "key": "last_name",
+                  "value": "",
+                  "type": "text",
+                  "disabled": false,
+                  "description": ""
+                },
+                {
+                  "key": "middle_initial",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "email",
+                  "value": "",
+                  "type": "text",
+                  "disabled": false,
+                  "description": ""
+                },
+                {
+                  "key": "phone",
+                  "value": "",
+                  "type": "text",
+                  "disabled": false,
+                  "description": ""
+                },
+                {
+                  "key": "birthday",
+                  "value": "",
+                  "type": "text",
+                  "disabled": false,
+                  "description": ""
+                },
+                {
+                  "key": "password",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "password_confirmation",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "google_access_token",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "line1",
+                  "value": "",
+                  "type": "text",
+                  "disabled": false,
+                  "description": ""
+                },
+                {
+                  "key": "region_code",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "province_code",
+                  "value": "",
+                  "type": "text",
+                  "disabled": false,
+                  "description": ""
+                },
+                {
+                  "key": "city_code",
+                  "value": "",
+                  "type": "text",
+                  "disabled": false,
+                  "description": ""
+                },
+                {
+                  "key": "barangay_code",
+                  "value": "",
+                  "type": "text",
+                  "disabled": false,
+                  "description": ""
+                },
+                {
+                  "key": "zip",
+                  "value": "",
+                  "type": "text",
+                  "disabled": false,
+                  "description": ""
+                },
+                {
+                  "key": "business_name",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "tin",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "plate_number",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "role",
+                  "value": "",
+                  "type": "text",
+                  "disabled": false,
+                  "description": ""
+                },
+                {
+                  "key": "sex",
+                  "value": "",
+                  "type": "text",
+                  "disabled": false,
+                  "description": ""
+                },
+                {
+                  "key": "policy_accepted",
+                  "value": "",
+                  "type": "text",
+                  "disabled": false,
+                  "description": ""
+                },
+                {
+                  "key": "seller_type",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "business_category_id",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "logistics_center_id",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "vehicle_type",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "identity",
+                  "type": "file",
+                  "src": [],
+                  "disabled": false
+                },
+                {
+                  "key": "business_permit",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                },
+                {
+                  "key": "dti_certificate",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                },
+                {
+                  "key": "sec_certificate",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                },
+                {
+                  "key": "bir_2303",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                },
+                {
+                  "key": "license",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                },
+                {
+                  "key": "vehicle_registration",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /auth/session",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{base_url}}/auth/session",
+            "description": "\nAccess: \nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"\",\n  \"password\": \"\",\n  \"device_name\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) { const data = pm.response.json().data; if (data.access_token) pm.collectionVariables.set(\"access_token\", data.access_token); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /onboarding/application",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/onboarding/application",
+            "description": "For multipart PUT/PATCH send POST with _method=PUT/PATCH so PHP parses files. Shared website validation/ownership/approval rules apply.\nAccess: App\\Http\\Middleware\\RequireOnboardingToken\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "first_name",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "last_name",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "middle_initial",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "email",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "phone",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "birthday",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "password",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "password_confirmation",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "google_access_token",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "line1",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "region_code",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "province_code",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "city_code",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "barangay_code",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "zip",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "business_name",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "tin",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "plate_number",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "role",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "sex",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "policy_accepted",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "seller_type",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "business_category_id",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "logistics_center_id",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "vehicle_type",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "identity",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                },
+                {
+                  "key": "business_permit",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                },
+                {
+                  "key": "dti_certificate",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                },
+                {
+                  "key": "sec_certificate",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                },
+                {
+                  "key": "bir_2303",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                },
+                {
+                  "key": "license",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                },
+                {
+                  "key": "vehicle_registration",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /onboarding/application/draft",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/onboarding/application/draft",
+            "description": "For multipart PUT/PATCH send POST with _method=PUT/PATCH so PHP parses files. Shared website validation/ownership/approval rules apply.\nAccess: App\\Http\\Middleware\\RequireOnboardingToken\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "first_name",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "last_name",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "middle_initial",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "email",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "phone",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "birthday",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "password",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "password_confirmation",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "google_access_token",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "line1",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "region_code",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "province_code",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "city_code",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "barangay_code",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "zip",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "business_name",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "tin",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "plate_number",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "role",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "sex",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "policy_accepted",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "seller_type",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "business_category_id",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "logistics_center_id",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "vehicle_type",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "identity",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                },
+                {
+                  "key": "business_permit",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                },
+                {
+                  "key": "dti_certificate",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                },
+                {
+                  "key": "sec_certificate",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                },
+                {
+                  "key": "bir_2303",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                },
+                {
+                  "key": "license",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                },
+                {
+                  "key": "vehicle_registration",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /onboarding/promote",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/onboarding/promote",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireOnboardingToken\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) { const data = pm.response.json().data; if (data.access_token) pm.collectionVariables.set(\"access_token\", data.access_token); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST /onboarding/resend",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/onboarding/resend",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireOnboardingToken\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "GET /onboarding/status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/onboarding/status",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireOnboardingToken\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "DELETE /onboarding/token",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/onboarding/token",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireOnboardingToken\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "POST /onboarding/verify",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/onboarding/verify",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireOnboardingToken\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) { const data = pm.response.json().data; if (data.access_token) pm.collectionVariables.set(\"access_token\", data.access_token); }"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Marketplace and account",
+      "item": [
+        {
+          "name": "GET /me",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/me",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "GET /products",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{base_url}}/products",
+            "description": "\nAccess: \nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "GET /products/{product}",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{base_url}}/products/{{product}}",
+            "description": "\nAccess: \nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "GET /categories",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{base_url}}/categories",
+            "description": "\nAccess: \nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "GET /cart",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/cart",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken:buyer\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "PUT /cart/items/{product}",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/cart/items/{{product}}",
+            "description": "add is prohibited. No stock reservation occurs.\nAccess: App\\Http\\Middleware\\RequireMobileToken:buyer\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 1,\n  \"product_variant_id\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "GET /addresses",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/addresses",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken:buyer\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "POST /addresses",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/addresses",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken:buyer\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"\",\n  \"recipient_name\": \"\",\n  \"phone\": \"\",\n  \"line1\": \"\",\n  \"line2\": \"\",\n  \"barangay\": \"\",\n  \"city\": \"\",\n  \"province\": \"\",\n  \"region\": \"\",\n  \"zip\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "GET /shipping-quotes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/shipping-quotes",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken:buyer\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "GET /orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/orders",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken:buyer\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "POST /orders",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/orders",
+            "description": "Same buyer/checkout_key returns original order with 201. expected_items_subtotal is before voucher. Voucher requires expected_discount_total.\nAccess: App\\Http\\Middleware\\RequireMobileToken:buyer\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"address_id\": 1,\n  \"checkout_key\": \"\",\n  \"expected_items_subtotal\": \"100.25\",\n  \"expected_shipping_total\": \"100.25\",\n  \"logistics_center_id\": 1,\n  \"voucher_code\": \"\",\n  \"expected_discount_total\": \"100.25\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "GET /orders/{order}",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/orders/{{order}}",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken:buyer\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "POST /orders/{order}/cancel",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/orders/{{order}}/cancel",
+            "description": "Repeat or already-preparing purchase returns 409; stock restores once.\nAccess: App\\Http\\Middleware\\RequireMobileToken:buyer\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "GET /logistics/configuration",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/logistics/configuration",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken:logistics\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "GET /logistics/available-pickups",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/logistics/available-pickups",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken:logistics\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "PUT /addresses/{address}",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/addresses/{{address}}",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider, App\\Http\\Middleware\\EnsureRole:buyer\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"\",\n  \"recipient_name\": \"\",\n  \"phone\": \"\",\n  \"line1\": \"\",\n  \"line2\": \"\",\n  \"region_code\": \"\",\n  \"province_code\": \"\",\n  \"city_code\": \"\",\n  \"barangay_code\": \"\",\n  \"zip\": \"\",\n  \"is_default\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "DELETE /addresses/{address}",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/addresses/{{address}}",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider, App\\Http\\Middleware\\EnsureRole:buyer\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "PATCH /addresses/{address}/default",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/addresses/{{address}}/default",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider, App\\Http\\Middleware\\EnsureRole:buyer\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "GET /locations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{base_url}}/locations",
+            "description": "\nAccess: \nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "PUT /order-items/{item}/review",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/order-items/{{item}}/review",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider, App\\Http\\Middleware\\EnsureRole:buyer\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 1,\n  \"body\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "GET /parcels/{sellerOrder}/messages",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/parcels/{{sellerOrder}}/messages",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider, App\\Http\\Middleware\\EnsureRole:buyer,seller\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "POST /parcels/{sellerOrder}/messages",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/parcels/{{sellerOrder}}/messages",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider, App\\Http\\Middleware\\EnsureRole:buyer,seller\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"body\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "GET /policies",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{base_url}}/policies",
+            "description": "\nAccess: \nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "GET /products/{product}/reviews",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{base_url}}/products/{{product}}/reviews",
+            "description": "\nAccess: \nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "GET /registration/centers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": "{{base_url}}/registration/centers",
+            "description": "\nAccess: \nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "GET /returns",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/returns",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "POST /returns",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/returns",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider, App\\Http\\Middleware\\EnsureRole:buyer\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"seller_order_id\": 1,\n  \"reason\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PATCH /returns/{return}",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/returns/{{return}}",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider, App\\Http\\Middleware\\EnsureRole:seller,rider\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"\",\n  \"reason\": \"\",\n  \"tracking_reference\": \"\",\n  \"condition\": \"\",\n  \"restock\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "GET /reviews",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/reviews",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider, App\\Http\\Middleware\\EnsureRole:buyer\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "POST /settings/code",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/settings/code",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"\",\n  \"purpose\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "POST /settings/code/verify",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/settings/code/verify",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"\",\n  \"purpose\": \"\",\n  \"code\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "GET /settings/profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/settings/profile",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "PATCH /settings/profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/settings/profile",
+            "description": "For multipart PUT/PATCH send POST with _method=PUT/PATCH so PHP parses files. Shared website validation/ownership/approval rules apply.\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "_method",
+                  "value": "PATCH",
+                  "type": "text"
+                },
+                {
+                  "key": "name",
+                  "value": "",
+                  "type": "text",
+                  "disabled": false,
+                  "description": ""
+                },
+                {
+                  "key": "email",
+                  "value": "",
+                  "type": "text",
+                  "disabled": false,
+                  "description": ""
+                },
+                {
+                  "key": "phone",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "current_password",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "otp_token",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "business_name",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "bank_account",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "plate_number",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "identity",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /support",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/support",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "POST /support",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/support",
+            "description": "For multipart PUT/PATCH send POST with _method=PUT/PATCH so PHP parses files. Shared website validation/ownership/approval rules apply.\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "kind",
+                  "value": "",
+                  "type": "text",
+                  "disabled": false,
+                  "description": ""
+                },
+                {
+                  "key": "subject",
+                  "value": "",
+                  "type": "text",
+                  "disabled": false,
+                  "description": ""
+                },
+                {
+                  "key": "body",
+                  "value": "",
+                  "type": "text",
+                  "disabled": false,
+                  "description": ""
+                },
+                {
+                  "key": "seller_order_id",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "recipient_email",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "attachment",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /support/{case}",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/support/{{case}}",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "GET /support/{case}/evidence/{message}",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/support/{{case}}/evidence/{{message}}",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "POST /support/{case}/messages",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/support/{{case}}/messages",
+            "description": "For multipart PUT/PATCH send POST with _method=PUT/PATCH so PHP parses files. Shared website validation/ownership/approval rules apply.\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "body",
+                  "value": "",
+                  "type": "text",
+                  "disabled": false,
+                  "description": ""
+                },
+                {
+                  "key": "attachment",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /vouchers/preview",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/vouchers/preview",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider, App\\Http\\Middleware\\EnsureRole:buyer\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"voucher_code\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "GET /wishlist",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/wishlist",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider, App\\Http\\Middleware\\EnsureRole:buyer\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "PUT /wishlist/{product}",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/wishlist/{{product}}",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider, App\\Http\\Middleware\\EnsureRole:buyer\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"saved\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "GET /workspace",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/workspace",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Seller",
+      "item": [
+        {
+          "name": "GET /seller/orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/seller/orders",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken:seller\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "PATCH /seller/orders/{sellerOrder}",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/seller/orders/{{sellerOrder}}",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken:seller\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "GET /seller/costs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/seller/costs",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider, App\\Http\\Middleware\\EnsureRole:seller\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "POST /seller/costs",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/seller/costs",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider, App\\Http\\Middleware\\EnsureRole:seller\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"incurred_on\": \"\",\n  \"category\": \"\",\n  \"description\": \"\",\n  \"amount\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "POST /seller/costs/{cost}/void",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/seller/costs/{{cost}}/void",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider, App\\Http\\Middleware\\EnsureRole:seller\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "GET /seller/orders/{sellerOrder}/waybill",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/seller/orders/{{sellerOrder}}/waybill",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider, App\\Http\\Middleware\\EnsureRole:seller\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "POST /seller/orders/{sellerOrder}/waybill",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/seller/orders/{{sellerOrder}}/waybill",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider, App\\Http\\Middleware\\EnsureRole:seller\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"packages\": 1,\n  \"request_key\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "GET /seller/products",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/seller/products",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider, App\\Http\\Middleware\\EnsureRole:seller\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "POST /seller/products",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/seller/products",
+            "description": "For multipart PUT/PATCH send POST with _method=PUT/PATCH so PHP parses files. Shared website validation/ownership/approval rules apply.\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider, App\\Http\\Middleware\\EnsureRole:seller\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "",
+                  "type": "text",
+                  "disabled": false,
+                  "description": ""
+                },
+                {
+                  "key": "description",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "category_id",
+                  "value": "",
+                  "type": "text",
+                  "disabled": false,
+                  "description": ""
+                },
+                {
+                  "key": "price",
+                  "value": "",
+                  "type": "text",
+                  "disabled": false,
+                  "description": "Peso decimal string; maximum two decimal places."
+                },
+                {
+                  "key": "stock",
+                  "value": "",
+                  "type": "text",
+                  "disabled": false,
+                  "description": ""
+                },
+                {
+                  "key": "weight_grams",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "type": "text",
+                  "disabled": false,
+                  "description": ""
+                },
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                },
+                {
+                  "key": "expected_stock",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": "Required on update: stock from last read."
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /seller/products/{product}",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/seller/products/{{product}}",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider, App\\Http\\Middleware\\EnsureRole:seller\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "PUT /seller/products/{product}",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/seller/products/{{product}}",
+            "description": "For multipart PUT/PATCH send POST with _method=PUT/PATCH so PHP parses files. Shared website validation/ownership/approval rules apply.\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider, App\\Http\\Middleware\\EnsureRole:seller\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "_method",
+                  "value": "PUT",
+                  "type": "text"
+                },
+                {
+                  "key": "name",
+                  "value": "",
+                  "type": "text",
+                  "disabled": false,
+                  "description": ""
+                },
+                {
+                  "key": "description",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "category_id",
+                  "value": "",
+                  "type": "text",
+                  "disabled": false,
+                  "description": ""
+                },
+                {
+                  "key": "price",
+                  "value": "",
+                  "type": "text",
+                  "disabled": false,
+                  "description": "Peso decimal string; maximum two decimal places."
+                },
+                {
+                  "key": "stock",
+                  "value": "",
+                  "type": "text",
+                  "disabled": false,
+                  "description": ""
+                },
+                {
+                  "key": "weight_grams",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": ""
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "type": "text",
+                  "disabled": false,
+                  "description": ""
+                },
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": [],
+                  "disabled": true
+                },
+                {
+                  "key": "expected_stock",
+                  "value": "",
+                  "type": "text",
+                  "disabled": true,
+                  "description": "Required on update: stock from last read."
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "PUT /seller/products/{product}/variants",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/seller/products/{{product}}/variants",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider, App\\Http\\Middleware\\EnsureRole:seller\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"expected_stock\": 1,\n  \"variants\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "GET /seller/reports",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/seller/reports",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider, App\\Http\\Middleware\\EnsureRole:seller\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "GET /seller/reports/export",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/seller/reports/export",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider, App\\Http\\Middleware\\EnsureRole:seller\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "GET /seller/settlements",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/seller/settlements",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider, App\\Http\\Middleware\\EnsureRole:seller\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "GET /seller/vouchers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/seller/vouchers",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider, App\\Http\\Middleware\\EnsureRole:seller\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "POST /seller/vouchers",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/seller/vouchers",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider, App\\Http\\Middleware\\EnsureRole:seller\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"\",\n  \"amount\": \"\",\n  \"minimum\": \"\",\n  \"usage_limit\": 1,\n  \"expires_at\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "PATCH /seller/vouchers/{voucher}",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/seller/vouchers/{{voucher}}",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider, App\\Http\\Middleware\\EnsureRole:seller\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_active\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Rider and custody",
+      "item": [
+        {
+          "name": "GET /deliveries",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/deliveries",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:rider,logistics,admin\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "GET /deliveries/{delivery}",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/deliveries/{{delivery}}",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:rider,logistics,admin\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "POST /deliveries/{delivery}/events",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/deliveries/{{delivery}}/events",
+            "description": "Existing role, state, company/coverage, label and cash gates apply. Same actor/parcel/operation/request_key replay has no duplicate effect. delivered requires image proof, actual full amount and recipient; manual capture requires reason. See connection guide for conditional requirements.\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:rider,logistics,admin\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"\",\n  \"request_key\": \"\",\n  \"logistics_center_id\": 1,\n  \"rider_id\": 1,\n  \"service_area_id\": 1,\n  \"tracking_reference\": \"\",\n  \"capture_method\": \"\",\n  \"reason\": \"\",\n  \"receipt_condition\": \"\",\n  \"sorting_bin\": \"\",\n  \"amount\": \"100.25\",\n  \"handover_reference\": \"\",\n  \"recipient_name\": \"\",\n  \"proof\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "GET /deliveries/{delivery}/proof",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/deliveries/{{delivery}}/proof",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "GET /rider/earnings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/rider/earnings",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider, App\\Http\\Middleware\\EnsureRole:rider\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        },
+        {
+          "name": "GET /rider/reports",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{access_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": "{{base_url}}/rider/reports",
+            "description": "\nAccess: App\\Http\\Middleware\\RequireMobileToken, App\\Http\\Middleware\\EnsureRole:buyer,seller,rider, App\\Http\\Middleware\\EnsureRole:rider\nFill examples with synthetic values before sending; see OpenAPI for required fields. Set path IDs from owned returned resources. Reuse action UUIDs on uncertain retries."
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -10,7 +10,7 @@ Before a tester begins, provision a disposable database, apply the existing migr
 
 ## Source and execution integrity
 
-Source of truth: [original workbook](../../documentation/standards/Blackbox_Test_Cases_Account_Creation-1.xlsx), SHA-256 **8A278796710E939E25192C75A9D602AE102CEB1E78D3DA3778BD6049CA1BBCF9**. The requested docs/requirements workbook path is absent; the original located workbook was read directly from its OOXML archive again. All eight worksheets and all rows were inspected: Summary 34; Test Data 77; Test Files 21; Assumptions 19; Buyer 31; Seller 45; Logistics 45; Rider 33. Exactly 150 distinct cases: Buyer 30, Seller 44, Logistics 44, Rider 32. The Summary example failure is illustrative, not a run result. The original workbook remains unchanged.
+Source of truth: [original workbook](../../documentation/standards/Blackbox_Test_Cases_Account_Creation-1.xlsx), SHA-256 **8A278796710E939E25192C75A9D602AE102CEB1E78D3DA3778BD6049CA1BBCF9**. The requested documentation/requirements workbook path is absent; the original located workbook was read directly from its OOXML archive again. All eight worksheets and all rows were inspected: Summary 34; Test Data 77; Test Files 21; Assumptions 19; Buyer 31; Seller 45; Logistics 45; Rider 33. Exactly 150 distinct cases: Buyer 30, Seller 44, Logistics 44, Rider 32. The Summary example failure is illustrative, not a run result. The original workbook remains unchanged.
 
 The [audit](ACCOUNT_CREATION_AUDIT.md), [traceability](ACCOUNT_CREATION_TRACEABILITY.md) and [implementation plan](ACCOUNT_CREATION_IMPLEMENTATION_PLAN.md) were reconciled with the source and tests. Historical audit findings are not current execution evidence. Recalculated TODAY/EDATE boundary inputs use frozen 2026-10-13 Manila dates; the workbook cache is dated 2026-10-07. All manual steps/data/expected values remain the originals; recalculate workbook formulas before browser execution.
 
@@ -30,7 +30,7 @@ Blocked, skipped and unexecuted checks are excluded from executed pass-rate deno
 
 Commands actually executed:
 
-- `php artisan test --compact --log-junit=docs/requirements/evidence/account-creation-qa-final.junit.xml`: **835 passed, 3 skipped, 5,662 assertions**, 42.83 seconds.
+- `php artisan test --compact --log-junit=documentation/requirements/evidence/account-creation-qa-final.junit.xml`: **835 passed, 3 skipped, 5,662 assertions**, 42.83 seconds.
 - `php artisan test --compact tests/Feature/Auth/AccountCreationAcceptanceTest.php`: **32 passed, 198 assertions** after the latest fixture additions/corrections.
 - `node --test tests/Frontend/registration-form.test.cjs`: **14 passed, zero failures**.
 - Targeted ESLint, `tsc --noEmit`, Prettier, targeted PHP Pint and `npm run build:ssr`: **PASS**; Vite built the production browser and SSR bundles.
