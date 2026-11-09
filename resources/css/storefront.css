@@ -1143,3 +1143,343 @@
         max-height: 260px;
     }
 }
+
+
+/* ==========================================
+   LUBOSMART - FINAL HEADER LAYOUT
+   ========================================== */
+
+.storefront__header {
+    display: grid;
+    grid-template-columns: minmax(180px, 1fr) minmax(280px, 480px) minmax(300px, 1fr);
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+
+    width: calc(100% - 100px);
+    max-width: 1600px;
+    min-height: 100px;
+    margin: 0 auto;
+    padding: 15px 0;
+}
+
+/* LOGO - LEFT */
+.storefront__brand {
+    justify-self: start;
+    white-space: nowrap;
+}
+
+/* SEARCH - EXACT CENTER */
+.storefront__header .storefront__search {
+    justify-self: center;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    width: 100%;
+    max-width: 480px;
+    min-width: 0;
+
+    margin: 0;
+    padding: 7px 8px 7px 16px;
+
+    border: 1px solid #e5d8ef;
+    border-radius: 16px;
+    background: #fff;
+
+    box-shadow: 0 5px 20px rgb(53 20 90 / 6%);
+}
+
+.storefront__header .storefront__search:focus-within {
+    border-color: #a477c9;
+    box-shadow: 0 0 0 3px rgb(91 42 134 / 10%);
+}
+
+.storefront__header .storefront__search input {
+    flex: 1;
+    width: 100%;
+    min-width: 0;
+    padding: 11px 8px;
+
+    border: none;
+    outline: none;
+    background: transparent;
+
+    font-size: 14px;
+}
+
+.storefront__header .storefront__search button {
+    flex-shrink: 0;
+    min-width: auto;
+    height: 42px;
+    padding: 0 20px;
+
+    border-radius: 11px;
+    background: #5b2a86;
+    color: #fff;
+
+    font-weight: 700;
+}
+
+.storefront__header .storefront__search button:hover {
+    background: #35145a;
+}
+
+/* NAVIGATION - RIGHT */
+.storefront__header .storefront__nav {
+    justify-self: end;
+
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 20px;
+
+    white-space: nowrap;
+}
+
+/* HERO - WIDER SIDE SPACING */
+.storefront__hero {
+    width: calc(100% - 100px);
+    max-width: 1600px;
+    margin-inline: auto;
+}
+
+/* TABLET */
+@media (max-width: 1100px) {
+    .storefront__header {
+        width: calc(100% - 60px);
+        grid-template-columns: auto minmax(220px, 1fr) auto;
+        gap: 16px;
+    }
+
+    .storefront__header .storefront__nav {
+        gap: 12px;
+    }
+
+    .storefront__hero {
+        width: calc(100% - 60px);
+    }
+}
+
+/* MOBILE */
+@media (max-width: 760px) {
+    .storefront__header {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        width: calc(100% - 36px);
+        gap: 14px;
+    }
+
+    .storefront__brand {
+        order: 1;
+    }
+
+    .storefront__header .storefront__nav {
+        order: 2;
+        gap: 10px;
+    }
+
+    .storefront__header .storefront__search {
+        order: 3;
+        width: 100%;
+        max-width: none;
+    }
+
+    .storefront__hero {
+        width: calc(100% - 36px);
+    }
+}
+
+/* =========================================
+   HEADER: search hindi na tatakpan ng toggle
+   ========================================= */
+.storefront__header {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 24px;
+}
+
+.storefront__search--header {
+    justify-self: center;
+    width: 100%;
+    max-width: 520px;
+    min-width: 0;
+}
+
+.storefront__search--header input {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+.storefront__search--header button[type='submit'] {
+    flex-shrink: 0;
+}
+
+.storefront__nav {
+    display: flex;
+    align-items: center;
+    justify-self: end;
+    gap: 20px;
+    white-space: nowrap;
+}
+
+@media (max-width: 1000px) {
+    .storefront__header {
+        grid-template-columns: 1fr auto;
+        row-gap: 12px;
+    }
+
+    .storefront__search--header {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        max-width: none;
+    }
+}
+
+/* =========================================
+   HERO MARQUEE (taas at baba ng hero box)
+   ========================================= */
+.storefront__hero {
+    position: relative;
+    overflow: hidden;
+}
+
+.storefront__hero-content,
+.storefront__hero-photo {
+    margin-block: 44px;
+}
+
+.storefront__marquee {
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    overflow: hidden;
+    padding: 10px 0;
+    pointer-events: none;
+    color: var(--primary);
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+
+.storefront__marquee--top {
+    top: 0;
+}
+
+.storefront__marquee--bottom {
+    bottom: 0;
+}
+
+.storefront__marquee-track {
+    display: flex;
+    width: max-content;
+    animation: storefront-marquee 30s linear infinite;
+}
+
+.storefront__marquee--bottom .storefront__marquee-track {
+    animation-direction: reverse;
+}
+
+.storefront__marquee-group {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: space-around;
+    min-width: 100vw;
+    gap: 2rem;
+    padding-right: 2rem;
+}
+
+.storefront__marquee-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 2rem;
+    white-space: nowrap;
+    opacity: 0.85;
+}
+
+@keyframes storefront-marquee {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+/* =========================================
+   ANIMATED WORDMARK (header lang)
+   ========================================= */
+.app-wordmark {
+    transition: transform 200ms ease;
+}
+
+.storefront__brand:hover .app-wordmark {
+    transform: translateY(-1px) scale(1.03);
+}
+
+.storefront__header .app-wordmark__lubos,
+.storefront__header .app-wordmark__mart {
+    background-image: linear-gradient(100deg, #4b2673 0%, #9860ce 35%, #e2d0ff 50%, #9860ce 65%, #4b2673 100%);
+    background-size: 250% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    animation: wordmark-shimmer 4s ease-in-out infinite;
+}
+
+.dark .storefront__header .app-wordmark__lubos,
+.dark .storefront__header .app-wordmark__mart {
+    background-image: linear-gradient(100deg, #b995e8 0%, #d5c1f3 35%, #ffffff 50%, #d5c1f3 65%, #b995e8 100%);
+}
+
+@keyframes wordmark-shimmer {
+    0% {
+        background-position: 100% 0;
+    }
+    100% {
+        background-position: -100% 0;
+    }
+}
+
+/* =========================================
+   FIX: SEARCH BAR SA DARK MODE
+   ========================================= */
+.dark .storefront__search--header,
+html.dark .storefront__search--header {
+    background: #ffffff;
+}
+
+.dark .storefront__search--header input,
+html.dark .storefront__search--header input {
+    background: transparent !important;
+    color: #2b1b45 !important;
+    -webkit-text-fill-color: #2b1b45 !important;
+    caret-color: #4b2673;
+}
+
+.dark .storefront__search--header input::placeholder,
+html.dark .storefront__search--header input::placeholder {
+    color: #7a6a96 !important;
+    -webkit-text-fill-color: #7a6a96 !important;
+    opacity: 1;
+}
+
+.dark .storefront__search--header svg,
+html.dark .storefront__search--header svg {
+    color: #7a5bb5;
+}
+
+/* kapag nag-autofill ang browser */
+.dark .storefront__search--header input:-webkit-autofill,
+html.dark .storefront__search--header input:-webkit-autofill {
+    -webkit-text-fill-color: #2b1b45 !important;
+    -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+}

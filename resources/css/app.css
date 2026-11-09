@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@800;900&display=swap');
+
 @import 'tailwindcss';
 
 @keyframes registration-reveal {
@@ -18,20 +20,25 @@
             box-shadow 180ms ease,
             background-color 180ms ease;
     }
+
     .auth-action-button:not(:disabled):hover,
     .auth-action-button:not(:disabled):focus-visible {
         transform: translateY(-2px);
         box-shadow: 0 8px 18px -10px var(--primary);
     }
+
     .auth-action-button:not(:disabled):active {
         transform: translateY(0) scale(0.98);
     }
+
     .auth-action-button svg:not(.animate-spin) {
         transition: transform 180ms ease;
     }
+
     .auth-action-button:not(:disabled):hover svg:not(.animate-spin) {
         transform: translateX(3px);
     }
+
     .auth-step-indicator {
         transition:
             background-color 220ms ease,
@@ -39,12 +46,15 @@
             border-color 220ms ease,
             transform 220ms ease;
     }
+
     [aria-current='step'] .auth-step-indicator {
         animation: auth-step-activate 350ms ease-out;
     }
+
     button:not(:disabled):hover .auth-step-indicator {
         transform: scale(1.08);
     }
+
     .registration-role-card {
         animation: registration-role-enter 480ms ease-out backwards;
         transition:
@@ -52,31 +62,39 @@
             box-shadow 200ms ease,
             border-color 200ms ease;
     }
+
     .registration-role-card:nth-child(2) {
         animation-delay: 80ms;
     }
+
     .registration-role-card:nth-child(3) {
         animation-delay: 160ms;
     }
+
     .registration-role-card:nth-child(4) {
         animation-delay: 240ms;
     }
+
     .registration-role-card:hover,
     .registration-role-card:focus-visible {
         transform: translateY(-4px);
         box-shadow: 0 12px 28px -18px var(--primary);
     }
+
     .registration-role-card svg {
         transition: transform 200ms ease;
     }
+
     .registration-role-card:hover svg:first-child,
     .registration-role-card:focus-visible svg:first-child {
         transform: rotate(-6deg) scale(1.08);
     }
+
     .registration-role-card:hover .registration-role-arrow,
     .registration-role-card:focus-visible .registration-role-arrow {
         transform: translateX(4px);
     }
+
     .registration-section:not([hidden]) {
         animation: registration-reveal 160ms ease-out;
     }
@@ -113,9 +131,13 @@
 
 @theme {
     --color-brand-orange: var(--brand-orange);
+
     --font-serif: Georgia, 'Times New Roman', serif;
+
     --font-sans:
-        'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+        'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
+        'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
+        'Noto Color Emoji';
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -144,6 +166,7 @@
 
     --color-destructive: var(--destructive);
     --color-destructive-foreground: var(--destructive-foreground);
+
     --color-success: var(--success);
     --color-warning: var(--warning);
 
@@ -167,14 +190,6 @@
     --color-sidebar-ring: var(--sidebar-ring);
 }
 
-/*
-  The default border color has changed to `currentColor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
-
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
 @layer base {
     :root {
         color-scheme: light;
@@ -192,32 +207,43 @@
 :root {
     --background: hsl(260, 20%, 98%);
     --foreground: hsl(257, 20%, 17%);
+
     --card: hsl(0, 0%, 100%);
     --card-foreground: hsl(0, 0%, 3.9%);
+
     --popover: hsl(0, 0%, 100%);
     --popover-foreground: hsl(0, 0%, 3.9%);
+
     --primary: hsl(262, 43%, 49%);
     --brand-orange: hsl(28, 75%, 38%);
     --primary-foreground: hsl(0, 0%, 98%);
+
     --secondary: hsl(0, 0%, 96.1%);
     --secondary-foreground: hsl(0, 0%, 9%);
+
     --muted: hsl(0, 0%, 96.1%);
     --muted-foreground: hsl(257, 8%, 40%);
+
     --accent: hsl(263, 45%, 95%);
     --accent-foreground: hsl(262, 43%, 39%);
+
     --destructive: hsl(0, 72%, 42%);
     --success: hsl(155, 70%, 27%);
     --warning: hsl(32, 90%, 30%);
     --destructive-foreground: hsl(0, 0%, 98%);
+
     --border: hsl(0, 0%, 92.8%);
     --input: hsl(257, 8%, 54%);
     --ring: hsl(262, 43%, 49%);
+
     --chart-1: hsl(12, 76%, 61%);
     --chart-2: hsl(173, 58%, 39%);
     --chart-3: hsl(197, 37%, 24%);
     --chart-4: hsl(43, 74%, 66%);
     --chart-5: hsl(27, 87%, 67%);
+
     --radius: 0.85rem;
+
     --sidebar-background: hsl(0, 0%, 100%);
     --sidebar-foreground: hsl(240, 5.3%, 30%);
     --sidebar-primary: hsl(0, 0%, 10%);
@@ -231,31 +257,42 @@
 .dark {
     --background: hsl(0, 0%, 3.9%);
     --foreground: hsl(0, 0%, 98%);
+
     --card: hsl(0, 0%, 3.9%);
     --card-foreground: hsl(0, 0%, 98%);
+
     --popover: hsl(0, 0%, 3.9%);
     --popover-foreground: hsl(0, 0%, 98%);
+
     --primary: hsl(263, 70%, 76%);
     --brand-orange: hsl(30, 95%, 72%);
     --primary-foreground: hsl(260, 30%, 12%);
+
     --secondary: hsl(0, 0%, 14.9%);
     --secondary-foreground: hsl(0, 0%, 98%);
+
     --muted: hsl(0, 0%, 6.9%);
     --muted-foreground: hsl(0, 0%, 63.9%);
+
     --accent: hsl(263, 30%, 20%);
     --accent-foreground: hsl(263, 70%, 82%);
+
     --destructive: hsl(0, 85%, 75%);
     --destructive-foreground: hsl(0, 60%, 12%);
+
     --success: hsl(155, 65%, 72%);
     --warning: hsl(40, 90%, 72%);
+
     --border: hsl(0, 0%, 14.9%);
     --input: hsl(257, 8%, 54%);
     --ring: hsl(263, 70%, 76%);
+
     --chart-1: hsl(220, 70%, 50%);
     --chart-2: hsl(160, 60%, 45%);
     --chart-3: hsl(30, 80%, 55%);
     --chart-4: hsl(280, 65%, 60%);
     --chart-5: hsl(340, 75%, 55%);
+
     --sidebar-background: hsl(0, 0%, 7%);
     --sidebar-foreground: hsl(0, 0%, 80%);
     --sidebar-primary: var(--primary);
@@ -274,9 +311,11 @@
     body {
         @apply bg-background text-foreground antialiased;
     }
+
     [id] {
         scroll-margin-top: 6rem;
     }
+
     button,
     a,
     input,
@@ -284,10 +323,12 @@
     textarea {
         @apply focus-visible:outline-ring focus-visible:outline-2 focus-visible:outline-offset-4;
     }
+
     button:not(:disabled),
     select {
         cursor: pointer;
     }
+
     button:disabled {
         cursor: not-allowed;
     }
@@ -304,31 +345,68 @@
     }
 }
 
+/* =========================================
+   LUBOSMART PROFESSIONAL WORDMARK
+   ========================================= */
+
 .app-wordmark {
-    display: inline-block;
-    color: var(--app-wordmark-color, #000);
-    text-shadow: none;
-    font-family: var(--font-serif);
-    font-variant-caps: normal;
-    font-weight: 700;
+    display: inline-flex;
+    align-items: baseline;
+
+    font-family:
+        'Arial Rounded MT Bold',
+        'Trebuchet MS',
+        var(--font-sans);
+
+    font-size: 1.35em;
+    font-weight: 900;
+
     letter-spacing: 0.015em;
+    line-height: 1;
+
     white-space: nowrap;
+    text-shadow: none;
+
+    -webkit-font-smoothing: antialiased;
 }
 
-.dark .app-wordmark {
-    color: var(--app-wordmark-color, #fff);
+.app-wordmark__lubos {
+    color: #4B2673;
+    font-weight: 900;
 }
 
-.app-wordmark--inverse,
-.dark .app-wordmark--inverse {
-    color: #fff;
+.app-wordmark__mart {
+    color: #9860CE;
+    font-weight: 900;
 }
+
+/* DARK MODE */
+.dark .app-wordmark__lubos {
+    color: #D5C1F3;
+}
+
+.dark .app-wordmark__mart {
+    color: #B995E8;
+}
+
+/* INVERSE / WHITE WORDMARK */
+.app-wordmark--inverse .app-wordmark__lubos,
+.app-wordmark--inverse .app-wordmark__mart,
+.dark .app-wordmark--inverse .app-wordmark__lubos,
+.dark .app-wordmark--inverse .app-wordmark__mart {
+    color: #FFFFFF;
+}
+
+/* =========================================
+   AUTHENTICATION ILLUSTRATION
+   ========================================= */
 
 @keyframes auth-marketplace-float {
     0%,
     100% {
         transform: translateY(0) rotate(-0.5deg);
     }
+
     50% {
         transform: translateY(-12px) rotate(0.5deg);
     }
@@ -341,32 +419,41 @@
     }
 }
 
+/* =========================================
+   PRODUCT GRID
+   ========================================= */
+
 .product-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 16px;
     align-items: stretch;
 }
+
 @media (min-width: 380px) {
     .product-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
+
 @media (min-width: 768px) {
     .product-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 }
+
 @media (min-width: 1100px) {
     .product-grid {
         grid-template-columns: repeat(4, minmax(0, 1fr));
     }
 }
+
 @media (min-width: 1600px) {
     .product-grid {
         grid-template-columns: repeat(5, minmax(0, 1fr));
     }
 }
+
 .product-card {
     font-family: var(--font-sans);
 }
