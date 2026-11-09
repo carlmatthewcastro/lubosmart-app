@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\Api\DeliveryResource;
 use App\Models\CommerceSetting;
 use App\Models\Delivery;
 use App\Models\Order;
@@ -102,7 +103,7 @@ class DeliveryController extends Controller
             'amount' => 'nullable|numeric|decimal:0,2|min:0|max:99999999.99',
             'handover_reference' => 'nullable|string|max:100',
             'recipient_name' => 'nullable|string|max:150',
-            'request_key' => 'nullable|uuid',
+            'request_key' => $request->routeIs('api.v1.*') ? 'required|uuid' : 'nullable|uuid',
         ]);
         $path = null;
         try {
@@ -271,6 +272,11 @@ class DeliveryController extends Controller
                 Storage::disk('local')->delete($path);
             }
             throw $exception;
+        }
+
+        if ($request->routeIs('api.v1.*')) {
+            return new DeliveryResource($delivery->refresh()->load('sellerOrder.items', 'sellerOrder.order', 'sellerOrder.store', 'sellerOrder.delivery')
+                ->load(['sellerOrder.store.user.addresses' => fn ($q) => $q->orderByDesc('is_default')->orderBy('id')]));
         }
 
         return back()->with('status', 'Parcel updated.');

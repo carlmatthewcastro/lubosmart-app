@@ -112,8 +112,10 @@ class EmailSecurityCodes
         if ($user->password && is_string($request->input('current_password')) && Hash::check($request->input('current_password'), $user->password)) {
             return;
         }
-        $this->consume($user, 'profile', $request->session()->get('profile_confirmation'));
-        $request->session()->forget('profile_confirmation');
+        $this->consume($user, 'profile', $request->routeIs('api.v1.*') ? $request->input('otp_token') : $request->session()->get('profile_confirmation'));
+        if ($request->hasSession()) {
+            $request->session()->forget('profile_confirmation');
+        }
     }
 
     public function changePassword(string $email, string $token, string $password, Request $request): void
@@ -127,9 +129,9 @@ class EmailSecurityCodes
             $user->forceFill(['password' => Hash::make($password), 'remember_token' => Str::random(60)])->save();
             DB::table('email_security_codes')->where('user_id', $user->id)->delete();
             DB::table('password_reset_tokens')->where('email', $user->email)->delete();
-            DB::table('sessions')->where('user_id', $user->id)->where('id', '!=', $request->session()->getId())->delete();
+            DB::table('sessions')->where('user_id', $user->id)->when($request->hasSession(), fn ($q) => $q->where('id', '!=', $request->session()->getId()))->delete();
             event(new PasswordReset($user));
-            if ($request->user()?->id === $user->id) {
+            if ($request->hasSession() && $request->user()?->id === $user->id) {
                 $request->user()->setRawAttributes($user->getAttributes(), true);
                 $request->session()->regenerate();
                 $request->session()->put('password_hash_web', $user->password);

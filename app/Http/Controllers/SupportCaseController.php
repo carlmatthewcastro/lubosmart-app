@@ -93,6 +93,10 @@ class SupportCaseController extends Controller
             throw $exception;
         }
 
+        if ($request->routeIs('api.v1.*')) {
+            return response()->json(['data' => ['id' => $case->id], 'message' => 'Conversation opened.'], 201);
+        }
+
         if ($request->boolean('_modal')) {
             return back()->with('status', 'Conversation opened. Open it from your inbox to view replies.');
         }
@@ -129,6 +133,10 @@ class SupportCaseController extends Controller
                 Storage::disk('local')->delete($path);
             }
             throw $exception;
+        }
+
+        if ($request->routeIs('api.v1.*')) {
+            return response()->json(['message' => 'Message sent.']);
         }
 
         return back()->with('status', 'Message sent.');

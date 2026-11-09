@@ -30,6 +30,10 @@ class ProductReviewController extends Controller
             ProductReview::query()->updateOrCreate(['order_item_id' => $item->id], [...$data, 'user_id' => $request->user()->id, 'product_id' => $item->product_id]);
         }, 3);
 
+        if ($request->routeIs('api.v1.*')) {
+            return response()->json(['message' => 'Verified-purchase review saved.']);
+        }
+
         return back()->with('status', 'Your verified-purchase review was saved. Moderated reviews remain hidden.');
     }
 

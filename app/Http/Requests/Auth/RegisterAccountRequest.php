@@ -88,7 +88,7 @@ class RegisterAccountRequest extends FormRequest
     public function after(): array
     {
         return [function (Validator $validator) {
-            if ($this->session()->has('pending_google_registration')) {
+            if ($this->hasSession() && $this->session()->has('pending_google_registration')) {
                 $identity = app(GoogleRegistration::class)->pending($this);
                 if (! $identity) {
                     $validator->errors()->add('google', 'Google sign-in expired. Please sign in with Google again.');

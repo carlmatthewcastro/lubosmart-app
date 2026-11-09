@@ -19,6 +19,7 @@
 /storage/pail
 /storage/browser-check/
 /vendor
+/.tools/
 auth.json
 Homestead.json
 Homestead.yaml

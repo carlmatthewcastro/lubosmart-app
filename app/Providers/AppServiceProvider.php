@@ -2,9 +2,13 @@
 
 namespace App\Providers;
 
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Http\Request;
 use Illuminate\Mail\Markdown;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -27,5 +31,15 @@ class AppServiceProvider extends ServiceProvider
 
         // Treat names and review reasons as text, not embedded Markdown links or HTML.
         Markdown::withSecuredEncoding();
+
+        RateLimiter::for('mobile-api', fn (Request $request) => Limit::perMinute(120)->by('mobile:'.($request->user()?->id ?? $request->ip())));
+        RateLimiter::for('mobile-login', function (Request $request) {
+            $email = is_string($request->input('email')) ? Str::lower(trim($request->input('email'))) : '';
+
+            return [
+                Limit::perMinute(20)->by('mobile-login-ip:'.$request->ip()),
+                Limit::perMinute(5)->by('mobile-login:'.$email.'|'.$request->ip()),
+            ];
+        });
     }
 }

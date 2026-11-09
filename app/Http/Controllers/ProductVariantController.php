@@ -14,6 +14,9 @@ class ProductVariantController extends Controller
     public function update(Request $request, Product $product)
     {
         abort_unless($request->user()->role === 'seller' && $product->store_id === $request->user()->store?->id && $request->user()->store?->status === 'approved', 403);
+        if ($request->routeIs('api.v1.*')) {
+            $request->validate(['expected_stock' => 'required|integer|min:0|max:1000000', 'variants.*.expected_stock' => 'required_with:variants.*.id|nullable|integer|min:0|max:1000000']);
+        }
         $data = $request->validate([
             'expected_stock' => 'sometimes|integer|min:0|max:1000000',
             'variants' => 'required|array|min:1|max:51',
@@ -74,6 +77,10 @@ class ProductVariantController extends Controller
             }, 3);
         } catch (UniqueConstraintViolationException) {
             throw ValidationException::withMessages(['variants' => 'An option name is already in use. Choose distinct names or edit the existing option.']);
+        }
+
+        if ($request->routeIs('api.v1.*')) {
+            return response()->json(['message' => 'Size/color options saved.']);
         }
 
         return back()->with('status', 'Size/color options saved. Stock is tracked per option; all options share the product price and packed weight.');

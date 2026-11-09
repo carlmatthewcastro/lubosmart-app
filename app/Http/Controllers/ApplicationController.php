@@ -15,6 +15,7 @@ use App\Services\SellerApplicationDetails;
 use App\Support\LogisticsRules;
 use Carbon\Carbon;
 use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -56,7 +57,7 @@ class ApplicationController extends Controller
         ]);
     }
 
-    public function draft(SaveApplicationDraftRequest $request, PhilippineLocations $locations): RedirectResponse
+    public function draft(SaveApplicationDraftRequest $request, PhilippineLocations $locations): RedirectResponse|JsonResponse
     {
         if ($request->hasAny(['province_code', 'city_code', 'barangay_code'])) {
             $draft = $request->user()->application()->with('draftRecord')->first()?->draft_data ?? [];
@@ -85,10 +86,14 @@ class ApplicationController extends Controller
             throw $exception;
         }
 
+        if ($request->routeIs('api.v1.*')) {
+            return response()->json(['message' => 'Application draft saved.']);
+        }
+
         return to_route('application.edit')->with('status', 'Draft saved. You can return later to finish your application.');
     }
 
-    public function store(SubmitApplicationRequest $request, PhilippineLocations $locations): RedirectResponse
+    public function store(SubmitApplicationRequest $request, PhilippineLocations $locations): RedirectResponse|JsonResponse
     {
         $data = $request->validated();
         $addressNames = $locations->resolve($data['province_code'], $data['city_code'], $data['barangay_code'], $data['region_code'] ?? null);
@@ -163,6 +168,10 @@ class ApplicationController extends Controller
                 }
             }
             throw $exception;
+        }
+
+        if ($request->routeIs('api.v1.*')) {
+            return response()->json(['message' => 'Application submitted for review.', 'requires_sign_in' => true]);
         }
 
         return to_route('application.waiting')->with('status', 'Application submitted. We will email you after review.');

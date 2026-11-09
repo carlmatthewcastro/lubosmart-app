@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\Api\OrderResource;
+use App\Http\Resources\Api\ParcelResource;
 use App\Models\Delivery;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -28,6 +30,10 @@ class OrderController extends Controller
             SellerOrder::query()->whereIn('id', $parcels->pluck('id'))->update(['status' => 'cancelled']);
             $order->update(['status' => 'cancelled']);
         }, 3);
+
+        if ($request->routeIs('api.v1.*')) {
+            return new OrderResource($order->refresh()->load('sellerOrders.items', 'sellerOrders.delivery', 'sellerOrders.store', 'sellerOrders.order'));
+        }
 
         return back()->with('status', 'Order cancelled. Stock has been restored.');
     }
@@ -60,6 +66,10 @@ class OrderController extends Controller
             $reprint = DB::table('parcel_events')->where('delivery_id', $delivery->id)->whereIn('type', ['label_print_requested', 'label_reprint_requested'])->exists();
             DB::table('parcel_events')->insert(['delivery_id' => $delivery->id, 'logistics_center_id' => $delivery->logistics_center_id, 'actor_id' => $user->id, 'type' => $reprint ? 'label_reprint_requested' : 'label_print_requested', 'reference' => $data['request_key'], 'notes' => json_encode(['tracking_reference' => $reference, 'packages' => 1], JSON_THROW_ON_ERROR), 'occurred_at' => now(), 'created_at' => now(), 'updated_at' => now()]);
         });
+
+        if ($request->routeIs('api.v1.*')) {
+            return response()->json(['message' => 'Print request recorded. One label per physical parcel.']);
+        }
 
         return back()->with('status', 'Label print request recorded. Attach this label to one physical parcel only.');
     }
@@ -114,6 +124,10 @@ class OrderController extends Controller
             $order->update(['status' => 'processing']);
         }, 3);
 
+        if ($request->routeIs('api.v1.*')) {
+            return new ParcelResource($sellerOrder->refresh()->load('order', 'items', 'store', 'delivery'));
+        }
+
         return back()->with('status', $data['status'] === 'shipped' ? 'Parcel ready for logistics company pickup.' : 'Order preparation started.');
     }
 
@@ -123,6 +137,10 @@ class OrderController extends Controller
         abort_unless(($user->role === 'buyer' && $sellerOrder->order->buyer_id === $user->id) || ($user->role === 'seller' && $sellerOrder->store_id === $user->store?->id), 403);
         $data = $request->validate(['body' => 'required|string|max:2000']);
         DB::table('order_messages')->insert([...$data, 'seller_order_id' => $sellerOrder->id, 'user_id' => $user->id, 'created_at' => now(), 'updated_at' => now()]);
+
+        if ($request->routeIs('api.v1.*')) {
+            return response()->json(['message' => 'Message sent.']);
+        }
 
         return back()->with('status', 'Message sent.');
     }

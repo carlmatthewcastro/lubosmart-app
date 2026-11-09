@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
+use App\Http\Resources\Api\UserResource;
 use App\Models\Address;
 use App\Models\Order;
 use App\Models\SupportCase;
@@ -13,6 +14,7 @@ use App\Services\EmailSecurityCodes;
 use App\Support\SellerRules;
 use Carbon\Carbon;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -110,7 +112,7 @@ class ProfileController extends Controller
     /**
      * Update the user's profile settings.
      */
-    public function update(ProfileUpdateRequest $request, EmailSecurityCodes $codes): RedirectResponse
+    public function update(ProfileUpdateRequest $request, EmailSecurityCodes $codes): RedirectResponse|JsonResponse
     {
         $path = null;
         $emailChanged = false;
@@ -197,6 +199,21 @@ class ProfileController extends Controller
                 Storage::disk('local')->delete($path);
             }
             throw $exception;
+        }
+
+        if ($request->routeIs('api.v1.*')) {
+            $sent = false;
+            if ($emailChanged) {
+                try {
+                    $request->user()->fresh()->sendEmailVerificationNotification();
+                    $sent = true;
+                } catch (\Throwable $exception) {
+                    report($exception);
+                }
+            }
+
+            return response()->json(['data' => new UserResource($request->user()->fresh()),
+                'message' => 'Profile saved. Important changes require review.', 'requires_sign_in' => $emailChanged || ! $request->user()->fresh()->canOperate(), 'verification_mail_sent' => $sent]);
         }
 
         if ($emailChanged) {
