@@ -157,7 +157,7 @@ Executed checks: targeted ESLint, TypeScript, Prettier, production browser and S
 
 RegistrationForm now submits all validation to the backend so blank Buyer/Seller/Logistics forms can show every required-field error, while preserving duplicate-submit guards, focus recovery and password cleanup. Seller pending-review applicant names now identify the shop. Existing components, branding and role workflows remain unchanged. Fourteen executed component contract checks exercise submission guards, password state toggling, dependent-address reset handlers and required Seller document slots using TypeScript/Node and isolated hook/Inertia doubles. These do not mount a DOM or execute effects; visible browser behavior, document previews and live option loading remain unverified.
 
-Final PHP suite: **835 passed / 3 skipped / 5,662 assertions**. Targeted ESLint, TypeScript, Prettier, Pint and production browser/SSR builds passed. No WCAG compliance or full workbook acceptance PASS is claimed. See docs/requirements/ACCOUNT_CREATION_FINAL_REPORT.md for all 150 individual case statuses, actual execution evidence and manual procedures. No deployment or customer email was performed.
+Final PHP suite: **835 passed / 3 skipped / 5,662 assertions**. Targeted ESLint, TypeScript, Prettier, Pint and production browser/SSR builds passed. No WCAG compliance or full workbook acceptance PASS is claimed. See documentation/requirements/ACCOUNT_CREATION_FINAL_REPORT.md for all 150 individual case statuses, actual execution evidence and manual procedures. No deployment or customer email was performed.
 
 ## Registration role visibility follow-up - 2026-10-13
 
@@ -1289,3 +1289,23 @@ Prettier, PHP Pint and production build pass. See
 Physical devices, actual email/OAuth, production MySQL contention and comprehensive
 screen-reader/contrast/zoom acceptance remain unverified; this is not a WCAG
 certification. No deployment, commit or push occurred.
+
+## 2026-11-05 - Web parcel camera reliability
+
+Reproduced native BarcodeDetector empty-result failure, then added software fallback for empty/invalid/error results, deeper row searches, explicit rotated/inverted pixel attempts, ideal high-resolution capture and an uncropped preview. Shared Logistics/Rider UI now distinguishes scanning, unreadable-label guidance, stopped capture and the exact captured tracking reference. Permission cancellation releases late camera streams; scanning never submits a handover.
+
+Fresh checks: 28 Logistics/Rider browser scenarios passed using generated barcode video frames; 58 relevant Laravel tests passed (1,109 assertions) against isolated SQLite with fake mail; targeted ESLint, TypeScript, Prettier and production build passed. Captured/guidance screenshots were reviewed at dark 320px; existing light/desktop and mobile reflow checks passed. Physical webcam/printed-label and full accessibility acceptance remain unverified; automated checks do not certify WCAG compliance. See documentation/PARCEL_SCANNING.md and local storage/app/scanner-fix-1793878734636/ evidence. No existing application records, permissions, schema, dependencies or deployment configuration were changed.
+
+
+## 2026-11-05 - Same-reference QR and actual Infinix camera verification
+
+Added a square QR next to the existing web waybill barcode using installed ZXing code; both encode the same tracking reference. Shared Logistics/Rider decoding supports QR without accepting URLs or changing permissions/handovers. QR images retain white margins, black-on-white print contrast and accessible names. Thirty-one isolated browser scenarios passed, including actual rendered waybill QR and a rotated view, exact lookup and URL rejection. ESLint, TypeScript, Prettier and production build passed.
+
+Actual Infinix X6876 Chrome camera capture of parcel #15 QR was observed: correct tracking, matching authorized parcel, camera stopped and no handover submitted by the assistant. Private evidence is in storage/app/private/scanner-diagnostics/phone-qr-success.json. The physical screen-to-camera Code 128 attempt did not decode; its exact optical/rendering cause remains unresolved. Printed linear barcodes, other hardware and full screen-reader/zoom/contrast acceptance remain unverified. This does not certify WCAG compliance. No new dependency, database/schema change, commit, push or deployment.
+
+
+## 2026-11-05 - Logistics mobile web operations
+
+Added Logistics-only fixed mobile navigation for Dashboard/Scan/Parcels/Menu, safe-area content clearance, active-page semantics and menu Escape/focus restoration. Reduced the sticky mobile Logistics header by moving descriptions into scrollable content; preserved other-role headers. Scan camera now precedes manual fields, has full-width primary controls and a bounded uncropped preview; redundant disabled Start hides during active mobile scanning. Added dashboard Scan action, mobile queue grid and parcel shrink/wrap fixes. Existing branding, authorization, payloads, QR/barcode decoding and handover rules remain intact.
+
+Verification: 46 Logistics browser scenarios and 45 cross-role dashboard scenarios passed; 78 relevant Laravel tests passed (1241 assertions), isolated SQLite/fake services; ESLint, TypeScript, Prettier, PHP fixture Pint and production build passed. All 12 selected company pages fit 320px without document overflow. Reviewed light 408px/dark 320px scan screenshots. Physical Infinix DOM measurements on Rider payments confirmed 408px/no overflow and visible navigation; a complete physical Scan screenshot/touch acceptance was not obtained because the tab was backgrounded/navigated during inspection. Actual hardware scanning was not repeated after this layout change. Full screen-reader/contrast, true browser zoom and complete WCAG acceptance remain unverified. Evidence: storage/app/logistics-mobile-1793881443393/VERIFICATION.md. No database schema, business records, new dependency, commit, push or deployment was changed.

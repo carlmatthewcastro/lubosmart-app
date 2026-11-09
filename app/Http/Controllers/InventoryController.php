@@ -48,12 +48,15 @@ class InventoryController extends Controller
         }
         unset($data['image']);
         $expectedStock = $request->validate(['expected_stock' => 'sometimes|integer|min:0|max:1000000'])['expected_stock'] ?? null;
+        if ($request->routeIs('api.v1.*') && $product) {
+            $request->validate(['expected_stock' => 'required|integer|min:0|max:1000000']);
+        }
         $imagePath = $request->hasFile('image') ? $request->file('image')->store('products', 'public') : null;
         if ($imagePath) {
             $data['image_path'] = $imagePath;
         }
         try {
-            DB::transaction(function () use ($request, $product, $store, $data, $expectedStock) {
+            $savedProduct = DB::transaction(function () use ($request, $product, $store, $data, $expectedStock) {
                 $seller = User::query()->whereKey($request->user()->id)->lockForUpdate()->firstOrFail();
                 $store = Store::query()->whereKey($store->id)->lockForUpdate()->firstOrFail();
                 abort_unless($seller->status === 'approved' && $store->status === 'approved', 403);
@@ -69,8 +72,10 @@ class InventoryController extends Controller
                         $data['stock'] = $lockedProduct->variants()->sum('stock');
                     }
                     $lockedProduct->update($data);
+
+                    return $lockedProduct;
                 } else {
-                    Product::query()->create([...$data, 'store_id' => $store->id]);
+                    return Product::query()->create([...$data, 'store_id' => $store->id]);
                 }
             }, 3);
         } catch (\Throwable $exception) {
@@ -78,6 +83,10 @@ class InventoryController extends Controller
                 Storage::disk('public')->delete($imagePath);
             }
             throw $exception;
+        }
+
+        if ($request->routeIs('api.v1.*')) {
+            return response()->json(['data' => $savedProduct->only(['id', 'name', 'price', 'stock', 'status']), 'message' => 'Product saved.'], $product ? 200 : 201);
         }
 
         return back()->with('status', 'Product saved.');

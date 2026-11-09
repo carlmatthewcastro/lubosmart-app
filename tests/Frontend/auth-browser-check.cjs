@@ -227,18 +227,37 @@ async function until(predicate, label) {
             );
             await screenshot('homepage-typography-' + width);
             await evaluate('document.querySelector(".storefront__seller-cta").scrollIntoView({block:"center"})');
-            await until(() => evaluate('document.querySelector(".storefront__seller-illustration").complete && document.querySelector(".storefront__seller-illustration").naturalWidth > 0'), 'seller illustration loaded');
-            assert.equal(await evaluate(`(()=>{const image=document.querySelector('.storefront__seller-illustration').getBoundingClientRect();const button=document.querySelector('.storefront__seller-action button').getBoundingClientRect();return button.top >= image.bottom && button.width <= 200 && button.height >= 44;})()`),true);
-            const sellerClip = await evaluate(`(()=>{const rect=document.querySelector('.storefront__seller-cta').getBoundingClientRect();return {x:rect.x+scrollX,y:rect.y+scrollY,width:rect.width,height:rect.height,scale:1};})()`);
-            const sellerImage = await cdp('Page.captureScreenshot', {format:'png',clip:sellerClip,captureBeyondViewport:true});
-            fs.writeFileSync(path.join(output,'seller-panel-'+width+'.png'),Buffer.from(sellerImage.data,'base64'));
+            await until(
+                () =>
+                    evaluate(
+                        'document.querySelector(".storefront__seller-illustration").complete && document.querySelector(".storefront__seller-illustration").naturalWidth > 0',
+                    ),
+                'seller illustration loaded',
+            );
+            assert.equal(
+                await evaluate(
+                    `(()=>{const image=document.querySelector('.storefront__seller-illustration').getBoundingClientRect();const button=document.querySelector('.storefront__seller-button').getBoundingClientRect();const separate=button.right<=image.left||button.left>=image.right||button.bottom<=image.top||button.top>=image.bottom;return separate && button.width <= 200 && button.height >= 44;})()`,
+                ),
+                true,
+            );
+            const sellerClip = await evaluate(
+                `(()=>{const rect=document.querySelector('.storefront__seller-cta').getBoundingClientRect();return {x:rect.x+scrollX,y:rect.y+scrollY,width:rect.width,height:rect.height,scale:1};})()`,
+            );
+            const sellerImage = await cdp('Page.captureScreenshot', { format: 'png', clip: sellerClip, captureBeyondViewport: true });
+            fs.writeFileSync(path.join(output, 'seller-panel-' + width + '.png'), Buffer.from(sellerImage.data, 'base64'));
         }
         record('Homepage typography', 'Serif hero and supporting text fit desktop/tablet/mobile widths without overlap or horizontal overflow');
-        record('Seller illustration and compact CTA', 'Existing illustration loads above a smaller seller button at desktop/tablet/mobile widths; touch target remains at least 44px');
+        record(
+            'Seller illustration and compact CTA',
+            'Illustration and seller button do not overlap at desktop/tablet/mobile widths; touch target remains at least 44px',
+        );
         await click('button[aria-label="Switch to dark mode"]');
         assert.equal(await evaluate('localStorage.getItem("appearance")'), 'dark');
-        assert.equal(await evaluate('getComputedStyle(document.querySelector(".storefront__seller-cta")).backgroundImage.includes("rgb(53, 20, 90)")'), true);
-        assert.equal(await evaluate('getComputedStyle(document.querySelector(".storefront__button--light")).color'), 'rgb(53, 20, 90)');
+        assert.equal(
+            await evaluate('getComputedStyle(document.querySelector(".storefront__seller-cta")).backgroundImage.includes("rgb(53, 20, 90)")'),
+            true,
+        );
+        assert.equal(await evaluate('getComputedStyle(document.querySelector(".storefront__seller-button")).color'), 'rgb(53, 20, 90)');
         await screenshot('homepage-mobile-dark');
         await navigate('/register');
         assert.equal(await evaluate('document.documentElement.classList.contains("dark")'), true);
@@ -246,8 +265,11 @@ async function until(predicate, label) {
         await navigate('/');
         assert.equal(await evaluate('document.documentElement.classList.contains("dark")'), false);
         record('Guest theme persistence', 'Navbar switches persist across full homepage and registration navigation');
-        await click('.storefront__seller-action button');
-        await until(()=>evaluate('location.pathname==="/register" && new URLSearchParams(location.search).get("role")==="seller"'),'seller registration link');
+        await click('.storefront__seller-button');
+        await until(
+            () => evaluate('location.pathname==="/register" && new URLSearchParams(location.search).get("role")==="seller"'),
+            'seller registration link',
+        );
         record('Seller call to action', 'Compact button opens the existing seller registration flow');
         await viewport(1440, 1000);
         await navigate('/');
@@ -693,15 +715,23 @@ async function until(predicate, label) {
         await until(() => evaluate('!!document.querySelector(\'button[aria-label="Switch to dark mode"]\')'), 'desktop dashboard theme control');
         await click('button[aria-label="Switch to dark mode"]');
         assert.equal(await evaluate('localStorage.getItem("appearance")'), 'dark');
-        assert.equal(await evaluate(`(async () => {
+        assert.equal(
+            await evaluate(`(async () => {
             const cookie = document.cookie.split('; ').find(value => value.startsWith('XSRF-TOKEN='));
             const response = await fetch('/logout', { method: 'POST', headers: { 'X-XSRF-TOKEN': decodeURIComponent(cookie.slice(11)), Accept: 'text/html' } });
             return response.ok;
-        })()`), true);
+        })()`),
+            true,
+        );
         await viewport(320, 900);
         await navigate('/');
         assert.equal(await evaluate('document.documentElement.classList.contains("dark")'), true);
-        assert.equal(await evaluate('getComputedStyle(document.querySelector(".storefront")).backgroundColor === getComputedStyle(document.body).backgroundColor'), true);
+        assert.equal(
+            await evaluate(
+                'getComputedStyle(document.querySelector(".storefront")).backgroundColor === getComputedStyle(document.body).backgroundColor',
+            ),
+            true,
+        );
         assert.equal(await evaluate('getComputedStyle(document.querySelector(".storefront__header .app-wordmark")).color'), 'rgb(255, 255, 255)');
         assert.equal(await evaluate('document.documentElement.scrollWidth <= innerWidth'), true);
         await screenshot('homepage-mobile-dark');

@@ -42,11 +42,11 @@ export default function LogisticsParcels(props: Props) {
                     {deliveries.data.map((row) => (
                         <Card key={row.id}>
                             <div className="flex flex-wrap items-start justify-between gap-3">
-                                <div className="flex gap-3">
+                                <div className="flex min-w-0 gap-3">
                                     <span className="bg-accent text-primary flex size-11 shrink-0 items-center justify-center rounded-xl">
                                         <Boxes className="size-5" />
                                     </span>
-                                    <div>
+                                    <div className="min-w-0">
                                         <p className="text-muted-foreground text-xs">Parcel #{row.id}</p>
                                         <p className="mt-2 font-mono text-xs break-all">{row.tracking_reference}</p>
                                         {row.exception_status && (

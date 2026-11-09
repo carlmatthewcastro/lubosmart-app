@@ -81,7 +81,7 @@ if (PHP_SAPI === 'cli' && ($argv[1] ?? '') === 'dashboard-seed') {
     foreach (['handbag.jpg', 'messenger.jpg', 'mug.jpg', null] as $index => $image) {
         Product::create(['store_id' => $store->id, 'category_id' => $category->id, 'name' => $index === 1 ? str_repeat('Long product name ', 8) : 'Browser product '.($index + 1), 'price' => 150 + $index, 'stock' => 5, 'status' => 'active', 'image_path' => $image, 'description' => 'Synthetic product details for browser verification.']);
     }
-    foreach (['buyer', 'seller'] as $role) {
+    foreach (['buyer', 'seller', 'logistics'] as $role) {
         $application = RegistrationApplication::create(['user_id' => $users[$role]->id, 'requested_role' => $role, 'status' => 'approved', 'seller_type' => $role === 'seller' ? 'individual' : null]);
         foreach (['identity', 'bir_2303'] as $kind) {
             $application->documents()->create(['kind' => $kind, 'disk' => 'local', 'path' => 'registration/synthetic-'.$role.'-'.$kind.'.pdf', 'mime_type' => 'application/pdf', 'size_bytes' => 7]);

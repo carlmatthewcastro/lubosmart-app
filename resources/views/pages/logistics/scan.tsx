@@ -2,7 +2,7 @@ import ParcelCamera from '@/components/logistics/parcel-camera';
 import { buttonClass, Card, Field, Page, Select, Textarea, type Pagination } from '@/components/shared/marketplace-ui';
 import ValidatedForm from '@/components/shared/validated-form';
 import { router } from '@inertiajs/react';
-import { Camera, Info, PackageSearch, ScanLine, Search } from 'lucide-react';
+import { Camera, Info, PackageSearch, Search } from 'lucide-react';
 import { useState } from 'react';
 import { Parcel, type Area, type Collection, type Delivery, type Option, type Rider } from '../marketplace/deliveries';
 
@@ -44,20 +44,33 @@ export default function ScanParcel({ deliveries, centers, riders, areas, cod, fi
 
     return (
         <Page title="Scan Parcel" description="Scan the attached waybill, review the parcel, then confirm receipt, sorting or dispatch.">
-            <Card>
-                <div className="mb-6 flex items-start gap-3 border-b pb-6">
-                    <div className="bg-primary/10 text-primary flex size-11 shrink-0 items-center justify-center rounded-xl">
-                        <ScanLine className="size-5" aria-hidden="true" />
-                    </div>
-                    <div>
-                        <h2 className="text-lg font-semibold tracking-tight">Find a parcel</h2>
-                        <p className="text-muted-foreground mt-1 text-sm leading-relaxed">Use the tracking reference on the parcel waybill.</p>
-                    </div>
-                </div>
+            <Card className="max-sm:p-4">
                 <div className="grid gap-6 lg:grid-cols-3">
-                    <div className="min-w-0 lg:col-span-2">
+                    <div data-parcel-camera-region className="grid min-w-0 content-start gap-4">
+                        <div className="flex items-start gap-3">
+                            <div className="bg-primary/10 text-primary flex size-11 shrink-0 items-center justify-center rounded-xl">
+                                <Camera className="size-5" aria-hidden="true" />
+                            </div>
+                            <div className="min-w-0">
+                                <h2 className="text-lg font-semibold">Scan the waybill</h2>
+                                <p className="text-muted-foreground mt-1 text-sm leading-relaxed">
+                                    Point at the square QR or barcode. Review the parcel before confirming a handover.
+                                </p>
+                            </div>
+                        </div>
+                        <ParcelCamera
+                            onScan={(value) => {
+                                setReference(value);
+                                setMethod('scanner');
+                                setReason('');
+                                lookup(value);
+                            }}
+                        />
+                    </div>
+                    <div className="min-w-0 border-t pt-5 lg:col-span-2 lg:border-t-0 lg:pt-0">
+                        <h2 className="text-lg font-semibold">Tracking lookup</h2>
                         <ValidatedForm
-                            className="grid gap-4"
+                            className="mt-4 grid gap-4"
                             onSubmit={(event) => {
                                 event.preventDefault();
                                 lookup(reference);
@@ -100,23 +113,6 @@ export default function ScanParcel({ deliveries, centers, riders, areas, cod, fi
                                 />
                             )}
                         </ValidatedForm>
-                    </div>
-                    <div className="bg-muted/40 grid content-start gap-4 rounded-xl border p-5">
-                        <Camera className="text-primary size-5" aria-hidden="true" />
-                        <div>
-                            <h3 className="font-semibold">Scan the waybill</h3>
-                            <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
-                                Use your device camera to capture the parcel barcode.
-                            </p>
-                        </div>
-                        <ParcelCamera
-                            onScan={(value) => {
-                                setReference(value);
-                                setMethod('scanner');
-                                setReason('');
-                                lookup(value);
-                            }}
-                        />
                     </div>
                 </div>
                 <div className="text-muted-foreground mt-6 flex items-start gap-2 border-t pt-4 text-sm leading-relaxed">

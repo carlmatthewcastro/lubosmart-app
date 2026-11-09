@@ -51,6 +51,12 @@ class ReportController extends Controller
                 'Manual seller payouts' => (int) SellerPayout::query()->whereIn('seller_order_id', (clone $orders)->select('id'))->sum('amount_cents') / 100];
         }
 
+        if ($request->routeIs('api.v1.*')) {
+            $records->through(fn ($row) => $row->only($financial ? ['id', 'store_id', 'subtotal', 'shipping_fee', 'commission_amount', 'seller_proceeds'] : ['id', 'store_id', 'subtotal', 'shipping_fee']));
+
+            return response()->json(['data' => compact('records', 'totals', 'adjustments', 'filters')]);
+        }
+
         return Inertia::render('marketplace/reports', ['role' => $user->role, 'records' => $records, 'totals' => $totals, 'adjustments' => $adjustments, 'settings' => null, 'filters' => $filters]);
     }
 

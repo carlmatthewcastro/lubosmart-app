@@ -43,7 +43,7 @@ export default [
         rules: { '@typescript-eslint/no-require-imports': 'off' },
     },
     {
-        ignores: ['vendor', 'node_modules', 'public', 'storage', 'bootstrap/ssr', 'tailwind.config.js'],
+        ignores: ['vendor', 'node_modules', 'public', 'storage', 'bootstrap/ssr', 'tailwind.config.js', '.tools/**', 'apps/mobile/**'],
     },
     prettier, // Turn off all rules that might conflict with Prettier
 ];

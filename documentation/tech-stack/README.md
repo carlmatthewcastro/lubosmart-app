@@ -5,6 +5,7 @@ LubosMart is a Laravel modular monolith: one backend handles commerce, accounts,
 | Layer | Technology | Purpose |
 | --- | --- | --- |
 | Front End | React 19, TypeScript, Inertia.js 2, Blade | Pages, forms, navigation and server-provided data |
+| Mobile | Flutter / Dart, Material 3 | Separate Buyer, Seller and Rider client in apps/mobile; native build acceptance pending |
 | UI | Tailwind CSS 4, Radix UI, Headless UI, Lucide | Styling, accessible components and icons |
 | Build | Vite 6, Node.js 22, npm | Development assets and production bundles |
 | Backend | Laravel 12, PHP, Apache, Socialite, Ziggy | Business logic, authentication, Google sign-in and named routes |
@@ -17,7 +18,7 @@ Composer requires PHP 8.2+. Docker uses PHP 8.3; CI uses PHP 8.4. The reviewed C
 
 Azure Ubuntu VM hosting and Cloudflare DNS are described in the repository runbook. Their live settings are unverified. No Redis service or external database pool is configured.
 
-**Planned:** Laravel REST API under `/api/v1` with Sanctum. See [API](../api/README.md).
+**Implemented locally, November 5, 2026:** core Laravel JSON API under `/api/v1`, with Sanctum device tokens and API Resources, alongside the existing website. See [API coverage, OpenAPI and mobile setup](../api/README.md) for implemented endpoints and remaining parity.
 
 Sources: `composer.json`, `composer.lock`, `package.json`, `Dockerfile`, `docker-compose.yml`, `Caddyfile`, `.github/workflows/`.
 

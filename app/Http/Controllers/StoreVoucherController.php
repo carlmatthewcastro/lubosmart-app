@@ -30,6 +30,10 @@ class StoreVoucherController extends Controller
             throw ValidationException::withMessages(['code' => 'This voucher code is already in use. Choose another code.']);
         }
 
+        if ($request->routeIs('api.v1.*')) {
+            return response()->json(['message' => 'Voucher created.']);
+        }
+
         return back()->with('status', 'Voucher created. Share its code with buyers. Discounts reduce your store sales and proceeds.');
     }
 
@@ -37,6 +41,10 @@ class StoreVoucherController extends Controller
     {
         abort_unless($voucher->store_id === $request->user()->store?->id && $request->user()->store?->status === 'approved', 403);
         $voucher->update($request->validate(['is_active' => 'required|boolean']));
+
+        if ($request->routeIs('api.v1.*')) {
+            return response()->json(['message' => 'Voucher updated.']);
+        }
 
         return back()->with('status', 'Voucher availability updated. Existing orders keep their agreed discount.');
     }

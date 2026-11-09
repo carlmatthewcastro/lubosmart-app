@@ -22,7 +22,7 @@ export default function ParcelNavigation() {
         <Card>
             <h2 className="text-lg font-semibold">Parcel operations</h2>
             <p className="text-muted-foreground mt-2 text-sm">Open a queue or find a parcel by tracking reference or store name.</p>
-            <nav aria-label="Parcel queues" className="mt-4 flex flex-wrap gap-2">
+            <nav aria-label="Parcel queues" className="mt-4 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
                 {queues.map((queue) => (
                     <Link
                         key={queue.key}

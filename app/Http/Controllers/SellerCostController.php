@@ -22,7 +22,14 @@ class SellerCostController extends Controller
         $paid = SellerPayout::query()->whereHas('sellerOrder', fn ($q) => $q->where('store_id', $storeId))->sum('amount_cents');
         $cost = (clone $costs)->whereNull('voided_at')->sum('amount_cents');
 
-        return Inertia::render('finance/seller-costs', ['costs' => $costs->latest('incurred_on')->latest('id')->paginate(15), 'totals' => ['proceeds' => $proceeds, 'refunds' => (int) $refunds, 'costs' => (int) $cost, 'profit' => $proceeds - $refunds - $cost, 'paid' => (int) $paid, 'balance' => $proceeds - $refunds - $paid], 'canRecord' => $request->user()->store?->status === 'approved']);
+        $data = ['costs' => $costs->latest('incurred_on')->latest('id')->paginate(15), 'totals' => ['proceeds' => $proceeds, 'refunds' => (int) $refunds, 'costs' => (int) $cost, 'profit' => $proceeds - $refunds - $cost, 'paid' => (int) $paid, 'balance' => $proceeds - $refunds - $paid], 'canRecord' => $request->user()->store?->status === 'approved'];
+        if ($request->routeIs('api.v1.*')) {
+            $data['costs']->through(fn ($cost) => $cost->only(['id', 'incurred_on', 'category', 'description', 'amount_cents', 'voided_at', 'void_reason']));
+
+            return response()->json(['data' => $data]);
+        }
+
+        return Inertia::render('finance/seller-costs', $data);
     }
 
     public function store(Request $request)
@@ -30,6 +37,10 @@ class SellerCostController extends Controller
         abort_unless($request->user()->store?->status === 'approved', 403);
         $data = $request->validate(['incurred_on' => ['required', 'date_format:Y-m-d', 'before_or_equal:'.now('Asia/Manila')->toDateString()], 'category' => 'required|in:goods,packaging,operations,other', 'description' => 'required|string|min:3|max:500', 'amount' => 'required|numeric|decimal:0,2|min:0.01|max:99999999.99']);
         SellerCost::query()->create(['store_id' => $request->user()->store->id, 'recorded_by' => $request->user()->id, 'incurred_on' => $data['incurred_on'], 'category' => $data['category'], 'description' => $data['description'], 'amount_cents' => (int) round((float) $data['amount'] * 100)]);
+
+        if ($request->routeIs('api.v1.*')) {
+            return response()->json(['message' => 'Cost recorded.']);
+        }
 
         return back()->with('status', 'Seller cost recorded. Profit depends on the completeness of your recorded costs.');
     }
@@ -43,6 +54,10 @@ class SellerCostController extends Controller
             abort_if($cost->voided_at, 409, 'This cost is already void.');
             $cost->update(['voided_at' => now(), 'void_reason' => $data['reason']]);
         });
+
+        if ($request->routeIs('api.v1.*')) {
+            return response()->json(['message' => 'Cost voided; history retained.']);
+        }
 
         return back()->with('status', 'Cost voided with its history retained.');
     }

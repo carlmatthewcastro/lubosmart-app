@@ -58,6 +58,12 @@ class User extends Authenticatable implements MustVerifyEmail
             $user->email_normalized = AccountRules::email($user->email);
             $user->phone_normalized = AccountRules::validPhone($user->phone) ? AccountRules::phone($user->phone) : null;
         });
+        static::updated(function (User $user) {
+            if ($user->wasChanged(['password', 'email', 'email_verified_at', 'role'])
+                || ($user->wasChanged('status') && $user->status !== 'approved')) {
+                $user->tokens()->delete();
+            }
+        });
     }
 
     /**

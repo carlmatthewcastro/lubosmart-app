@@ -7,6 +7,7 @@ use App\Http\Requests\Settings\AddressRequest;
 use App\Models\Address;
 use App\Models\RegistrationApplication;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -39,7 +40,7 @@ class AddressController extends Controller
         return to_route('settings.addresses.index')->with('status', 'Address saved.');
     }
 
-    public function update(AddressRequest $request, Address $address): RedirectResponse
+    public function update(AddressRequest $request, Address $address): RedirectResponse|JsonResponse
     {
         DB::transaction(function () use ($request, $address) {
             User::query()->whereKey($request->user()->id)->lockForUpdate()->firstOrFail();
@@ -51,10 +52,14 @@ class AddressController extends Controller
             $address->update([...$request->addressData(), 'is_default' => $default]);
         }, 3);
 
+        if ($request->routeIs('api.v1.*')) {
+            return response()->json(['message' => 'Address updated. Existing purchases retain their delivery details.']);
+        }
+
         return to_route('settings.addresses.index')->with('status', 'Address updated. Existing orders keep their original delivery details.');
     }
 
-    public function destroy(Request $request, Address $address): RedirectResponse
+    public function destroy(Request $request, Address $address): RedirectResponse|JsonResponse
     {
         abort_unless($address->user_id === $request->user()->id, 403);
         DB::transaction(function () use ($request, $address) {
@@ -68,10 +73,14 @@ class AddressController extends Controller
             }
         }, 3);
 
+        if ($request->routeIs('api.v1.*')) {
+            return response()->json(['message' => 'Address removed.']);
+        }
+
         return to_route('settings.addresses.index')->with('status', 'Address removed.');
     }
 
-    public function default(Request $request, Address $address): RedirectResponse
+    public function default(Request $request, Address $address): RedirectResponse|JsonResponse
     {
         abort_unless($address->user_id === $request->user()->id, 403);
         DB::transaction(function () use ($request, $address) {
@@ -80,6 +89,10 @@ class AddressController extends Controller
             Address::query()->where('user_id', $request->user()->id)->update(['is_default' => false]);
             $address->update(['is_default' => true]);
         }, 3);
+
+        if ($request->routeIs('api.v1.*')) {
+            return response()->json(['message' => 'Default address updated.']);
+        }
 
         return to_route('settings.addresses.index')->with('status', 'Default address updated.');
     }

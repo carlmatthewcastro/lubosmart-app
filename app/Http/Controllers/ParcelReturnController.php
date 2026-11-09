@@ -65,6 +65,10 @@ class ParcelReturnController extends Controller
             throw ValidationException::withMessages(['seller_order_id' => 'A return request already exists for this parcel.']);
         }
 
+        if ($request->routeIs('api.v1.*')) {
+            return response()->json(['message' => 'Return requested for review.']);
+        }
+
         return back()->with('status', 'Return requested for the whole parcel. Admin will review it before any return transport or refund.');
     }
 
@@ -145,6 +149,10 @@ class ParcelReturnController extends Controller
             }, 3);
         } catch (UniqueConstraintViolationException) {
             throw ValidationException::withMessages(['reference' => 'This refund reference is already recorded.']);
+        }
+
+        if ($request->routeIs('api.v1.*')) {
+            return response()->json(['message' => 'Return action recorded.']);
         }
 
         return back()->with('status', 'Return action recorded. A refund record confirms a manual payment, not an automatic bank transfer.');

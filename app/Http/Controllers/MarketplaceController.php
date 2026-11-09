@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Checkout\CreateOrderFromCart;
+use App\Http\Resources\Api\AddressResource;
+use App\Http\Resources\Api\OrderResource;
 use App\Models\Address;
 use App\Models\Cart;
 use App\Models\CartItem;
@@ -62,7 +64,7 @@ class MarketplaceController extends Controller
     public function updateCart(Request $request, Product $product)
     {
         abort_unless($request->user()->role === 'buyer', 403);
-        $data = $request->validate(['quantity' => 'required|integer|min:0|max:999', 'add' => 'sometimes|boolean', 'product_variant_id' => 'nullable|integer']);
+        $data = $request->validate(['quantity' => 'required|integer|min:0|max:999', 'add' => $request->routeIs('api.v1.*') ? 'prohibited' : 'sometimes|boolean', 'product_variant_id' => 'nullable|integer']);
         DB::transaction(function () use ($request, $product, $data) {
             $buyer = User::query()->whereKey($request->user()->id)->lockForUpdate()->firstOrFail();
             abort_unless($buyer->role === 'buyer' && $buyer->canOperate(), 403);
@@ -91,6 +93,10 @@ class MarketplaceController extends Controller
             CartItem::query()->updateOrCreate($line, ['quantity' => $data['quantity'], 'product_variant_id' => $variantId]);
         }, 3);
 
+        if ($request->routeIs('api.v1.*')) {
+            return response()->json(['message' => $data['quantity'] ? 'Cart updated.' : 'Item removed.']);
+        }
+
         return back()->with('status', $data['quantity'] ? 'Cart updated.' : 'Item removed.');
     }
 
@@ -98,7 +104,11 @@ class MarketplaceController extends Controller
     {
         abort_unless($request->user()->role === 'buyer', 403);
         $data = $request->validate(['label' => 'required|string|max:40', 'recipient_name' => 'required|string|max:160', 'phone' => 'required|string|max:30', 'line1' => 'required|string|max:200', 'line2' => 'nullable|string|max:200', 'barangay' => 'required|string|max:100', 'city' => 'required|string|max:100', 'province' => 'required|string|max:100', 'region' => 'required|string|max:100', 'zip' => 'required|string|max:10']);
-        Address::query()->create([...$data, 'user_id' => $request->user()->id]);
+        $address = Address::query()->create([...$data, 'user_id' => $request->user()->id]);
+
+        if ($request->routeIs('api.v1.*')) {
+            return (new AddressResource($address->refresh()))->response()->setStatusCode(201);
+        }
 
         return back()->with('status', 'Delivery address saved.');
     }
@@ -107,6 +117,12 @@ class MarketplaceController extends Controller
     {
         abort_unless($request->user()->role === 'buyer', 403);
         $data = $request->validate(['address_id' => 'required|integer', 'checkout_key' => 'required|uuid', 'expected_items_subtotal' => 'nullable|numeric|decimal:0,2|min:0', 'logistics_center_id' => 'nullable|integer', 'voucher_code' => 'nullable|string|max:30', 'expected_discount_total' => 'required_with:voucher_code|nullable|numeric|decimal:0,2|min:0', 'expected_shipping_total' => [app(ShippingQuotes::class)->enabled() ? 'required' : 'nullable', 'numeric', 'decimal:0,2', 'min:0']]);
+        if ($request->routeIs('api.v1.*')) {
+            $request->validate([
+                'expected_items_subtotal' => 'required|numeric|decimal:0,2|min:0',
+                'expected_shipping_total' => 'required|numeric|decimal:0,2|min:0',
+            ]);
+        }
         $order = DB::transaction(function () use ($request, $data, $checkout) {
             User::query()->whereKey($request->user()->id)->lockForUpdate()->firstOrFail();
             $existing = Order::query()->where('buyer_id', $request->user()->id)->where('checkout_key', $data['checkout_key'])->first();
@@ -118,6 +134,10 @@ class MarketplaceController extends Controller
 
             return $order;
         }, 3);
+
+        if ($request->routeIs('api.v1.*')) {
+            return (new OrderResource($order->load('sellerOrders.items', 'sellerOrders.delivery', 'sellerOrders.store', 'sellerOrders.order')))->response()->setStatusCode(201);
+        }
 
         return to_route('orders.index')->with('status', 'Order #'.$order->id.' placed. Pay cash upon delivery.');
     }

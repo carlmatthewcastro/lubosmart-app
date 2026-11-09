@@ -1,7 +1,7 @@
 import { LogisticsCharts } from '@/components/logistics/logistics-charts';
 import ParcelNavigation from '@/components/logistics/parcel-navigation';
 import { InfoModal } from '@/components/shared/info-modal';
-import { Badge, Card, Empty, Page, secondaryClass } from '@/components/shared/marketplace-ui';
+import { Badge, Card, Empty, Page, buttonClass, secondaryClass } from '@/components/shared/marketplace-ui';
 import { DashboardMetric } from '@/components/workspace/dashboard-panels';
 import type { SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
@@ -77,7 +77,10 @@ export default function LogisticsDashboard({
                         <p className="text-muted-foreground mt-2 text-sm leading-relaxed">
                             Monitor parcel movement, review your queues, and keep your riders ready.
                         </p>
-                        <div className="mt-5 flex flex-wrap gap-3">
+                        <div className="mt-5 grid gap-3 sm:flex sm:flex-wrap">
+                            <Link href="/logistics/scan" className={buttonClass}>
+                                Scan parcel
+                            </Link>
                             <Link href="/deliveries" className={secondaryClass}>
                                 Parcel operations
                             </Link>
