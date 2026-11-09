@@ -1,5 +1,6 @@
 import AppWordmark from '@/components/branding/app-wordmark';
 import ParcelBarcode from '@/components/logistics/parcel-barcode';
+import ParcelQrCode from '@/components/logistics/parcel-qr-code';
 import { notify, useConfirmAction } from '@/components/shared/action-feedback';
 import { buttonClass, money, secondaryClass } from '@/components/shared/marketplace-ui';
 import { assets } from '@/config/assets';
@@ -63,6 +64,7 @@ export default function Waybill({ order }: { order: SellerOrder }) {
                     <span className="text-sm">COD · Parcel #{order.id}</span>
                 </header>
                 {order.delivery?.tracking_reference && <ParcelBarcode reference={order.delivery.tracking_reference} />}
+                {order.delivery?.tracking_reference && <ParcelQrCode reference={order.delivery.tracking_reference} />}
                 <div className="py-6">
                     <p className="text-xs tracking-widest text-gray-500 uppercase">Ship to</p>
                     <h1 className="mt-3 text-2xl font-semibold">{order.order.shipping_recipient_name}</h1>

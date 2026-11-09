@@ -204,6 +204,7 @@ async function until(predicate, label) {
             await until(() => evaluate('location.pathname === "/dashboard/' + role + '"'), 'dashboard login ' + role);
             await navigate('/dashboard/' + role);
             await until(() => evaluate('!!document.querySelector("main h1")'), 'dashboard content ' + role);
+            assert.equal(await evaluate(`!!document.querySelector('nav[aria-label="Logistics mobile navigation"]')`), role === 'logistics');
             await delay(400);
             const page = await evaluate('JSON.parse(document.querySelector("#app").dataset.page).props');
             if (role === 'buyer') assert.equal(page.stats.Orders, 1);
@@ -254,7 +255,7 @@ async function until(predicate, label) {
                 await until(() => evaluate('document.querySelectorAll(".product-card").length === 0'), 'remove saved product');
                 await navigate('/shop');
                 await click('.product-card button[aria-label^="Add "]');
-                await until(() => evaluate('document.body.textContent.includes("Cart updated")'), 'card cart mutation');
+                await until(() => evaluate('document.body.textContent.includes("Added to cart")'), 'card cart mutation');
                 await viewport(390, 900);
                 assert.equal(await evaluate('document.documentElement.scrollWidth <= innerWidth'), true);
                 assert.equal(await evaluate('getComputedStyle(document.querySelector(".product-grid")).gridTemplateColumns.split(" ").length'), 2);
@@ -309,7 +310,7 @@ async function until(predicate, label) {
                     true,
                 );
                 await navigate('/dashboard/logistics');
-                await click('[aria-label="Open logistics queues"]');
+                await click('[aria-label^="Logistics notifications"]');
                 await until(() => evaluate('!!document.querySelector("[role=menu]")'), 'logistics queues');
                 assert.equal(await evaluate('!!document.querySelector(' + JSON.stringify('[role=menu] a[href="/reviews"]') + ')'), true);
                 await cdp('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 });
@@ -495,7 +496,7 @@ async function until(predicate, label) {
         await click('[aria-label^="Notifications,"]');
         await until(() => evaluate(`!!document.querySelector('[role="menu"]')`), 'notification menu');
         assert.equal(await evaluate(`document.querySelector('[role="menu"]').textContent.includes("You're all caught up.")`), true);
-        assert.equal(await evaluate(`document.querySelectorAll('[role="menuitem"]').length`), 4);
+        assert.equal(await evaluate(`document.querySelectorAll('[role="menuitem"]').length`), 5);
         await cdp('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape', windowsVirtualKeyCode: 27 });
         await until(() => evaluate(`!document.querySelector('[role="menu"]')`), 'close notifications');
         record('Admin notifications', 'Live notification menu loads with keyboard accessible destinations and an empty state');

@@ -10,7 +10,7 @@ export function AppSidebarHeader({ breadcrumbs = [], pageHeader }: { breadcrumbs
     const { auth } = usePage<SharedData>().props;
     return (
         <header
-            className={`bg-card/95 sticky top-0 z-20 flex shrink-0 items-center justify-between gap-2 border-b px-3 shadow-sm shadow-black/[.02] backdrop-blur md:px-8 ${pageHeader ? 'min-h-18 flex-wrap gap-y-4 py-3 md:h-18 md:flex-nowrap md:py-0' : 'h-18'}`}
+            className={`bg-card/95 sticky top-0 z-20 flex shrink-0 items-center justify-between gap-2 border-b px-3 shadow-sm shadow-black/[.02] backdrop-blur md:px-8 ${pageHeader ? (auth.user.role === 'logistics' ? 'min-h-18 flex-wrap gap-y-2 py-2 sm:gap-y-4 sm:py-3 md:h-18 md:flex-nowrap md:py-0' : 'min-h-18 flex-wrap gap-y-4 py-3 md:h-18 md:flex-nowrap md:py-0') : 'h-18'}`}
         >
             <div className={`flex min-w-0 flex-1 items-center gap-3 ${pageHeader ? 'basis-full sm:basis-0' : ''}`}>
                 <SidebarLogoToggle className="md:hidden" />

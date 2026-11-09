@@ -61,7 +61,13 @@ export function Page({
                 {title}
             </h1>
             {description && (
-                <p title={description} className="text-muted-foreground mt-1 text-xs leading-relaxed md:truncate md:text-sm">
+                <p
+                    title={description}
+                    className={cn(
+                        'text-muted-foreground mt-1 text-xs leading-relaxed md:truncate md:text-sm',
+                        auth.user?.role === 'logistics' && 'hidden sm:block',
+                    )}
+                >
                     {description}
                 </p>
             )}
@@ -80,6 +86,9 @@ export function Page({
                 </div>
             )}
             {useNavbarHeader && action}
+            {useNavbarHeader && auth.user?.role === 'logistics' && description && (
+                <p className="text-muted-foreground text-sm leading-relaxed sm:hidden">{description}</p>
+            )}
             {status && !['buyer', 'seller', 'rider', 'logistics'].includes(auth.user?.role ?? '') && <Notice>{status}</Notice>}
             {Object.keys(errors).length > 0 && (
                 <Notice tone="error">

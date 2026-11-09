@@ -18,6 +18,7 @@ $app = require dirname(__DIR__, 2).'/bootstrap/app.php';
 $app->make(Kernel::class)->bootstrap();
 config(['filesystems.disks.local.root' => $stage.DIRECTORY_SEPARATOR.'uploads']);
 $owner = User::factory()->create(['name' => 'Operations Logistics', 'role' => 'logistics', 'email' => 'operations@example.test', 'password' => 'Browser@2026']);
+$owner->application()->create(['requested_role' => 'logistics', 'status' => 'approved', 'business_name' => 'Operations Logistics']);
 $center = LogisticsCenter::create(['code' => 'OPS-BROWSER', 'name' => 'Operations Center', 'address' => 'Synthetic center', 'is_active' => true]);
 $center->forceFill(['company_user_id' => $owner->id])->save();
 $owner->logisticsCenters()->attach($center->id, ['granted_by' => $owner->id]);
