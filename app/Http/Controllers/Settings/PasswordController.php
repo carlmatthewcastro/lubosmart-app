@@ -32,8 +32,8 @@ class PasswordController extends Controller
      */
     public function confirmChange(PasswordUpdateRequest $request, EmailSecurityCodes $codes): RedirectResponse
     {
-        if (! $request->user()->password) {
-            throw ValidationException::withMessages(['code' => 'This account uses Google only. Sign in with Google.']);
+        if (! $request->user()->password && ! $request->user()->google_id) {
+            throw ValidationException::withMessages(['code' => 'Activate your account before setting a password.']);
         }
 
         $request->session()->forget('password_confirmation');

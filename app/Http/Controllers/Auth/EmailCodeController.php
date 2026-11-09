@@ -28,8 +28,8 @@ class EmailCodeController extends Controller
     public function sendAuthenticated(Request $request, EmailSecurityCodes $codes): RedirectResponse
     {
         $data = $request->validate(['purpose' => ['required', Rule::in(['password', 'profile'])]]);
-        if ($data['purpose'] === 'password' && ! $request->user()->password) {
-            return back()->withErrors(['code' => 'This account uses Google only. Sign in with Google.']);
+        if ($data['purpose'] === 'password' && ! $request->user()->password && ! $request->user()->google_id) {
+            return back()->withErrors(['code' => 'Activate your account before setting a password.']);
         }
         $codes->send($request->user()->email, $data['purpose'], true);
 

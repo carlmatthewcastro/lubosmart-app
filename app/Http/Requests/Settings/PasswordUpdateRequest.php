@@ -10,7 +10,7 @@ class PasswordUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'current_password' => in_array($this->user()?->role, ['admin', 'logistics', 'rider'], true) ? ['required', 'current_password'] : ['nullable'],
+            'current_password' => $this->user()?->password && in_array($this->user()?->role, ['admin', 'logistics', 'rider'], true) ? ['required', 'current_password'] : ['nullable'],
             'password' => ['required', Password::defaults(), 'confirmed'],
         ];
     }

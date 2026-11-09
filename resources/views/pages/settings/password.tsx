@@ -13,7 +13,7 @@ import { type FormEvent, useState } from 'react';
 
 export default function Password({ googleOnly, confirmed, status }: { googleOnly: boolean; confirmed: boolean; status?: string }) {
     const { auth } = usePage<SharedData>().props;
-    const requiresCurrentPassword = ['admin', 'logistics', 'rider'].includes(auth.user.role);
+    const requiresCurrentPassword = !googleOnly && ['admin', 'logistics', 'rider'].includes(auth.user.role);
     const form = useForm({ current_password: '', password: '', password_confirmation: '' });
     const [confirmingChange, setConfirmingChange] = useState(false);
     const submit = (event: FormEvent) => {
@@ -44,11 +44,13 @@ export default function Password({ googleOnly, confirmed, status }: { googleOnly
 
             <Card className="grid gap-6">
                 <HeadingSmall
-                    title="Change Password"
+                    title={googleOnly ? 'Set LubosMart password' : 'Change Password'}
                     description={
-                        requiresCurrentPassword
-                            ? 'Confirm your current password, then choose a new one. An email code verifies the change.'
-                            : 'Choose a new password. An email code verifies the change.'
+                        googleOnly
+                            ? 'Set a LubosMart password using an email code. You can then sign in with Google or your email and password.'
+                            : requiresCurrentPassword
+                              ? 'Confirm your current password, then choose a new one. An email code verifies the change.'
+                              : 'Choose a new password. An email code verifies the change.'
                     }
                 />
                 {status && (
@@ -56,9 +58,7 @@ export default function Password({ googleOnly, confirmed, status }: { googleOnly
                         {status}
                     </p>
                 )}
-                {googleOnly ? (
-                    <p className="text-muted-foreground">This account uses Google only. Sign in with Google.</p>
-                ) : confirmingChange ? (
+                {confirmingChange ? (
                     <div className="grid gap-5">
                         <EmailCodeConfirmation purpose="password" confirmed={confirmed} codeSent />
                         <InputError message={(form.errors as Record<string, string>).code} />

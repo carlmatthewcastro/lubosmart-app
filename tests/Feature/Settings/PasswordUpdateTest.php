@@ -90,17 +90,40 @@ test('starting a password change requires authentication', function () {
     $this->assertDatabaseCount('email_security_codes', 0);
 });
 
-test('Google only accounts cannot start a local password change', function () {
+test('Google only accounts can set a local password after email confirmation', function (string $role) {
     Notification::fake();
-    $user = User::factory()->create(['google_id' => 'google-only', 'password' => null]);
+    $user = User::factory()->create(['role' => $role, 'google_id' => 'google-only', 'password' => null]);
+    if ($role === 'rider') {
+        linkRiderToApprovedCenter($user);
+    }
+
+    $this->actingAs($user)->put('/settings/password', [
+        'password' => 'ProposedPassword123', 'password_confirmation' => 'ProposedPassword123',
+    ])->assertSessionHasErrors('code');
 
     $this->actingAs($user)->post('/settings/password/confirm', [
         'password' => 'ProposedPassword123', 'password_confirmation' => 'ProposedPassword123',
-    ])->assertSessionHasErrors(['code' => 'This account uses Google only. Sign in with Google.']);
+    ])->assertSessionHasNoErrors();
 
-    Notification::assertNothingSent();
+    Notification::assertSentTo($user, EmailSecurityCode::class);
     expect($user->fresh()->password)->toBeNull();
+    $this->post('/settings/security-code/verify', ['purpose' => 'password', 'code' => Notification::sent($user, EmailSecurityCode::class)->last()->code])
+        ->assertSessionHasNoErrors();
+    $this->put('/settings/password', ['password' => 'ProposedPassword123', 'password_confirmation' => 'ProposedPassword123'])
+        ->assertSessionHasNoErrors()->assertSessionMissing('password_confirmation');
+    expect(Hash::check('ProposedPassword123', $user->fresh()->password))->toBeTrue();
+    expect($user->fresh()->google_id)->toBe('google-only');
     $this->assertDatabaseCount('email_security_codes', 0);
+})->with(['buyer', 'seller', 'admin', 'logistics', 'rider']);
+
+test('Google accounts can resend a password confirmation code from settings', function () {
+    Notification::fake();
+    $user = User::factory()->create(['google_id' => 'google-code-resend', 'password' => null]);
+
+    $this->actingAs($user)->post('/settings/security-code', ['purpose' => 'password'])->assertSessionHasNoErrors();
+
+    Notification::assertSentTo($user, EmailSecurityCode::class, fn ($notification) => $notification->purpose === 'password');
+    expect($user->fresh()->password)->toBeNull();
 });
 
 test('password settings show confirmation only while its session token is valid', function (string $kind, bool $confirmed) {

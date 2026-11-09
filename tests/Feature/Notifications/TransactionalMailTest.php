@@ -5,11 +5,13 @@ use App\Notifications\AccountStatusChanged;
 use App\Notifications\ApplicationReviewed;
 use App\Notifications\EmailSecurityCode;
 use App\Notifications\OrderDeliveryUpdated;
+use App\Notifications\RiderActivation;
 use App\Notifications\SellerComplianceNotice;
 use App\Notifications\VerifyAccountEmail;
 use App\Providers\AppServiceProvider;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 
 beforeEach(function () {
@@ -43,6 +45,7 @@ test('transactional emails deliver branded HTML and plain text with consistent h
         ->not->toContain('<table', '<img', '<br', 'localhost');
 })->with([
     'verification' => [fn () => new VerifyAccountEmail('012345'), 'Verify your LubosMart email', ['012345', '5 minutes', 'If you did not request it, ignore this email.']],
+    'rider invitation' => [fn () => new RiderActivation('https://lubosmart.app/rider/activate/test-token', 'Test Logistics'), 'Activate your LubosMart rider account', ['Test Logistics', '24 hours', 'https://lubosmart.app/rider/activate/test-token']],
     'approved' => [fn () => new ApplicationReviewed('approved', null), 'Your LubosMart application was approved', ['approved', 'https://lubosmart.app/dashboard/seller']],
     'rejected' => [fn () => new ApplicationReviewed('rejected', 'Please upload a clearer ID.'), 'Your LubosMart application was rejected', ['Reason: Please upload a clearer ID.', 'submit it again', 'https://lubosmart.app/application']],
     'suspended' => [fn () => new AccountStatusChanged('suspended', 'Please contact us about your documents.'), 'Your LubosMart account was suspended', ['access is currently restricted', 'support@example.com', 'Reason: Please contact us about your documents.']],
@@ -61,6 +64,23 @@ test('code emails use the shared panel and keep expiry and verification rules', 
     expect($registration)->toContain('YOUR VERIFICATION CODE', '012345', 'Expires in 5 minutes')->not->toContain('/verify-email/link/');
     expect($password)->toContain('Reset your password', '513488', 'Expires in 10 minutes');
 });
+
+test('forgot password delivers a code through the mail transport for either sign in method', function (bool $googleOnly) {
+    $user = User::factory()->create($googleOnly ? ['google_id' => 'google-mail-delivery', 'password' => null] : []);
+
+    $this->post('/forgot-password', ['email' => $user->email])->assertSessionHasNoErrors()->assertRedirect('/password-code');
+
+    $email = Mail::mailer('array')->getSymfonyTransport()->messages()->sole()->getOriginalMessage();
+    expect($email->getTo()[0]->getAddress())->toBe($user->email);
+    expect($email->getSubject())->toBe('Your LubosMart password code');
+    preg_match('/Verification code: (\d{6})/', $email->getTextBody(), $matches);
+    expect($matches)->toHaveCount(2);
+    $response = $this->post('/password-code', ['email' => $user->email, 'code' => $matches[1]])->assertSessionHasNoErrors();
+    $token = basename(parse_url($response->headers->get('Location'), PHP_URL_PATH));
+    $this->post('/reset-password', ['email' => $user->email, 'token' => $token, 'password' => 'VerifiedPassword123!', 'password_confirmation' => 'VerifiedPassword123!'])
+        ->assertSessionHasNoErrors()->assertRedirect('/login');
+    expect(Hash::check('VerifiedPassword123!', $user->fresh()->password))->toBeTrue();
+})->with(['email and password' => false, 'Google only' => true]);
 
 test('decision emails escape submitted reasons in the shared design', function () {
     $user = User::factory()->make();

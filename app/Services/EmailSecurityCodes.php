@@ -35,7 +35,7 @@ class EmailSecurityCodes
                 return false;
             }
             DB::table('email_code_requests')->insert(['email_hash' => $emailHash, 'requested_at' => now()]);
-            if (! $user || $user->email !== $email || ($purpose === 'password' && ! $user->password)) {
+            if (! $user || $user->email !== $email || ($purpose === 'password' && ! $user->password && ! $user->google_id)) {
                 return false;
             }
             DB::table('email_security_codes')->updateOrInsert(['user_id' => $user->id, 'purpose' => $purpose], [
@@ -122,7 +122,7 @@ class EmailSecurityCodes
     {
         DB::transaction(function () use ($email, $token, $password, $request) {
             $user = User::query()->where('email', Str::lower(trim($email)))->lockForUpdate()->first();
-            if (! $user || ! $user->password) {
+            if (! $user || (! $user->password && ! $user->google_id)) {
                 throw ValidationException::withMessages(['code' => 'Confirm your email code again before continuing.']);
             }
             $this->consume($user, 'password', $token);

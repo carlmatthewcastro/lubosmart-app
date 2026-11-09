@@ -6,6 +6,8 @@ use App\Services\EmailSecurityCodes;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
+use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\User as GoogleUser;
 
 function emailedCode(User $user, string $purpose = 'password'): string
 {
@@ -36,16 +38,42 @@ test('forgot password sends a hashed six digit code with ten minute expiry', fun
     expect($record->expires_at)->toBe(now()->addMinutes(10)->format('Y-m-d H:i:s'));
 });
 
-test('forgot password keeps the same response for missing and Google only accounts', function (string $kind) {
+test('forgot password keeps the same response for missing and invitation only accounts', function (string $kind) {
     Notification::fake();
-    if ($kind === 'google') {
-        User::factory()->create(['email' => 'private@example.com', 'google_id' => 'google-only', 'password' => null]);
+    if ($kind === 'invitation') {
+        User::factory()->create(['email' => 'private@example.com', 'google_id' => null, 'password' => null]);
     }
     $this->post('/forgot-password', ['email' => 'private@example.com'])->assertRedirect('/password-code')
         ->assertSessionHas('status', EmailSecurityCodes::SENT_MESSAGE);
     Notification::assertNothingSent();
     $this->assertDatabaseCount('email_security_codes', 0);
-})->with(['missing', 'google']);
+})->with(['missing', 'invitation']);
+
+test('Google accounts can set a password with an emailed code and keep both sign in methods', function () {
+    Notification::fake();
+    $user = User::factory()->create(['google_id' => 'google-password-setup', 'password' => null]);
+    $this->post('/forgot-password', ['email' => $user->email])->assertRedirect('/password-code');
+    $response = $this->post('/password-code', ['email' => $user->email, 'code' => emailedCode($user)])->assertSessionHasNoErrors();
+    $token = basename(parse_url($response->headers->get('Location'), PHP_URL_PATH));
+
+    $this->post('/reset-password', ['email' => $user->email, 'token' => $token, 'password' => 'NewPassword123!', 'password_confirmation' => 'NewPassword123!'])
+        ->assertSessionHasNoErrors()->assertRedirect('/login');
+
+    expect(Hash::check('NewPassword123!', $user->fresh()->password))->toBeTrue();
+    expect($user->fresh()->google_id)->toBe('google-password-setup');
+    $this->post('/reset-password', ['email' => $user->email, 'token' => $token, 'password' => 'OtherPassword123!', 'password_confirmation' => 'OtherPassword123!'])
+        ->assertSessionHasErrors('code');
+    $this->post('/login', ['email' => $user->email, 'password' => 'NewPassword123!'])->assertSessionHasNoErrors();
+    $this->assertAuthenticatedAs($user);
+    $this->post('/logout');
+
+    Socialite::fake('google', GoogleUser::fake([
+        'id' => 'google-password-setup', 'email' => $user->email, 'verified_email' => true,
+    ]));
+    $this->withSession(['google_registration' => ['intent' => 'login', 'started_at' => now()->timestamp]])
+        ->get(route('auth.google.callback'))->assertSessionHasNoErrors();
+    $this->assertAuthenticatedAs($user);
+});
 
 test('five wrong attempts lock a code even when the next code is correct', function () {
     Notification::fake();
@@ -103,9 +131,9 @@ test('verified codes produce a one time hashed token and resetting revokes other
     $this->post('/reset-password', ['email' => $user->email, 'token' => $token, 'password' => 'another-password', 'password_confirmation' => 'another-password'])->assertSessionHasErrors('code');
 });
 
-test('expired reset tokens and tokens for another user cannot reset a password', function (string $kind) {
+test('expired reset tokens and tokens for another user cannot reset a password', function (string $kind, bool $googleOnly) {
     Notification::fake();
-    $user = User::factory()->create();
+    $user = User::factory()->create($googleOnly ? ['google_id' => 'google-expired-token', 'password' => null] : []);
     $this->post('/forgot-password', ['email' => $user->email]);
     $response = $this->post('/password-code', ['email' => $user->email, 'code' => emailedCode($user)]);
     $token = basename(parse_url($response->headers->get('Location'), PHP_URL_PATH));
@@ -115,8 +143,12 @@ test('expired reset tokens and tokens for another user cannot reset a password',
         $user = User::factory()->create();
     }
     $this->post('/reset-password', ['email' => $user->email, 'token' => $token, 'password' => 'new-password', 'password_confirmation' => 'new-password'])->assertSessionHasErrors('code');
-    expect(Hash::check('password', $user->fresh()->password))->toBeTrue();
-})->with(['expired', 'other-user']);
+    if ($googleOnly && $kind === 'expired') {
+        expect($user->fresh()->password)->toBeNull();
+    } else {
+        expect(Hash::check('password', $user->fresh()->password))->toBeTrue();
+    }
+})->with(['expired', 'other-user'])->with(['direct' => false, 'Google' => true]);
 
 test('profile confirmation codes cannot be used as password reset tokens', function () {
     Notification::fake();
