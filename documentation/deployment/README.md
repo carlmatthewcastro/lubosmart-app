@@ -1,28 +1,10 @@
-# Deployment and Local Setup
+# Deployment and backups
 
 The repository describes production on an Azure Ubuntu VM with Docker Compose and Cloudflare DNS. Live VM/DNS settings, deployed versions, Cloudflare proxy/WAF/cache features and backup execution are unverified. Deployment is manual; GitHub Actions builds/tests do not deploy the VM.
 
 ## Local setup
 
-Requires PHP 8.2+ with required extensions, Composer 2, Node.js 22/npm and a configured database. From a new checkout:
-
-```powershell
-composer install
-npm ci
-# New installation only; preserve an existing environment and application key.
-Copy-Item .env.example .env
-php artisan key:generate
-```
-
-Configure your database privately. `.env.example` defaults to SQLite; for MySQL set `DB_CONNECTION=mysql`, host/port and your local database credentials. Then:
-
-```powershell
-php artisan migrate
-php artisan db:seed --class=MarketplaceCategorySeeder
-composer run dev
-```
-
-Open `http://localhost:8000`. The development script starts Laravel, Vite, a queue listener and log monitoring. On Windows use `PHP_CLI_SERVER_WORKERS=1` if the PHP development server reports an unsupported-fork warning.
+Use the canonical [Laravel/web setup](../setup/WEB.md), [Flutter setup](../setup/FLUTTER.md) and [environment reference](../setup/ENVIRONMENT.md). Commands below concern separately authorized deployment work, not this documentation cleanup.
 
 ## Email and Google configuration
 
@@ -60,6 +42,8 @@ flowchart LR
 Only Caddy publishes ports. Caddy manages origin certificates; Apache runs PHP behind it. MySQL and uploads survive container recreation through named volumes. No Nginx, Redis, SSR or scheduler service is defined in Compose.
 
 ## Release steps
+
+Execute only with explicit deployment authorization for the reviewed release. A documentation change or Git push/merge alone is not that authorization.
 
 Review/merge to `main`, connect through your established SSH access, and retrieve the approved release. Preserve production credentials and `APP_KEY`. Verify database/private-upload backups stored outside Docker volumes and copied off the VM before migrations.
 

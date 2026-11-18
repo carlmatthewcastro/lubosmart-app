@@ -12,7 +12,7 @@ Admin oversees accounts, compliance and platform operations. Accounts are privat
 | Platform content | Publish announcements and policies |
 | Audit | Read recorded decisions and status changes |
 
-Admin records seller payouts only after full COD receipt and reconciliation, and reviews whole-parcel return requests. Refund records require confirmed seller receipt, a bounded actual amount and a unique manual payment reference. Historical sales remain intact; adjustments and seller balances are separate. Admin cannot create, read or pay Rider compensation records; Logistics handles them exclusively. See the [system feature checklist](../../SYSTEM_FEATURE_CHECKLIST.md).
+Admin records seller payouts only after full COD receipt and reconciliation, and reviews current version-3 item/quantity refund requests. Approval credits Lubos Coins and records liability separately from any required physical-return task; it does not wait for seller receipt or cash-reserve funding. See the [current finance/returns contract](../../workflows/FINANCE_AND_RETURNS.md). Historical sales remain intact; adjustments and seller balances are separate. Admin cannot create, read or pay Rider compensation records; Logistics handles them exclusively. See the [system feature checklist](../../testing/SYSTEM_FEATURE_CHECKLIST.md).
 
 Sources: `routes/web.php`, admin/account/review/support/report controllers, `app/Services/Admin/`, `app/Policies/`.
 

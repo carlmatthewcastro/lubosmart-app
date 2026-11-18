@@ -1,5 +1,9 @@
 # LubosMart Flutter application
 
+The latest installed **1.0.1 reference-layout correction**, verification results and remaining phone checks are documented in [Rider 1.0.1 delivery](REFERENCE_UI_1_0_1.md). The [earlier redesign report](REDESIGN_2026_11_17.md) is retained as historical evidence.
+
+For the dedicated live **Rider Android application**, use `lib/rider_main.dart` and the [Rider build, installation and physical-device guide](RIDER_ANDROID.md). From the repository root, run `scripts\rider-android.cmd build debug` or `build release`. This entry point only accepts Rider accounts and defaults to `https://lubosmart.app/api/v1`.
+
 Separate native client for Buyer, Seller and Rider. Laravel stays at the repository root and remains the shared backend for the website and mobile app. The client derives its workspace from the authenticated account; it cannot grant itself a role.
 
 Source and automated checks are implemented. The Android SDK is now installed and Flutter's Android toolchain checks pass; see the [Android setup and APK build report](../../documentation/api/ANDROID_SETUP_2026_11_05.md) for the latest native build status and USB testing instructions. Android/iOS plugin integration on a real device and release signing still require acceptance.
@@ -63,4 +67,4 @@ Admin and Logistics management, approval decisions, company invitation activatio
 
 A timeout does not prove a mutation failed. The client preserves a pending checkout, print or delivery intent and reuses its UUID on explicit retry; it does not silently replay writes. Read refresh pauses when the app/page is inactive.
 
-See the [API coverage](../../documentation/api/ROLE_COVERAGE.md), [OpenAPI](../../documentation/api/openapi.json), [Postman collection](../../documentation/api/lubosmart-v1.postman_collection.json), and [verification and manual acceptance guide](../../documentation/api/MOBILE_COMPLETION_2026_11_05.md).
+See the [API coverage](../../documentation/api/ROLE_COVERAGE.md), [OpenAPI](../../documentation/api/openapi.json), [Postman collection](../../documentation/api/lubosmart-v1.postman_collection.json), and [verification and manual acceptance guide](../../documentation/archive/api/MOBILE_COMPLETION_2026_11_05.md).

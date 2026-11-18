@@ -1,6 +1,6 @@
 # Logistics Functions
 
-Update, 2026-10-26: Logistics exclusively handles Rider fees and payment records at `/rider-payments`; Admin cannot access that ledger. Logistics assigns approved whole-parcel returns; the assigned Rider collects and Seller confirms receipt. Admin separately handles buyer refund decisions/records and seller settlements. See [finance and returns](../../FINANCE_AND_RETURNS.md). These manual workflows supersede the older payout/return gaps below; automatic bank transfers, batch manifests, GPS routing and physical device acceptance remain outside the implemented scope.
+Update, 2026-10-26: Logistics exclusively handles Rider fees and payment records at `/rider-payments`; Admin cannot access that ledger. Logistics assigns approved whole-parcel returns; the assigned Rider collects and Seller confirms receipt. Admin separately handles buyer refund decisions/records and seller settlements. See [finance and returns](../../workflows/FINANCE_AND_RETURNS.md). These manual workflows supersede the older payout/return gaps below; automatic bank transfers, batch manifests, GPS routing and physical device acceptance remain outside the implemented scope.
 
 Logistics companies coordinate riders, coverage and parcel custody. Registration requires ID, business/DTI permit and Admin approval. The stored role is `logistics`.
 
@@ -20,7 +20,7 @@ Quoted orders go to the buyer-selected provider. Legacy unallocated parcels can 
 
 Publishing the first shipping rate enables logistics quotes. After that, unsupported checkout is blocked rather than reverting to flat fees. Existing orders keep their original quotes. Report shipping totals are not rider earnings or confirmed payouts.
 
-Updated 2026-10-16: printable Code 39 tracking labels, scanner/manual entry, optional supported-browser camera capture and parcel event/custody history are implemented locally. See [Logistics implementation and acceptance](../../standards/LOGISTICS_IMPLEMENTATION_ACCEPTANCE.md) for verified checks and limitations. Physical printer/scanner acceptance, QR format selection, batch manifests, GPS routing, return-to-seller/refund/restocking policies and payouts remain pending.
+Updated 2026-10-16: printable Code 39 tracking labels, scanner/manual entry, optional supported-browser camera capture and parcel event/custody history are implemented locally. See [Logistics implementation and acceptance](../../standards/LOGISTICS_IMPLEMENTATION_ACCEPTANCE.md) for verified checks and limitations. That October 16 record is historical. Current QR/POD and reverse-return behavior is documented in the [scanning guide](../../workflows/PARCEL_SCANNING.md) and [finance/returns guide](../../workflows/FINANCE_AND_RETURNS.md). Physical acceptance, batch manifests and GPS routing are not established by that report.
 
 Sources: `DeliveryController`, `RiderServiceAreaController`, `app/Http/Controllers/Logistics/`, `app/Services/Logistics/`, `resources/views/pages/logistics/`.
 

@@ -6,7 +6,7 @@ Follow-up correction: the user requires the original homepage design and navbar
 to remain the visual reference. Homepage presentation has been restored and its
 navbar is reused on Marketplace and other public pages. The implementation
 inventory below describes the initial batch; see
-[the restoration report](HOME_DESIGN_RESTORATION_2026_11_14.md) for the superseding changes.
+[the restoration report](../archive/ui-audits/HOME_DESIGN_RESTORATION_2026_11_14.md) for the superseding changes.
 
 ## Product provenance and visibility
 

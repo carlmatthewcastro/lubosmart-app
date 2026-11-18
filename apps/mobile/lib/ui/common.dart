@@ -4,6 +4,33 @@ import 'package:flutter/material.dart';
 
 import '../core/api.dart';
 
+String shortReference(dynamic reference) {
+  final value = reference?.toString() ?? 'Awaiting reference';
+  return value.length > 23 ? '${value.substring(0, 23)}…' : value;
+}
+
+String localEventTime(dynamic value) {
+  final raw = '$value';
+  final zoned = RegExp(r'(Z|[+-]\d{2}:?\d{2})$').hasMatch(raw);
+  final date = DateTime.tryParse(zoned ? raw : '${raw.replaceFirst(' ', 'T')}Z')
+      ?.toUtc()
+      .add(const Duration(hours: 8));
+  if (date == null) return '';
+  return '${date.month}/${date.day}/${date.year} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')} PHT';
+}
+
+String addressText(dynamic value) {
+  if (value is! Map) return 'Available at the appropriate handover.';
+  final parts = ['name', 'line1', 'barangay', 'city', 'province', 'phone']
+      .map((key) => value[key]?.toString())
+      .whereType<String>()
+      .where((part) => part.isNotEmpty)
+      .toList();
+  return parts.isEmpty
+      ? 'Available at the appropriate handover.'
+      : parts.join(', ');
+}
+
 Future<bool> confirm(
   BuildContext context,
   String title,
@@ -47,6 +74,30 @@ class Loading extends StatelessWidget {
   );
 }
 
+class UploadStatus extends StatelessWidget {
+  final Api api;
+  const UploadStatus(this.api, {super.key});
+  @override
+  Widget build(BuildContext context) => ValueListenableBuilder<double?>(
+    valueListenable: api.uploadProgress,
+    builder: (context, value, _) => value == null
+        ? const SizedBox.shrink()
+        : Semantics(
+            liveRegion: true,
+            child: Column(
+              children: [
+                LinearProgressIndicator(value: value < 1 ? value : null),
+                Text(
+                  value < 1
+                      ? 'Uploading photo: ${(value * 100).round()}%'
+                      : 'Upload sent. Confirming parcel status…',
+                ),
+              ],
+            ),
+          ),
+  );
+}
+
 class Failure extends StatelessWidget {
   final Object error;
   final VoidCallback retry;
@@ -69,10 +120,22 @@ class PageFrame extends StatelessWidget {
   final String title;
   final Widget child;
   final List<Widget>? actions;
-  const PageFrame(this.title, this.child, {this.actions, super.key});
+  final Widget? appBarTitle;
+  final bool showAppBar;
+  const PageFrame(
+    this.title,
+    this.child, {
+    this.actions,
+    this.appBarTitle,
+    this.showAppBar = true,
+    super.key,
+  });
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text(title), actions: actions),
+    appBar:
+        !showAppBar || title == 'LubosMart Rider' || title == 'Rider dashboard'
+        ? null
+        : AppBar(title: appBarTitle ?? Text(title), actions: actions),
     body: SafeArea(child: child),
   );
 }
@@ -82,12 +145,16 @@ class ResourcePage extends StatefulWidget {
   final String path, title;
   final Widget Function(BuildContext, Json, VoidCallback) builder;
   final List<Widget>? actions;
+  final Widget? appBarTitle;
+  final bool showAppBar;
   const ResourcePage({
     required this.api,
     required this.path,
     required this.title,
     required this.builder,
     this.actions,
+    this.appBarTitle,
+    this.showAppBar = true,
     super.key,
   });
   @override
@@ -189,16 +256,20 @@ class _ResourcePageState extends State<ResourcePage>
       },
     ),
     actions: widget.actions,
+    appBarTitle: widget.appBarTitle,
+    showAppBar: widget.showAppBar,
   );
 }
 
 class InfoCard extends StatelessWidget {
+  final String? status;
   final String title;
   final String? subtitle;
   final Widget? child;
   final VoidCallback? onTap;
   const InfoCard(
     this.title, {
+    this.status,
     this.subtitle,
     this.child,
     this.onTap,
@@ -208,14 +279,43 @@ class InfoCard extends StatelessWidget {
   Widget build(BuildContext context) => Card(
     margin: const EdgeInsets.only(bottom: 16),
     child: InkWell(
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(14),
       onTap: onTap,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(title, style: Theme.of(context).textTheme.titleMedium),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+                if (onTap != null) const Icon(Icons.chevron_right, size: 20),
+              ],
+            ),
+            if (status != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: Chip(
+                  avatar: Icon(
+                    status == 'delivered'
+                        ? Icons.check_circle_outline
+                        : Icons.inventory_2_outlined,
+                    size: 18,
+                  ),
+                  label: Text(status!.replaceAll('_', ' ')),
+                  side: BorderSide.none,
+                  backgroundColor:
+                      Theme.of(context).brightness == Brightness.dark
+                      ? const Color(0xff49321b)
+                      : const Color(0xffffeedc),
+                ),
+              ),
             if (subtitle != null) ...[
               const SizedBox(height: 8),
               Text(subtitle!),
@@ -233,11 +333,19 @@ class ActionButton extends StatefulWidget {
   final Future<void> Function() action;
   final bool outlined;
   final bool enabled;
+  final Widget? leading;
+  final Widget? trailing;
+  final bool showProgressIndicator;
+  final TextStyle? textStyle;
   const ActionButton(
     this.label,
     this.action, {
     this.outlined = false,
     this.enabled = true,
+    this.leading,
+    this.trailing,
+    this.showProgressIndicator = false,
+    this.textStyle,
     super.key,
   });
   @override
@@ -259,18 +367,56 @@ class _ActionButtonState extends State<ActionButton> {
   }
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: 8),
-    child: widget.outlined
-        ? OutlinedButton(
-            onPressed: busy || !widget.enabled ? null : run,
-            child: Text(busy ? 'Please wait…' : widget.label),
+  Widget build(BuildContext context) {
+    final text = busy ? 'Please wait…' : widget.label;
+    final style = widget.textStyle;
+    final content = busy && widget.showProgressIndicator
+        ? Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: widget.outlined
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).colorScheme.onPrimary,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(text, style: style),
+            ],
           )
-        : FilledButton(
-            onPressed: busy || !widget.enabled ? null : run,
-            child: Text(busy ? 'Please wait…' : widget.label),
-          ),
-  );
+        : widget.leading == null && widget.trailing == null
+        ? Text(text, style: style)
+        : Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (widget.leading != null) ...[
+                widget.leading!,
+                const SizedBox(width: 8),
+              ],
+              Text(text, style: style),
+              if (widget.trailing != null) ...[
+                const SizedBox(width: 8),
+                widget.trailing!,
+              ],
+            ],
+          );
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: widget.outlined
+          ? OutlinedButton(
+              onPressed: busy || !widget.enabled ? null : run,
+              child: content,
+            )
+          : FilledButton(
+              onPressed: busy || !widget.enabled ? null : run,
+              child: content,
+            ),
+    );
+  }
 }
 
 class InputSpec {

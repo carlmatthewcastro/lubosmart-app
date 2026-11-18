@@ -18,7 +18,7 @@ Sellers manage their store's products and fulfillment. Registration requires an 
 
 Sellers prepare parcels for logistics pickup. Shipping uses stored quotes; the default commission is 10% of item subtotal excluding shipping. Reported proceeds do not prove a completed payout.
 
-Sellers can manage size/color option stock and fixed peso store vouchers. Buyers can rate delivered items; authorized admins moderate reviews. Sellers also have own-store report exports, manual payout history, returned-goods receipt/restock and a recorded-cost profit ledger. Automatic bank transfers and audited tax accounting are not implemented. See [finance and returns](../../FINANCE_AND_RETURNS.md) and [seller/buyer completion](../../SELLER_BUYER_COMPLETION.md) for rules, limits and verification.
+Sellers can manage size/color option stock and fixed peso store vouchers. Buyers can rate delivered items; authorized admins moderate reviews. Sellers also have own-store report exports, manual payout history, returned-goods receipt/restock and a recorded-cost profit ledger. Automatic bank transfers and audited tax accounting are not implemented. See [finance and returns](../../workflows/FINANCE_AND_RETURNS.md) and [seller/buyer completion](../../archive/reports/SELLER_BUYER_COMPLETION.md) for rules, limits and historical verification. Current voucher/return guidance takes precedence over the earlier seller/buyer report.
 
 Sources: `InventoryController`, `OrderController`, `ReportController`, `Store`, `Product`, `SellerOrder`.
 

@@ -44,6 +44,7 @@ class Api {
   final PrivateStore store;
   String? token;
   int? userId;
+  final uploadProgress = ValueNotifier<double?>(null);
   Future<void> Function()? onUnauthorized;
   Api(String origin, {http.Client? transport, PrivateStore? store})
     : base = Uri.parse('${origin.replaceFirst(RegExp(r'/$'), '')}/'),
@@ -93,9 +94,21 @@ class Api {
             await http.MultipartFile.fromPath(file.key, file.value),
           );
         }
-        return await http.Response.fromStream(
-          await transport.send(request).timeout(const Duration(seconds: 30)),
-        ).timeout(const Duration(seconds: 30));
+        uploadProgress.value = 0;
+        try {
+          return await http.Response.fromStream(
+            await transport
+                .send(
+                  _UploadRequest(
+                    request,
+                    (value) => uploadProgress.value = value,
+                  ),
+                )
+                .timeout(const Duration(seconds: 60)),
+          ).timeout(const Duration(seconds: 60));
+        } finally {
+          uploadProgress.value = null;
+        }
       }
       final request = http.Request(method, url(path))..headers.addAll(headers);
       if (body != null) {
@@ -224,7 +237,36 @@ class Api {
     }
   }
 
-  void close() => transport.close();
+  void close() {
+    uploadProgress.dispose();
+    transport.close();
+  }
+}
+
+class _UploadRequest extends http.BaseRequest {
+  final http.MultipartRequest request;
+  final ValueChanged<double> progress;
+  _UploadRequest(this.request, this.progress)
+    : super(request.method, request.url) {
+    headers.addAll(request.headers);
+    followRedirects = request.followRedirects;
+    maxRedirects = request.maxRedirects;
+  }
+  @override
+  http.ByteStream finalize() {
+    final stream = request.finalize();
+    headers.addAll(request.headers);
+    contentLength = request.contentLength;
+    super.finalize();
+    var sent = 0;
+    return http.ByteStream(
+      stream.map((chunk) {
+        sent += chunk.length;
+        progress(sent / request.contentLength);
+        return chunk;
+      }),
+    );
+  }
 }
 
 List<Json> rows(dynamic value) {
@@ -243,17 +285,36 @@ int cents(dynamic value) {
 
 String pesos(int amount) => 'PHP ${(amount / 100).toStringAsFixed(2)}';
 
+String riderPesos(int amount) =>
+    '₱${(amount / 100).toStringAsFixed(2).replaceAllMapped(RegExp(r'(\d)(?=(\d{3})+\.)'), (m) => '${m[1]},')}';
+
 class Session extends ChangeNotifier {
   final Api api;
+  final bool riderOnly;
   Json? identity;
   String? kind;
   bool restoring = true;
   String? restoreError;
-  Session(this.api) {
+  Session(this.api, {this.riderOnly = false}) {
     api.onUnauthorized = clear;
   }
   String get role => identity?['role']?.toString() ?? '';
   Future<void> accept(Json data) async {
+    if (riderOnly && data['user']?['role'] != 'rider') {
+      api.token = data['access_token'] as String?;
+      try {
+        await api.request(
+          'DELETE',
+          data['kind'] == 'onboarding' ? 'onboarding/token' : 'auth/token',
+        );
+      } finally {
+        await clear();
+      }
+      throw const ApiFailure(
+        403,
+        'Sign in with a Rider account to use LubosMart Rider.',
+      );
+    }
     api.token = data['access_token'] as String;
     identity = Json.from(data['user'] as Map);
     api.userId = identity!['id'] as int;
@@ -283,6 +344,7 @@ class Session extends ChangeNotifier {
               : response['data'] as Map,
         );
         api.userId = identity!['id'] as int;
+        if (riderOnly && role != 'rider') await logout();
       }
     } on ApiFailure catch (error) {
       if (error.status == 401 || error.status == 403) {
@@ -305,7 +367,9 @@ class Session extends ChangeNotifier {
       body: {
         'email': email.trim(),
         'password': password,
-        'device_name': 'LubosMart Flutter',
+        'device_name': riderOnly
+            ? 'LubosMart Rider Android'
+            : 'LubosMart Flutter',
       },
     );
     await accept(Json.from(response['data'] as Map));

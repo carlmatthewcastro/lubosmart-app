@@ -57,7 +57,7 @@ php artisan serve --host=127.0.0.1 --port=8000
 
 If multiple devices are connected, supply adb -s DEVICE_SERIAL before reverse/install. Repeat adb reverse after reconnecting or restarting the phone. This USB test build needs that connection to reach the PC's API. For a LAN/remote API, rebuild with its reachable URL instead.
 
-6. Open LubosMart on the phone and use approved test accounts. Follow the [native acceptance worksheet](MOBILE_COMPLETION_2026_11_05.md) or [Excel-compatible checklist](../MOBILE_ACCEPTANCE_CHECKLIST.csv), including camera/proof, scanner, protected files, interrupted requests, secure storage and each role workflow.
+6. Open LubosMart on the phone and use approved test accounts. Follow the [native acceptance worksheet](../archive/api/MOBILE_COMPLETION_2026_11_05.md) or [Excel-compatible checklist](../MOBILE_ACCEPTANCE_CHECKLIST.csv), including camera/proof, scanner, protected files, interrupted requests, secure storage and each role workflow.
 
 Backend-generated asset and pagination URLs must also be reachable from the device. For USB port forwarding, use a test APP_URL at http://127.0.0.1:8000 and repeat the reverse command; for LAN testing use the PC's reachable address. Preserve real configuration and data.
 

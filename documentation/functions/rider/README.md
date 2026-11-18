@@ -16,7 +16,7 @@ Existing company-created invitations and their activation URLs remain compatible
 
 Operations require an approved account and operational center. Assignment must match center and service-area eligibility. Center receipt/sorting is required before dispatch for destination/weight quoted orders.
 
-Reasoned failed attempts, Logistics holds/retries and scanned return-to-center receipt are implemented. Riders also see their own Logistics-recorded fees/payment history and can collect approved return-to-seller parcels assigned by Logistics. Admin has no Rider-payments access. Fees require actual work evidence; COD/shipping totals are not wages. First-come self-assignment and automatic bank transfers are not implemented. See [finance and returns](../../FINANCE_AND_RETURNS.md) and the [Logistics and Rider demo](../../LOGISTICS_DEMO.md).
+Reasoned failed attempts, Logistics holds/retries and scanned return-to-center receipt are implemented. Riders also see their own Logistics-recorded fees/payment history and can collect approved return-to-seller parcels assigned by Logistics. Admin has no Rider-payments access. Fees require actual work evidence; COD/shipping totals are not wages. First-come self-assignment and automatic bank transfers are not implemented. See [finance and returns](../../workflows/FINANCE_AND_RETURNS.md) and the [Logistics and Rider demo](../../archive/reports/LOGISTICS_DEMO.md).
 
 Sources: `DeliveryController`, `DashboardController`, `ReportController`, `User::canOperate`, `rider_service_area`.
 

@@ -20,13 +20,13 @@ November 5, 2026 update: `routes/api.php` adds stateless mobile API v1 routing a
 
 ## Accounts and access
 
-Public roles are `buyer`, `seller`, `courier` and `sorting_center`. Admin accounts are provisioned with `php artisan lubosmart:create-admin`.
+Current public role identifiers are `buyer`, `seller`, `rider` and `logistics`; older records use courier/sorting-center terminology. Admin accounts are provisioned with `php artisan lubosmart:create-admin`.
 
-Rider password signup follows **unverified → incomplete → pending → approved or rejected**. Email verification opens the Rider application; submission requests Logistics approval. Current Buyer password signup activates after email verification. Complete Seller/Logistics registrations become pending after verification for Admin review. Legacy/Google onboarding can require completing an application first. Rejected applicants can correct and resubmit. Suspension/deactivation blocks existing sessions as well as new access.
+Rider signup collects its application in the combined registration form; after verification, a complete submission waits for Logistics review. See the [Rider guide](../functions/rider/README.md). Current Buyer password signup activates after email verification. Complete Seller/Logistics registrations become pending after verification for Admin review. Legacy/Google onboarding can require completing an application first. Rejected applicants can correct and resubmit. Suspension/deactivation blocks existing sessions as well as new access.
 
 | Role | Reviewer | Required documents |
 | --- | --- | --- |
-| Buyer | Admin | ID |
+| Buyer | Admin for review-required applications; current password signup activates after verification | ID |
 | Seller | Admin | ID and business permit |
 | Courier / Rider | Selected Logistics company / sorting center | ID, driver's license and OR/CR |
 | Sorting Center | Admin | ID and business/DTI permit |
@@ -38,13 +38,13 @@ Google signup requires a verified provider email and still follows application a
 ## Security and business rules
 
 - Passwords are hashed; bank fields are encrypted and hidden from ordinary serialization.
-- Verification links are hashed, expire after 24 hours and can be consumed once. Recovery codes expire after ten minutes and limit failed attempts.
+- Registration verification uses emailed six-digit codes; the old verification-link endpoint returns 410. Recovery codes are a separate flow. See `EmailVerificationLinks`, `RegistrationEmailCodes` and `VerifyEmailController` for the current handlers.
 - Registration documents and delivery proofs are private. Downloads recheck permission; registration links also have a short-lived signature.
 - Checkout locks inventory, uses server prices, snapshots address/shipping/commission data and supports a buyer-scoped UUID retry key.
-- Payments are COD only. The default commission is 10% of item subtotal, excluding shipping. Delivery completion records commission; this is not proof of a seller payout.
+- Shipping remains cash; merchandise can also use opt-in Lubos Coins as described in the [current finance contract](../workflows/FINANCE_AND_RETURNS.md). The default commission is 10% of item subtotal, excluding shipping. Delivery completion records commission; this is not proof of a seller payout.
 - Security mail sends synchronously. Decision/status mail queues after commit. Daily cleanup requires the scheduler to run.
 
-For the API migration, reuse actions/services and extract controller transactions as needed. Web and API controllers must share business rules. See [API](../api/README.md) and [setup](../deployment/README.md).
+The implemented API and website share actions/services where available. Web and API controllers must share business rules. See [API](../api/README.md) and [setup](../deployment/README.md).
 
 Checks: `php artisan test`, `php vendor/bin/pint --test`. Tests exist under `tests/`; production locking behavior also needs MySQL checks.
 
