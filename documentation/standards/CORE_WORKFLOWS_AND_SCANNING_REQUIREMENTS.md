@@ -6,7 +6,7 @@ Implementation update, 2026-10-16: [Logistics implementation and acceptance](LOG
 
 ## Purpose and authority
 
-Implementation update, 2026-10-25: [seller/buyer completion and role connections](../SELLER_BUYER_COMPLETION.md) records the added size/color stock, store vouchers, verified-purchase ratings, buyer search/queues and handover tracking, with current verification evidence. Historical observed-source gaps below retain their original review date; they do not override that update.
+Implementation update, 2026-10-25: [seller/buyer completion and role connections](../archive/reports/SELLER_BUYER_COMPLETION.md) records the added size/color stock, store vouchers, verified-purchase ratings, buyer search/queues and handover tracking, with current verification evidence. Historical observed-source gaps below retain their original review date; they do not override that update.
 
 This document preserves the website's core requirements, explains who is responsible at each stage, and supplies a proposed scanning workflow that the ERP reference leaves undefined. It is a planning and acceptance reference; creating it does not implement features or authorize website changes, deployment, or changes to business policy.
 
@@ -300,6 +300,6 @@ Primary sources inspected for this comparison:
 - [Current printable waybill](../../resources/views/pages/marketplace/waybill.tsx)
 - [Category seeder](../../database/seeders/MarketplaceCategorySeeder.php) and [category configuration](../../config/marketplace_categories.php)
 - [Logistics regression test source](../../tests/Feature/Logistics/LogisticsWorkspaceTest.php) and [checkout test source](../../tests/Feature/Checkout/CreateOrderFromCartTest.php); their presence is not a claim that they ran in this documentation task
-- [Earlier ERP capability audit](ERP_ROLE_CAPABILITY_AUDIT.md), [logistics workspace reference](LOGISTICS_WORKSPACE.md), and [registration requirements](REGISTRATION_REQUIREMENTS.md)
+- [Earlier ERP capability audit](../archive/ui-audits/ERP_ROLE_CAPABILITY_AUDIT.md), [logistics workspace reference](LOGISTICS_WORKSPACE.md), and [registration requirements](REGISTRATION_REQUIREMENTS.md)
 
 This review leaves the earlier documents intact. Where their historical descriptions differ, consult the dated source finding above and verify the intended requirement before changing application behavior.

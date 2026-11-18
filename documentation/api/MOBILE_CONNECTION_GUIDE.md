@@ -28,4 +28,4 @@ Keep action UUIDs until a response conclusively resolves the action. Never creat
 
 Use multipart POST plus \_method for file-bearing PUT/PATCH. Private proof/evidence downloads require bearer headers. GET locations is a raw array; other lists can use either Resource or nested Laravel paginator envelopes. See [API details](README.md).
 
-The Android SDK is now installed and its toolchain checks pass. See the [Android setup and APK report](ANDROID_SETUP_2026_11_05.md) for the current build status and USB testing instructions. No Android phone or emulator was connected during setup; actual native integration still needs the [device checklist](MOBILE_COMPLETION_2026_11_05.md).
+The Android SDK is now installed and its toolchain checks pass. See the [Android setup and APK report](ANDROID_SETUP_2026_11_05.md) for the current build status and USB testing instructions. No Android phone or emulator was connected during setup; actual native integration still needs the [device checklist](../archive/api/MOBILE_COMPLETION_2026_11_05.md).

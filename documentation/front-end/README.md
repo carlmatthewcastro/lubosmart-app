@@ -7,8 +7,8 @@ Start with the [frontend code map](code-map.md) to find each role's dashboard, r
 | Location | Purpose |
 | --- | --- |
 | `resources/js/app.tsx` | Starts React/Inertia and resolves pages |
-| `resources/js/pages/` | Public, account, marketplace, admin and logistics screens |
-| `resources/js/components/` | Shared layouts, forms, dialogs and UI components |
+| `resources/views/pages/` | Public, account, marketplace, admin and logistics screens |
+| `resources/views/components/` | Shared layouts, forms, dialogs and UI components |
 | `resources/js/hooks/` | Reusable UI behavior |
 | `resources/css/app.css` | Tailwind styles and theme |
 | `resources/views/app.blade.php` | Inertia shell and asset loading |
@@ -24,7 +24,7 @@ No separate Redux, Zustand or TanStack Query layer is declared. The planned API 
 
 Reuse existing components and the purple theme. Keep layouts responsive, fields labelled, errors visible, and buttons disabled while submitting. Support keyboard navigation, dark mode and reduced motion where the existing components do.
 
-Role screens are documented under [Functions](../README.md#functions). All public roles need approval before operational menus unlock; email verification alone does not activate a buyer.
+Role screens are documented under [Functions](../workflows/README.md). All public roles need approval before operational menus unlock; email verification alone does not activate a buyer.
 
 ## Development commands
 

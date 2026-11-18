@@ -1,6 +1,6 @@
 # Mobile role coverage
 
-Implemented November 5, 2026. “Implemented” below means source and relevant automated checks exist; native device acceptance is still outstanding. See [verification](MOBILE_COMPLETION_2026_11_05.md).
+Implemented November 5, 2026. “Implemented” below means source and relevant automated checks exist; native device acceptance is still outstanding. See [verification](../archive/api/MOBILE_COMPLETION_2026_11_05.md).
 
 | Module                                                                                                           | Buyer              | Seller                    | Rider                  |
 | ---------------------------------------------------------------------------------------------------------------- | ------------------ | ------------------------- | ---------------------- |

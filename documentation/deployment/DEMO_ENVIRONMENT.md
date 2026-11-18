@@ -199,7 +199,7 @@ After approval of the branch/base, stage only this task's paths:
 ```powershell
 git status --short --branch
 git diff --stat
-git add -- app/Services/Demo database/demo config/demo.php .env.example database/seeders/LubosMartDemoSeeder.php database/migrations/2026_11_16_161709_create_demo_fixtures_table.php app/Console/Commands/DemoPreflight.php app/Console/Commands/DemoProvisionPrimary.php app/Console/Commands/DemoVerify.php app/Console/Commands/DemoPhotos.php scripts/demo-backup.php scripts/demo-local-check.php scripts/demo-audit.php tests/Feature/Database/LubosMartDemoSeederTest.php tests/Frontend/demo-qr-check.cjs documentation/deployment/DEMO_ENVIRONMENT.md documentation/deployment/DEMO_PREPARATION_RESULTS.md
+git add -- app/Services/Demo database/demo config/demo.php .env.example database/seeders/LubosMartDemoSeeder.php database/migrations/2026_11_16_161709_create_demo_fixtures_table.php app/Console/Commands/DemoPreflight.php app/Console/Commands/DemoProvisionPrimary.php app/Console/Commands/DemoVerify.php app/Console/Commands/DemoPhotos.php scripts/demo-backup.php scripts/demo-local-check.php scripts/demo-audit.php tests/Feature/Database/LubosMartDemoSeederTest.php tests/Frontend/demo-qr-check.cjs documentation/deployment/DEMO_ENVIRONMENT.md documentation/archive/deployment/DEMO_PREPARATION_RESULTS.md
 git diff --cached --check
 git diff --cached
 git commit -m 'feat(demo): prepare interconnected marketplace demonstration fixtures'

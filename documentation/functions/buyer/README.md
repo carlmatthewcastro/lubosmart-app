@@ -12,7 +12,7 @@ Buyers discover products and place COD orders. Email/password Buyer registration
 | Cancellation | Cancel while all seller orders are pending; stock is restored |
 | Support | Use order conversations and support/complaint threads |
 
-Buyers communicate with sellers and receive rider/center status updates. They can select size/color options, apply one store voucher at checkout, search/filter their parcels and rate delivered items. Product pages show visible verified-purchase reviews. Whole-parcel returns now follow Admin approval, Logistics assignment, Rider collection, Seller receipt and recorded manual refund; original tracking/COD history stays intact. Automated bank/provider refunds and item-by-item partial returns are not implemented. See [finance and returns](../../FINANCE_AND_RETURNS.md) and [seller/buyer completion](../../SELLER_BUYER_COMPLETION.md).
+Buyers communicate with sellers and receive rider/center status updates. They can select size/color options, apply one store voucher at checkout, search/filter their parcels and rate delivered items. Product pages show visible verified-purchase reviews. Current version-3 requests support eligible item quantities and Admin-approved Lubos Coin credits, with a separate physical-return task when required. Original tracking/COD history stays intact. Automatic bank/provider refunds are not implemented. See [finance and returns](../../workflows/FINANCE_AND_RETURNS.md) and [seller/buyer completion](../../archive/reports/SELLER_BUYER_COMPLETION.md).
 
 Sources: `MarketplaceController`, `OrderController`, `SupportCaseController`, `CreateOrderFromCart`, `resources/views/pages/marketplace/`.
 

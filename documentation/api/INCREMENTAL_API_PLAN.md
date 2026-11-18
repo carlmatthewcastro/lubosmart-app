@@ -1,6 +1,6 @@
 # API scope and remaining acceptance
 
-Updated November 5, 2026. The initial commerce/custody slice has expanded to 82 operations and a separate Flutter application for Buyer, Seller and Rider. See [implemented coverage](ROLE_COVERAGE.md) and [completion evidence](MOBILE_COMPLETION_2026_11_05.md).
+Updated November 5, 2026. The initial commerce/custody slice has expanded to 82 operations and a separate Flutter application for Buyer, Seller and Rider. See [implemented coverage](ROLE_COVERAGE.md) and [completion evidence](../archive/api/MOBILE_COMPLETION_2026_11_05.md).
 
 | Work                                                                                    | Status                                                             |
 | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |

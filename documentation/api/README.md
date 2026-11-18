@@ -2,7 +2,7 @@
 
 The versioned Laravel API is served under /api/v1. A separate Flutter application lives in [apps/mobile](../../apps/mobile/README.md), focused on Buyer, Seller and Rider. Existing Laravel/Inertia pages and the shared database remain in place.
 
-Start with the [role coverage](ROLE_COVERAGE.md), [endpoint inventory](ENDPOINTS.md), [OpenAPI contract](openapi.json), [Postman collection](lubosmart-v1.postman_collection.json) and [connection guide](MOBILE_CONNECTION_GUIDE.md). The [completion report](MOBILE_COMPLETION_2026_11_05.md) records passing checks and native build limitations. The earlier [initial implementation report](IMPLEMENTATION_2026_11_05.md) describes the historical 24-operation slice.
+Start with the [role coverage](ROLE_COVERAGE.md), [endpoint inventory](ENDPOINTS.md), [OpenAPI contract](openapi.json), [Postman collection](lubosmart-v1.postman_collection.json) and [connection guide](MOBILE_CONNECTION_GUIDE.md). The [completion report](../archive/api/MOBILE_COMPLETION_2026_11_05.md) records passing checks and native build limitations. The earlier [initial implementation report](../archive/api/IMPLEMENTATION_2026_11_05.md) describes the historical 24-operation slice.
 
 ## Authentication and boundaries
 
