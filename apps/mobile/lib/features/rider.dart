@@ -40,29 +40,12 @@ class _RiderHomeState extends State<RiderHome> {
     ];
     return Scaffold(
       body: pages[tab],
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: tab,
-        onDestinationSelected: (value) => setState(() => tab = value),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            label: 'Home',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.local_shipping_outlined),
-            label: 'Tasks',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.assignment_return_outlined),
-            label: 'Returns',
-          ),
-          NavigationDestination(icon: Icon(Icons.history), label: 'History'),
-          NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            label: 'Profile',
-          ),
-        ],
-      ),
+      bottomNavigationBar: MediaQuery.viewInsetsOf(context).bottom > 0
+          ? null
+          : RiderBottomNavigation(
+              selectedIndex: tab,
+              onDestinationSelected: (value) => setState(() => tab = value),
+            ),
     );
   }
 }
@@ -71,6 +54,7 @@ class RiderDashboard extends StatelessWidget {
   final Api api;
   final String? name;
   const RiderDashboard(this.api, {this.name, super.key});
+
   @override
   Widget build(BuildContext context) => ResourcePage(
     api: api,
@@ -78,156 +62,275 @@ class RiderDashboard extends StatelessWidget {
     title: 'Rider dashboard',
     builder: (context, response, reload) {
       final queues = response['data']['queues'] as Map;
-      final primary = Theme.of(context).colorScheme.primary;
-      final onPrimary = Theme.of(context).colorScheme.onPrimary;
+      final colors = Theme.of(context).colorScheme;
+      final darkMode = Theme.of(context).brightness == Brightness.dark;
+      final completionColor = darkMode
+          ? const Color(0xff57328a)
+          : colors.primary;
       Future<void> queue(String stage) async {
         await open(context, RiderQueue(api, stage));
         reload();
       }
 
-      final greeting = name == null ? 'Rider' : name!.trim().split(' ').first;
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Row(
-            children: [
-              RiderBrand(),
-              Spacer(),
-              Icon(Icons.local_shipping_outlined, size: 24),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
+      final riderName = (name ?? '').trim();
+      final greeting = riderName.isEmpty
+          ? 'Rider'
+          : riderName.split(RegExp(r'\s+')).first;
+      const metrics = [
+        (
+          key: 'pickups',
+          label: 'Pickups',
+          icon: Icons.inventory_2_outlined,
+          background: Color(0xfff1eafd),
+          foreground: Color(0xff6941a5),
+        ),
+        (
+          key: 'dispatch',
+          label: 'Dispatch',
+          icon: Icons.local_shipping_outlined,
+          background: Color(0xffe7f2ff),
+          foreground: Color(0xff2870a8),
+        ),
+        (
+          key: 'monitoring',
+          label: 'Active deliveries',
+          icon: Icons.route_outlined,
+          background: Color(0xffe7f8ec),
+          foreground: Color(0xff198754),
+        ),
+        (
+          key: 'cash',
+          label: 'COD handovers',
+          icon: Icons.account_balance_wallet_outlined,
+          background: Color(0xfffff0e2),
+          foreground: Color(0xffb56519),
+        ),
+      ];
+
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final artworkSize = (constraints.maxWidth * .4)
+              .clamp(112.0, 164.0)
+              .toDouble();
+          final largeText = MediaQuery.textScalerOf(context).scale(1) > 1.3;
+          final columns = largeText ? 1 : 2;
+          final spacing = 12.0;
+          final tileWidth =
+              (constraints.maxWidth - spacing * (columns - 1)) / columns;
+          final tileHeight = largeText
+              ? 112.0
+              : (constraints.maxWidth < 320 ? 100.0 : 96.0);
+
+          return TweenAnimationBuilder<double>(
+            tween: Tween(begin: 0, end: 1),
+            duration: MediaQuery.of(context).disableAnimations
+                ? Duration.zero
+                : const Duration(milliseconds: 220),
+            curve: Curves.easeOutCubic,
+            builder: (context, progress, child) => Opacity(
+              opacity: progress,
+              child: Transform.translate(
+                offset: Offset(0, 8 * (1 - progress)),
+                child: child,
+              ),
+            ),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 680),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text('Good day,', style: TextStyle(fontSize: 16)),
-                    Text(
-                      '$greeting!',
-                      style: const TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w700,
-                      ),
+                    const Row(
+                      children: [
+                        RiderBrand(),
+                        Spacer(),
+                        RiderIcon(Icons.local_shipping_outlined, size: 24),
+                      ],
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      'Ready for your next delivery?',
-                      style: TextStyle(fontSize: 13),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Good day,',
+                                style: TextStyle(fontSize: 16),
+                              ),
+                              Text(
+                                '$greeting!',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.w700,
+                                  height: 1.12,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              const Text(
+                                'Ready for your next delivery?',
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(fontSize: 13),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        RiderArtwork(height: artworkSize, portrait: true),
+                      ],
                     ),
-                  ],
-                ),
-              ),
-              const RiderArtwork(height: 100, portrait: true),
-            ],
-          ),
-          const SizedBox(height: 20),
-          LayoutBuilder(
-            builder: (context, c) => GridView.count(
-              crossAxisCount: c.maxWidth >= 600
-                  ? 4
-                  : (MediaQuery.textScalerOf(context).scale(16) > 22 ? 1 : 2),
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio:
-                  (c.maxWidth < 340 ? 1.0 : 1.38) /
-                  MediaQuery.textScalerOf(context).scale(1).clamp(1, 3),
-              children: [
-                for (final key in ['pickups', 'dispatch', 'monitoring', 'cash'])
-                  RiderMetric(
-                    riderQueues[key]!,
-                    '${queues[key] ?? 'Unavailable'}',
-                    onTap: () => queue(key),
-                    icon: const {
-                      'pickups': Icons.inventory_2_outlined,
-                      'dispatch': Icons.local_shipping_outlined,
-                      'monitoring': Icons.route_outlined,
-                      'cash': Icons.account_balance_wallet_outlined,
-                    }[key]!,
-                  ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          Card(
-            color: primary,
-            margin: EdgeInsets.zero,
-            child: InkWell(
-              onTap: () => queue('completed'),
-              borderRadius: BorderRadius.circular(16),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    const CircleAvatar(
-                      backgroundColor: Colors.white,
-                      child: Icon(Icons.check, color: Color(0xff6f47b3)),
+                    const SizedBox(height: 12),
+                    GridView.count(
+                      crossAxisCount: columns,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisSpacing: spacing,
+                      mainAxisSpacing: spacing,
+                      childAspectRatio: tileWidth / tileHeight,
+                      children: [
+                        for (final metric in metrics)
+                          RiderMetric(
+                            metric.label,
+                            '${queues[metric.key] ?? 'Unavailable'}',
+                            onTap: () => queue(metric.key),
+                            icon: metric.icon,
+                            iconBackground: metric.background,
+                            iconColor: metric.foreground,
+                          ),
+                      ],
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Completed',
-                            style: TextStyle(
-                              color: onPrimary,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16,
+                    const SizedBox(height: 12),
+                    Card(
+                      margin: EdgeInsets.zero,
+                      clipBehavior: Clip.antiAlias,
+                      child: InkWell(
+                        onTap: () => queue('completed'),
+                        borderRadius: BorderRadius.circular(16),
+                        child: Ink(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            gradient: LinearGradient(
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                              colors: [
+                                completionColor,
+                                Color.lerp(
+                                  completionColor,
+                                  const Color(0xff4c2382),
+                                  .38,
+                                )!,
+                              ],
                             ),
                           ),
-                          Text(
-                            '${queues['completed'] ?? 'Unavailable'} parcels',
-                            style: TextStyle(color: onPrimary, fontSize: 13),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                            child: Row(
+                              children: [
+                                CircleAvatar(
+                                  radius: 25,
+                                  backgroundColor: Colors.white,
+                                  child: RiderIcon(
+                                    Icons.check,
+                                    color: const Color(0xff6941a5),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Completed',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 17,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${queues['completed'] ?? 'Unavailable'} parcels',
+                                        style: TextStyle(
+                                          color: Colors.white.withValues(
+                                            alpha: .9,
+                                          ),
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const RiderIcon(
+                                  Icons.inventory_2_outlined,
+                                  size: 40,
+                                  color: Color(0xffffd08f),
+                                ),
+                              ],
+                            ),
                           ),
-                        ],
+                        ),
                       ),
                     ),
-                    const Icon(
-                      Icons.inventory_2_outlined,
-                      size: 40,
-                      color: Color(0xffffcb88),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ActionButton(
+                        'Scan QR',
+                        () async {
+                          await scanAssignment(context, api);
+                          reload();
+                        },
+                        leading: RiderIcon(
+                          Icons.qr_code_scanner,
+                          size: 23,
+                          color: colors.onPrimary,
+                        ),
+                      ),
                     ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _RiderQuickAction(
+                            label: 'Earnings',
+                            icon: Icons.payments_outlined,
+                            onTap: () => open(context, EarningsPage(api)),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _RiderQuickAction(
+                            label: 'All Parcels',
+                            icon: Icons.inventory_2_outlined,
+                            value: '${queues['all'] ?? 'Unavailable'}',
+                            onTap: () => queue('all'),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _RiderQuickAction(
+                            label: 'Exceptions',
+                            icon: Icons.report_outlined,
+                            value: '${queues['exceptions'] ?? 'Unavailable'}',
+                            onTap: () => queue('exceptions'),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
                   ],
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 16),
-          ActionButton('Scan a parcel QR code', () async {
-            await scanAssignment(context, api);
-            reload();
-          }),
-          ActionButton(
-            'View earnings',
-            () => open(context, EarningsPage(api)),
-            outlined: true,
-          ),
-          const SizedBox(height: 4),
-          Row(
-            children: [
-              Expanded(
-                child: TextButton.icon(
-                  onPressed: () => queue('exceptions'),
-                  icon: const Icon(Icons.report_outlined, size: 18),
-                  label: Text(
-                    'Exceptions: ${queues['exceptions'] ?? 'Unavailable'}',
-                  ),
-                ),
-              ),
-              Expanded(
-                child: TextButton.icon(
-                  onPressed: () => queue('all'),
-                  icon: const Icon(Icons.all_inbox_outlined, size: 18),
-                  label: Text('All parcels: ${queues['all'] ?? 'Unavailable'}'),
-                ),
-              ),
-            ],
-          ),
-        ],
+          );
+        },
       );
     },
   );
@@ -237,13 +340,18 @@ class RiderMetric extends StatelessWidget {
   final String label, value;
   final IconData icon;
   final VoidCallback onTap;
+  final Color iconBackground, iconColor;
+
   const RiderMetric(
     this.label,
     this.value, {
     required this.onTap,
+    required this.iconBackground,
+    required this.iconColor,
     this.icon = Icons.inventory_2_outlined,
     super.key,
   });
+
   @override
   Widget build(BuildContext context) => Card(
     margin: EdgeInsets.zero,
@@ -251,26 +359,130 @@ class RiderMetric extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        child: Row(
           children: [
-            Icon(icon, color: Theme.of(context).colorScheme.primary, size: 24),
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 25,
-                fontWeight: FontWeight.w700,
-                height: 1.2,
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: iconBackground,
+                borderRadius: BorderRadius.circular(13),
+              ),
+              alignment: Alignment.center,
+              child: RiderIcon(icon, size: 24, color: iconColor),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      height: 1.15,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 180),
+                    child: Text(
+                      value,
+                      key: ValueKey(value),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        height: 1.05,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-            Text(label, style: const TextStyle(fontSize: 12, height: 1.2)),
+            const SizedBox(width: 2),
+            RiderIcon(
+              Icons.chevron_right,
+              size: 18,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ],
         ),
       ),
     ),
   );
+}
+
+class _RiderQuickAction extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final String? value;
+  final VoidCallback onTap;
+
+  const _RiderQuickAction({
+    required this.label,
+    required this.icon,
+    required this.onTap,
+    this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final surface = Theme.of(context).brightness == Brightness.dark
+        ? colors.primary.withValues(alpha: .16)
+        : const Color(0xfff2edf9);
+    return Card(
+      color: surface,
+      margin: EdgeInsets.zero,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(15),
+        child: SizedBox(
+          height: 106,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 9),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                RiderIcon(icon, size: 26, color: colors.primary),
+                const SizedBox(height: 5),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                if (value != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    value!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: colors.primary,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 Future<void> scanAssignment(BuildContext context, Api api) async {
@@ -296,9 +508,21 @@ Future<void> scanAssignment(BuildContext context, Api api) async {
         api,
         found.single['id'] as int,
         scannedReference: reference.trim(),
+        riderPresentation: true,
+        pageTitle: riderDetailTitle(found.single),
       ),
     );
   }
+}
+
+String riderDetailTitle(Json item) {
+  final status = '${item['fulfillment_status'] ?? item['status']}';
+  if (['assigned', 'picked_up'].contains(status)) return 'Pickup details';
+  if (status == 'in_transit') return 'Dispatch details';
+  if (['out_for_delivery', 'delivered'].contains(status)) {
+    return 'Delivery details';
+  }
+  return 'Parcel details';
 }
 
 class RiderAssignments extends StatefulWidget {
@@ -325,93 +549,215 @@ class _RiderAssignmentsState extends State<RiderAssignments> {
     path:
         'deliveries?stage=$stage${query.isEmpty ? '' : '&search=${Uri.encodeQueryComponent(query)}'}',
     title: 'Your assignments',
-    actions: [
-      IconButton(
-        tooltip: 'Scan a parcel QR code',
-        icon: const Icon(Icons.qr_code_scanner),
-        onPressed: () async {
-          try {
-            await scanAssignment(context, widget.api);
-          } catch (error) {
-            if (context.mounted) feedback(context, error);
-          }
-        },
-      ),
-    ],
+    showAppBar: false,
+    builder: (context, response, reload) {
+      final colors = Theme.of(context).colorScheme;
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const RiderBrand(),
+              const Spacer(),
+              IconButton(
+                tooltip: 'Scan a parcel QR code',
+                icon: const RiderIcon(Icons.qr_code_scanner),
+                onPressed: () async {
+                  try {
+                    await scanAssignment(context, widget.api);
+                  } catch (error) {
+                    if (context.mounted) feedback(context, error);
+                  }
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Your Assignments',
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+          ),
+          Text(
+            'Manage your pickups, dispatch, and active deliveries.',
+            style: TextStyle(color: colors.onSurfaceVariant, fontSize: 14),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: search,
+            textInputAction: TextInputAction.search,
+            onSubmitted: (_) => applySearch(),
+            decoration: InputDecoration(
+              hintText: 'Search tracking reference...',
+              filled: true,
+              fillColor: colors.surface,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: colors.outlineVariant),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: colors.outlineVariant),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: colors.primary, width: 1.5),
+              ),
+              prefixIcon: const RiderIcon(Icons.search, size: 22),
+              suffixIcon: IconButton(
+                tooltip: 'Search assignments',
+                icon: const RiderIcon(Icons.arrow_forward, size: 20),
+                onPressed: applySearch,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                for (final entry in const [
+                  MapEntry('all', 'All'),
+                  MapEntry('pickups', 'Pickups'),
+                  MapEntry('dispatch', 'Dispatch'),
+                  MapEntry('monitoring', 'Active'),
+                ])
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ChoiceChip(
+                      label: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (entry.key != 'all') ...[
+                            ExcludeSemantics(
+                              child: Icon(
+                                _assignmentFilterIcon(entry.key),
+                                size: 20,
+                                color: stage == entry.key
+                                    ? colors.onPrimary
+                                    : colors.primary,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                          ],
+                          Text(entry.value),
+                        ],
+                      ),
+                      selected: stage == entry.key,
+                      showCheckmark: false,
+                      selectedColor: colors.primary,
+                      backgroundColor: colors.surface,
+                      side: BorderSide(
+                        color: stage == entry.key
+                            ? colors.primary
+                            : colors.outlineVariant,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      labelStyle: TextStyle(
+                        color: stage == entry.key
+                            ? colors.onPrimary
+                            : colors.onSurface,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      onSelected: (_) => setState(() => stage = entry.key),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          if (rows(response['data']).isEmpty)
+            const InfoCard(
+              'No matching assignments',
+              subtitle: 'Refresh or select another queue.',
+            ),
+          for (final item in rows(response['data']))
+            RiderParcelCard(
+              item,
+              onOpen: () async {
+                await open(
+                  context,
+                  DeliveryPage(
+                    widget.api,
+                    item['id'] as int,
+                    riderPresentation: true,
+                    pageTitle: riderDetailTitle(item),
+                  ),
+                );
+                reload();
+              },
+            ),
+        ],
+      );
+    },
+  );
+}
+
+IconData _assignmentFilterIcon(String stage) => const {
+  'pickups': Icons.inventory_2_outlined,
+  'dispatch': Icons.local_shipping_outlined,
+  'monitoring': Icons.route_outlined,
+}[stage]!;
+
+class RiderQueue extends StatefulWidget {
+  final Api api;
+  final String stage;
+  const RiderQueue(this.api, this.stage, {super.key});
+
+  @override
+  State<RiderQueue> createState() => _RiderQueueState();
+}
+
+class _RiderQueueState extends State<RiderQueue> {
+  final search = TextEditingController();
+  String query = '';
+
+  @override
+  void dispose() {
+    search.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => ResourcePage(
+    key: ValueKey('${widget.stage}:$query'),
+    api: widget.api,
+    path:
+        'deliveries?stage=${widget.stage}${query.isEmpty ? '' : '&search=${Uri.encodeQueryComponent(query)}'}',
+    title: widget.stage == 'completed'
+        ? 'Completed deliveries'
+        : riderQueues[widget.stage]!,
     builder: (context, response, reload) => Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         TextField(
           controller: search,
           textInputAction: TextInputAction.search,
-          onSubmitted: (_) => applySearch(),
+          onSubmitted: (_) => setState(() => query = search.text.trim()),
           decoration: InputDecoration(
             hintText: 'Search tracking reference',
-            prefixIcon: const Icon(Icons.search),
+            prefixIcon: const RiderIcon(Icons.search),
             suffixIcon: IconButton(
-              tooltip: 'Search assignments',
-              icon: const Icon(Icons.arrow_forward),
-              onPressed: applySearch,
+              tooltip: 'Search parcels',
+              icon: const RiderIcon(Icons.arrow_forward),
+              onPressed: () => setState(() => query = search.text.trim()),
             ),
           ),
         ),
+        if (widget.stage == 'cash')
+          const Padding(
+            padding: EdgeInsets.only(top: 8),
+            child: RiderLine(
+              Icons.account_balance_wallet_outlined,
+              'COD collected by you and awaiting Logistics handover.',
+            ),
+          ),
         const SizedBox(height: 12),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              for (final entry in [
-                MapEntry('all', riderQueues['all']!),
-                ...riderQueues.entries.where((entry) => entry.key != 'all'),
-              ])
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: Text(
-                      entry.key == 'all'
-                          ? 'All'
-                          : entry.key == 'monitoring'
-                          ? 'Active'
-                          : entry.value,
-                    ),
-                    selected: stage == entry.key,
-                    onSelected: (_) => setState(() => stage = entry.key),
-                  ),
-                ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        if (rows(response['data']).isEmpty)
-          const InfoCard(
-            'No matching assignments',
-            subtitle: 'Refresh or select another queue.',
-          ),
-        for (final item in rows(response['data']))
-          RiderParcelCard(
-            item,
-            onOpen: () async {
-              await open(context, DeliveryPage(widget.api, item['id'] as int));
-              reload();
-            },
-          ),
-      ],
-    ),
-  );
-}
-
-class RiderQueue extends StatelessWidget {
-  final Api api;
-  final String stage;
-  const RiderQueue(this.api, this.stage, {super.key});
-  @override
-  Widget build(BuildContext context) => ResourcePage(
-    api: api,
-    path: 'deliveries?stage=$stage',
-    title: stage == 'completed' ? 'Completed deliveries' : riderQueues[stage]!,
-    builder: (context, response, reload) => Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
         if (rows(response['data']).isEmpty)
           const InfoCard(
             'No parcels in this queue',
@@ -421,7 +767,15 @@ class RiderQueue extends StatelessWidget {
           RiderParcelCard(
             item,
             onOpen: () async {
-              await open(context, DeliveryPage(api, item['id'] as int));
+              await open(
+                context,
+                DeliveryPage(
+                  widget.api,
+                  item['id'] as int,
+                  riderPresentation: true,
+                  pageTitle: riderDetailTitle(item),
+                ),
+              );
               reload();
             },
           ),
@@ -439,84 +793,157 @@ class RiderProfile extends StatelessWidget {
     api: session.api,
     path: 'settings/profile',
     title: 'Rider profile',
+    showAppBar: false,
     builder: (context, response, reload) {
       final data = response['data'] as Map;
       final user = data['user'] as Map;
+      final vehicle = data['vehicle'] as Map?;
+      final colors = Theme.of(context).colorScheme;
+      final darkMode = Theme.of(context).brightness == Brightness.dark;
       final fullName = '${user['name']}';
-      final names = fullName
-          .trim()
-          .split(RegExp(r'\s+'))
-          .where((s) => s.isNotEmpty)
-          .toList();
-      final initials = names.take(2).map((s) => s[0]).join();
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 30,
-                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                child: Text(
-                  initials.isEmpty ? 'R' : initials,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
+          const RiderBrand(),
+          const SizedBox(height: 12),
+          const Text(
+            'Rider profile',
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+          ),
+          Text(
+            'View and manage your rider information.',
+            style: TextStyle(color: colors.onSurfaceVariant, fontSize: 13),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            color: darkMode ? const Color(0xff282330) : const Color(0xfff2edf9),
+            clipBehavior: Clip.antiAlias,
+            margin: const EdgeInsets.only(bottom: 12),
+            child: Stack(
+              children: [
+                Positioned(
+                  top: -36,
+                  right: -24,
+                  child: Container(
+                    width: 116,
+                    height: 116,
+                    decoration: BoxDecoration(
+                      color: colors.primary.withValues(alpha: .08),
+                      shape: BoxShape.circle,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      fullName,
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                      ),
+                Positioned(
+                  bottom: -62,
+                  left: 58,
+                  child: Container(
+                    width: 132,
+                    height: 132,
+                    decoration: BoxDecoration(
+                      color: colors.primary.withValues(alpha: .05),
+                      shape: BoxShape.circle,
                     ),
-                    const SizedBox(height: 6),
-                    RiderStatus('${user['status']}'),
-                  ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          RiderPanel(
-            child: Column(
-              children: [
-                RiderLine(Icons.mail_outline, '${user['email']}'),
-                RiderLine(
-                  Icons.phone_outlined,
-                  '${data['phone'] ?? 'Not provided'}',
-                ),
-                RiderLine(
-                  Icons.badge_outlined,
-                  'Capability: ${user['rider_capability'] ?? 'See Logistics'}',
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      RiderArtwork(height: 78, portrait: true),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              fullName,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 19,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            RiderStatus('${user['status']}'),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
-          if (data['vehicle'] != null)
+          const Text(
+            'Personal information',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          RiderPanel(
+            child: Column(
+              children: [
+                RiderLine(
+                  Icons.mail_outline,
+                  '${user['email'] ?? 'Not provided'}',
+                ),
+                const Divider(height: 16),
+                RiderLine(
+                  Icons.phone_outlined,
+                  '${data['phone'] ?? 'Not provided'}',
+                ),
+                const Divider(height: 16),
+                RiderLine(
+                  Icons.badge_outlined,
+                  'Capability: ${riderDisplayValue('${user['rider_capability'] ?? 'See Logistics'}')}',
+                ),
+              ],
+            ),
+          ),
+          if (vehicle != null)
             RiderPanel(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
                 children: [
-                  const Text(
-                    'Vehicle information',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Vehicle information',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        RiderLine(
+                          Icons.two_wheeler_outlined,
+                          riderDisplayValue(
+                            '${vehicle['vehicle_type'] ?? 'Not provided'}',
+                          ),
+                        ),
+                        RiderLine(
+                          Icons.pin_outlined,
+                          '${vehicle['plate_number'] ?? 'Not provided'}',
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 8),
-                  RiderLine(
-                    Icons.two_wheeler_outlined,
-                    '${data['vehicle']['vehicle_type']}',
-                  ),
-                  RiderLine(
-                    Icons.pin_outlined,
-                    '${data['vehicle']['plate_number']}',
+                  Container(
+                    width: 60,
+                    height: 60,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: colors.primary.withValues(
+                        alpha: darkMode ? .14 : .08,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: RiderIcon(
+                      Icons.two_wheeler_outlined,
+                      size: 36,
+                      color: colors.primary,
+                    ),
                   ),
                 ],
               ),
@@ -524,12 +951,12 @@ class RiderProfile extends StatelessWidget {
           RiderPanel(
             padding: EdgeInsets.zero,
             child: ListTile(
-              leading: const Icon(Icons.payments_outlined),
+              leading: const RiderIcon(Icons.payments_outlined),
               title: const Text(
-                'Compensation & payment history',
-                style: TextStyle(fontSize: 13),
+                'Compensation & Payment History',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
               ),
-              trailing: const Icon(Icons.chevron_right),
+              trailing: const RiderIcon(Icons.chevron_right),
               onTap: () => open(context, EarningsPage(session.api)),
             ),
           ),
@@ -542,8 +969,9 @@ class RiderProfile extends StatelessWidget {
           RiderPanel(
             padding: EdgeInsets.zero,
             child: SwitchListTile(
-              secondary: const Icon(Icons.dark_mode_outlined),
+              secondary: const RiderIcon(Icons.dark_mode_outlined),
               title: const Text('Dark mode'),
+              dense: true,
               value: Theme.of(context).brightness == Brightness.dark,
               onChanged: (_) => toggleTheme(),
             ),
@@ -561,15 +989,24 @@ class RiderProfile extends StatelessWidget {
                 ),
               ),
             ),
-            child: ActionButton('Sign out', () async {
-              if (await confirm(
-                context,
-                'Sign out of LubosMart Rider?',
-                'This will revoke the session on this device.',
-              )) {
-                await session.logout();
-              }
-            }, outlined: true),
+            child: ActionButton(
+              'Sign out',
+              () async {
+                if (await confirm(
+                  context,
+                  'Sign out of LubosMart Rider?',
+                  'This will revoke the session on this device.',
+                )) {
+                  await session.logout();
+                }
+              },
+              outlined: true,
+              leading: Icon(
+                Icons.logout,
+                size: 20,
+                color: Theme.of(context).colorScheme.error,
+              ),
+            ),
           ),
         ],
       );
@@ -585,42 +1022,60 @@ class RiderReturns extends StatefulWidget {
 }
 
 class _RiderReturnsState extends State<RiderReturns> {
-  bool actionable = false;
+  final search = TextEditingController();
+  String query = '';
+  bool completed = false;
+
+  @override
+  void dispose() {
+    search.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) => ResourcePage(
     api: widget.api,
     path: 'returns',
     title: 'Return assignments',
     builder: (context, response, reload) {
-      final items = rows(response['data'])
-          .where(
-            (item) =>
-                !actionable ||
-                (item['allowed_actions'] as List? ?? []).isNotEmpty,
-          )
-          .toList();
+      final allItems = rows(response['data']);
+      final items = allItems.where((item) {
+        final hasActions = (item['allowed_actions'] as List? ?? []).isNotEmpty;
+        if (hasActions == completed) return false;
+        if (query.isEmpty) return true;
+        final text = [
+          item['task']?['reference'],
+          item['seller_order']?['delivery']?['tracking_reference'],
+          item['task']?['status'],
+          item['reason'],
+        ].join(' ').toLowerCase();
+        return text.contains(query.toLowerCase());
+      }).toList();
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              ChoiceChip(
-                label: const Text('All returns'),
-                selected: !actionable,
-                onSelected: (_) => setState(() => actionable = false),
-              ),
-              const SizedBox(width: 8),
-              ChoiceChip(
-                label: const Text('Action required'),
-                selected: actionable,
-                onSelected: (_) => setState(() => actionable = true),
-              ),
+          TextField(
+            textInputAction: TextInputAction.search,
+            decoration: const InputDecoration(
+              hintText: 'Search return reference',
+              prefixIcon: RiderIcon(Icons.search),
+            ),
+            onChanged: (value) => setState(() => query = value.trim()),
+          ),
+          const SizedBox(height: 12),
+          SegmentedButton<bool>(
+            segments: const [
+              ButtonSegment(value: false, label: Text('Active')),
+              ButtonSegment(value: true, label: Text('Completed')),
             ],
+            selected: {completed},
+            onSelectionChanged: (selection) =>
+                setState(() => completed = selection.first),
           ),
           const SizedBox(height: 16),
           if (items.isEmpty)
             const InfoCard(
-              'No return assignments',
+              'No return assignments in this view',
               subtitle: 'Assigned return work will appear here. Pull down to refresh.',
             ),
           for (final item in items)
@@ -633,7 +1088,7 @@ class _RiderReturnsState extends State<RiderReturns> {
                     children: [
                       const CircleAvatar(
                         backgroundColor: Color(0xfffff0d9),
-                        child: Icon(
+                        child: RiderIcon(
                           Icons.assignment_return_outlined,
                           color: Color(0xffaa5c18),
                         ),
@@ -774,7 +1229,7 @@ class RiderReturnDetails extends StatelessWidget {
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
                 Text(
-                  localEventTime(event['created_at']),
+                  riderDateTime(event['created_at']),
                   style: const TextStyle(fontSize: 12),
                 ),
                 if (event['notes'] != null) Text('${event['notes']}'),

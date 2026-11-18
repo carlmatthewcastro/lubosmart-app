@@ -41,180 +41,400 @@ class RiderBrand extends StatelessWidget {
   );
 }
 
+class RiderAuthTheme extends StatelessWidget {
+  final Widget child;
+
+  const RiderAuthTheme({required this.child, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final borderRadius = BorderRadius.circular(14);
+
+    OutlineInputBorder border(Color color, {double width = 1}) =>
+        OutlineInputBorder(
+          borderRadius: borderRadius,
+          borderSide: BorderSide(color: color, width: width),
+        );
+
+    return Theme(
+      data: theme.copyWith(
+        inputDecorationTheme: theme.inputDecorationTheme.copyWith(
+          filled: true,
+          fillColor: colors.surface,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 16,
+          ),
+          border: border(colors.outlineVariant),
+          enabledBorder: border(colors.primary.withValues(alpha: .26)),
+          focusedBorder: border(colors.primary, width: 1.5),
+          errorBorder: border(colors.error),
+          focusedErrorBorder: border(colors.error, width: 1.5),
+          disabledBorder: border(colors.outlineVariant.withValues(alpha: .55)),
+          prefixIconColor: colors.primary,
+          suffixIconColor: colors.primary,
+          prefixIconConstraints: const BoxConstraints(
+            minWidth: 52,
+            minHeight: 52,
+          ),
+        ),
+      ),
+      child: child,
+    );
+  }
+}
+
+class RiderBottomNavigation extends StatelessWidget {
+  final int selectedIndex;
+  final ValueChanged<int> onDestinationSelected;
+
+  const RiderBottomNavigation({
+    required this.selectedIndex,
+    required this.onDestinationSelected,
+    super.key,
+  });
+
+  static const destinations = [
+    ('Home', Icons.home_outlined),
+    ('Tasks', Icons.local_shipping_outlined),
+    ('Returns', Icons.assignment_return_outlined),
+    ('History', Icons.history),
+    ('Profile', Icons.person_outline),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final dark = theme.brightness == Brightness.dark;
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 6, 14, 6),
+        child: Material(
+          color: theme.colorScheme.surface,
+          elevation: 4,
+          shadowColor: Colors.black.withValues(alpha: dark ? .24 : .12),
+          borderRadius: BorderRadius.circular(22),
+          child: Container(
+            height: 68,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(
+                color: theme.colorScheme.outlineVariant.withValues(alpha: .55),
+              ),
+            ),
+            child: Row(
+              children: [
+                for (var index = 0; index < destinations.length; index++)
+                  _RiderNavigationItem(
+                    label: destinations[index].$1,
+                    icon: destinations[index].$2,
+                    selected: selectedIndex == index,
+                    onTap: () => onDestinationSelected(index),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RiderNavigationItem extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _RiderNavigationItem({
+    required this.label,
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final color = selected ? colors.primary : colors.onSurfaceVariant;
+    return Expanded(
+      child: Semantics(
+        label: label,
+        button: true,
+        selected: selected,
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          curve: Curves.easeOutCubic,
+          margin: EdgeInsets.symmetric(
+            horizontal: selected ? 2 : 7,
+            vertical: 4,
+          ),
+          decoration: BoxDecoration(
+            color: selected
+                ? colors.primary.withValues(alpha: .12)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(17),
+          ),
+          child: ExcludeSemantics(
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(17),
+              child: InkWell(
+                onTap: onTap,
+                borderRadius: BorderRadius.circular(17),
+                child: SizedBox(
+                  height: 60,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      AnimatedScale(
+                        scale: selected ? 1.04 : 1,
+                        duration: const Duration(milliseconds: 180),
+                        curve: Curves.easeOutCubic,
+                        child: RiderIcon(icon, size: 23, color: color),
+                      ),
+                      const SizedBox(height: 2),
+                      AnimatedDefaultTextStyle(
+                        duration: const Duration(milliseconds: 180),
+                        curve: Curves.easeOutCubic,
+                        style: TextStyle(
+                          color: color,
+                          fontSize: 11,
+                          fontWeight: selected
+                              ? FontWeight.w600
+                              : FontWeight.w500,
+                        ),
+                        child: Text(label, maxLines: 1),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class RiderArtwork extends StatelessWidget {
   final double height;
   final bool portrait;
   const RiderArtwork({this.height = 180, this.portrait = false, super.key});
   @override
-  Widget build(BuildContext context) => Semantics(
-    label: 'Delivery rider illustration',
-    image: true,
-    child: SizedBox(
-      height: height,
-      width: portrait ? height : double.infinity,
-      child: CustomPaint(
-        painter: _RiderPainter(Theme.of(context).colorScheme.primary, portrait),
+  Widget build(BuildContext context) {
+    final image = Image.asset(
+      portrait
+          ? 'assets/illustrations/rider_avatar.png'
+          : 'assets/illustrations/delivery_rider.png',
+      fit: portrait ? BoxFit.cover : BoxFit.contain,
+    );
+    return Semantics(
+      label: portrait
+          ? 'Rider avatar illustration'
+          : 'Delivery rider illustration',
+      image: true,
+      child: SizedBox(
+        height: height,
+        width: portrait ? height : double.infinity,
+        child: portrait
+            ? Container(
+                padding: const EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                  color: const Color(0xfff7f1ff),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xffff8b24), width: 2),
+                ),
+                child: ClipOval(
+                  child: Transform.scale(scale: 1.14, child: image),
+                ),
+              )
+            : image,
       ),
-    ),
-  );
+    );
+  }
 }
 
-class _RiderPainter extends CustomPainter {
-  final Color purple;
-  final bool portrait;
-  _RiderPainter(this.purple, this.portrait);
+class RiderIcon extends StatelessWidget {
+  final IconData icon;
+  final double size;
+  final Color? color;
+
+  const RiderIcon(this.icon, {this.size = 24, this.color, super.key});
+
+  static final _assets = <int, String>{
+    Icons.home_outlined.codePoint: 'home',
+    Icons.local_shipping_outlined.codePoint: 'tasks-truck',
+    Icons.assignment_return_outlined.codePoint: 'returns',
+    Icons.history.codePoint: 'history',
+    Icons.person_outline.codePoint: 'profile',
+    Icons.inventory_2_outlined.codePoint: 'package',
+    Icons.storefront_outlined.codePoint: 'store',
+    Icons.location_on_outlined.codePoint: 'map-pin',
+    Icons.event_available_outlined.codePoint: 'calendar',
+    Icons.mail_outline.codePoint: 'email',
+    Icons.lock_outline.codePoint: 'lock',
+    Icons.visibility_off.codePoint: 'eye-off',
+    Icons.visibility.codePoint: 'eye',
+    Icons.phone_outlined.codePoint: 'phone',
+    Icons.badge_outlined.codePoint: 'plate-id',
+    Icons.two_wheeler_outlined.codePoint: 'motorcycle',
+    Icons.pin_outlined.codePoint: 'plate-id',
+    Icons.payments_outlined.codePoint: 'wallet-history',
+    Icons.chevron_right.codePoint: 'chevron-right',
+    Icons.dark_mode_outlined.codePoint: 'moon',
+    Icons.qr_code_scanner.codePoint: 'scan-qr',
+    Icons.search.codePoint: 'search',
+    Icons.arrow_forward.codePoint: 'arrow-right',
+    Icons.report_outlined.codePoint: 'info',
+    Icons.all_inbox_outlined.codePoint: 'list-check',
+    Icons.check.codePoint: 'check',
+    Icons.account_balance_wallet_outlined.codePoint: 'cod-wallet',
+    Icons.route_outlined.codePoint: 'route',
+  };
+
   @override
-  void paint(Canvas canvas, Size size) {
-    canvas.save();
-    if (portrait) {
-      canvas.scale(size.width / 100, size.height / 100);
-      canvas.clipPath(Path()..addOval(const Rect.fromLTWH(0, 0, 100, 100)));
-      final p = Paint()..color = purple.withValues(alpha: .09);
-      canvas.drawCircle(const Offset(50, 50), 50, p);
-      p.color = purple;
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          const Rect.fromLTWH(24, 61, 56, 50),
-          const Radius.circular(18),
-        ),
-        p,
-      );
-      p.color = const Color(0xffefc5a7);
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          const Rect.fromLTWH(43, 29, 26, 35),
-          const Radius.circular(10),
-        ),
-        p,
-      );
-      p.color = purple;
-      canvas.drawCircle(const Offset(47, 30), 25, p);
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          const Rect.fromLTWH(46, 25, 35, 10),
-          const Radius.circular(5),
-        ),
-        p,
-      );
-      p.color = const Color(0xffd9e4e9);
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          const Rect.fromLTWH(45, 36, 25, 12),
-          const Radius.circular(5),
-        ),
-        p,
-      );
-      p.color = const Color(0xffffcb88);
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          const Rect.fromLTWH(34, 74, 12, 18),
-          const Radius.circular(3),
-        ),
-        p,
-      );
-      canvas.restore();
-      return;
-    }
-    canvas.scale(size.width / 320, size.height / 180);
-    final paint = Paint();
-    void box(
-      double x,
-      double y,
-      double w,
-      double h,
-      Color color, [
-      double radius = 8,
-    ]) {
-      paint.color = color;
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(x, y, w, h),
-          Radius.circular(radius),
-        ),
-        paint,
+  Widget build(BuildContext context) {
+    final asset = _assets[icon.codePoint];
+    if (asset == null) {
+      return Icon(
+        icon,
+        size: size,
+        color: color ?? Theme.of(context).colorScheme.primary,
       );
     }
-
-    void circle(double x, double y, double r, Color color) {
-      paint.color = color;
-      canvas.drawCircle(Offset(x, y), r, paint);
-    }
-
-    final pale = purple.withValues(alpha: .08);
-    if (portrait) {
-      circle(160, 88, 86, pale);
-    } else {
-      for (var i = 0; i < 9; i++) {
-        box(i * 39.0, 72 - (i % 3) * 15, 26, 90 + (i % 3) * 15, pale, 2);
-      }
-      box(0, 151, 320, 29, purple.withValues(alpha: .1), 15);
-      circle(49, 127, 24, purple.withValues(alpha: .1));
-      circle(276, 131, 28, purple.withValues(alpha: .1));
-    }
-    circle(115, 155, 21, const Color(0xff262731));
-    circle(244, 155, 21, const Color(0xff262731));
-    circle(115, 155, 11, const Color(0xffe4e4ed));
-    circle(244, 155, 11, const Color(0xffe4e4ed));
-    box(102, 119, 133, 28, purple, 14);
-    box(212, 95, 23, 51, purple, 10);
-    box(225, 90, 33, 8, const Color(0xff262731), 4);
-    box(83, 77, 67, 49, const Color(0xfff6ae59), 9);
-    box(111, 78, 10, 43, const Color(0xffffdfae), 1);
-    box(154, 91, 52, 36, purple, 12);
-    box(164, 117, 47, 14, const Color(0xff35303e), 7);
-    box(198, 122, 16, 25, const Color(0xff35303e), 6);
-    circle(183, 63, 22, const Color(0xffefc5a7));
-    circle(181, 52, 27, purple);
-    box(183, 51, 35, 12, purple, 6);
-    box(190, 65, 18, 8, const Color(0xfff4e4d8), 4);
-    box(188, 86, 35, 12, const Color(0xffefc5a7), 6);
-    circle(222, 92, 7, const Color(0xffefc5a7));
-    box(101, 118, 67, 7, const Color(0xff262731), 3);
-    canvas.restore();
+    return Image.asset(
+      'assets/icons/$asset.png',
+      width: size,
+      height: size,
+      color: color ?? Theme.of(context).colorScheme.primary,
+      colorBlendMode: BlendMode.srcIn,
+      excludeFromSemantics: true,
+    );
   }
-
-  @override
-  bool shouldRepaint(_RiderPainter oldDelegate) =>
-      oldDelegate.purple != purple || oldDelegate.portrait != portrait;
 }
 
 class RiderStatus extends StatelessWidget {
   final String status;
-  const RiderStatus(this.status, {super.key});
+  final IconData? icon;
+  const RiderStatus(this.status, {this.icon, super.key});
   @override
   Widget build(BuildContext context) {
-    final success = [
-      'delivered',
-      'completed',
-      'approved',
-      'received',
-    ].contains(status);
-    final failure =
-        status.contains('fail') ||
-        status.contains('exception') ||
-        status.contains('reject');
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    final color = success
-        ? (dark ? const Color(0xffa5e8b7) : const Color(0xff176734))
-        : failure
-        ? (dark ? const Color(0xffffb4ab) : const Color(0xffa51e2d))
-        : (dark ? const Color(0xffffce92) : const Color(0xff8b4a10));
+    final color = riderStatusColor(context, status);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: color.withValues(alpha: .1),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: Text(
-        status.replaceAll('_', ' '),
-        style: TextStyle(
-          color: color,
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
+      child: icon == null
+          ? Text(
+              riderStatusLabel(status),
+              style: TextStyle(
+                color: color,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            )
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ExcludeSemantics(child: Icon(icon, size: 16, color: color)),
+                const SizedBox(width: 6),
+                Text(
+                  riderStatusLabel(status),
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
     );
   }
+}
+
+Color riderStatusColor(BuildContext context, String status) {
+  final success = [
+    'delivered',
+    'completed',
+    'approved',
+    'received',
+  ].contains(status);
+  final failure =
+      status.contains('fail') ||
+      status.contains('exception') ||
+      status.contains('reject');
+  final active = [
+    'assigned',
+    'in_transit',
+    'out_for_delivery',
+  ].contains(status);
+  final dark = Theme.of(context).brightness == Brightness.dark;
+  final color = success
+      ? (dark ? const Color(0xffa5e8b7) : const Color(0xff176734))
+      : failure
+      ? (dark ? const Color(0xffffb4ab) : const Color(0xffa51e2d))
+      : active
+      ? Theme.of(context).colorScheme.primary
+      : (dark ? const Color(0xffffce92) : const Color(0xff8b4a10));
+  return color;
+}
+
+String riderStatusLabel(String status) =>
+    const {
+      'assigned': 'Delivery Rider Assigned',
+      'out_for_delivery': 'Out for Delivery',
+      'in_transit': 'In Transit',
+      'picked_up': 'Picked Up',
+      'failed_attempt': 'Failed Attempt',
+    }[status] ??
+    riderDisplayValue(status);
+
+String riderDisplayValue(String value) {
+  final normalized = value.replaceAll(RegExp(r'[_-]+'), ' ').trim();
+  if (normalized.isEmpty) return '';
+  return normalized
+      .split(' ')
+      .map(
+        (word) => word.isEmpty
+            ? word
+            : '${word[0].toUpperCase()}${word.substring(1)}',
+      )
+      .join(' ');
+}
+
+String riderDateTime(dynamic value) {
+  final raw = '$value';
+  final zoned = RegExp(r'(Z|[+-]\d{2}:?\d{2})$').hasMatch(raw);
+  final date = DateTime.tryParse(zoned ? raw : '${raw.replaceFirst(' ', 'T')}Z')
+      ?.toUtc()
+      .add(const Duration(hours: 8));
+  if (date == null) return '';
+  const months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+  final hour = date.hour % 12 == 0 ? 12 : date.hour % 12;
+  final period = date.hour < 12 ? 'AM' : 'PM';
+  return '${months[date.month - 1]} ${date.day}, ${date.year} · '
+      '$hour:${date.minute.toString().padLeft(2, '0')} $period';
 }
 
 class RiderLine extends StatelessWidget {
@@ -228,7 +448,7 @@ class RiderLine extends StatelessWidget {
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 18, color: Theme.of(context).colorScheme.primary),
+        RiderIcon(icon, size: 18),
         const SizedBox(width: 10),
         Expanded(
           child: Text(
@@ -280,9 +500,12 @@ class RiderParcelCard extends StatelessWidget {
     final parcel = item['parcel'] as Map? ?? {};
     final actions = List<String>.from(item['allowed_actions'] as List? ?? []);
     final status = '${item['fulfillment_status'] ?? item['status']}';
+    final colors = Theme.of(context).colorScheme;
+    final tone = riderStatusColor(context, status);
     final city =
         parcel['recipient']?['city'] ?? item['pickup_address']?['city'];
     return RiderPanel(
+      padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -290,15 +513,17 @@ class RiderParcelCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.all(11),
-                decoration: const BoxDecoration(
-                  color: Color(0xfffff0d9),
+                width: 48,
+                height: 48,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: tone.withValues(alpha: .1),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: RiderIcon(
                   Icons.inventory_2_outlined,
-                  size: 22,
-                  color: Color(0xffaa5c18),
+                  size: 24,
+                  color: tone,
                 ),
               ),
               const SizedBox(width: 12),
@@ -313,7 +538,7 @@ class RiderParcelCard extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
-                          fontSize: 14,
+                          fontSize: 15,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -330,7 +555,7 @@ class RiderParcelCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const Divider(height: 20),
           Wrap(
             alignment: WrapAlignment.spaceBetween,
             spacing: 12,
@@ -339,29 +564,56 @@ class RiderParcelCard extends StatelessWidget {
               Text(
                 riderPesos(cents(parcel['cod_total'])),
                 style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? const Color(0xffffce92)
-                      : const Color(0xff8b4a10),
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: colors.onSurface,
                 ),
               ),
-              RiderStatus(status),
+              RiderStatus(status, icon: _riderStatusIcon(status)),
             ],
           ),
           if (parcel['delivery']?['delivered_at'] != null)
             RiderLine(
               Icons.event_available_outlined,
-              localEventTime(parcel['delivery']['delivered_at']),
+              riderDateTime(parcel['delivery']['delivered_at']),
             ),
           const SizedBox(height: 12),
           ActionButton(
             actions.isEmpty ? 'View details' : riderActionTitle(actions.first),
             onOpen,
             outlined: actions.isEmpty,
+            leading: actions.isEmpty
+                ? null
+                : ExcludeSemantics(
+                    child: Icon(
+                      _riderActionIcon(actions.first) ?? Icons.arrow_forward,
+                      size: 20,
+                      color: colors.onPrimary,
+                    ),
+                  ),
           ),
         ],
       ),
     );
   }
+
+  IconData _riderStatusIcon(String status) =>
+      const {
+        'assigned': Icons.local_shipping_outlined,
+        'in_transit': Icons.local_shipping_outlined,
+        'out_for_delivery': Icons.local_shipping_outlined,
+        'picked_up': Icons.inventory_2_outlined,
+        'delivered': Icons.check_circle_outline,
+        'completed': Icons.check_circle_outline,
+      }[status] ??
+      Icons.info_outline;
+
+  IconData? _riderActionIcon(String action) => const {
+    'picked_up': Icons.inventory_2_outlined,
+    'accept_dispatch': Icons.local_shipping_outlined,
+    'accept_transfer': Icons.swap_horiz,
+    'out_for_delivery': Icons.local_shipping_outlined,
+    'delivered': Icons.check_circle_outline,
+    'failed_attempt': Icons.info_outline,
+  }[action];
 }

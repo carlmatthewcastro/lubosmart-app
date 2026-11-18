@@ -23,24 +23,34 @@ The launcher supplies the installed workspace Flutter/Android SDK, Gradle cache,
 
 Both APK modes use the existing development signing configuration. These are installable demonstration builds, not a Play Store distribution release. The package ID remains `com.lubosmart.lubosmart_mobile`; installing may update a previous LubosMart development installation. If Android rejects a signature mismatch, preserve needed app data and use a clean device/test profile rather than uninstalling blindly.
 
+## Rider branding and Google Sign-In
+
+The density-specific launcher icon uses the supplied violet/orange LubosMart app-icon artwork. Android adaptive icons use the official shopping-bag mark from `assets/brand.png` centered on a pale disc over a violet-to-orange gradient, with legacy density assets retained for older launchers. The splash uses that official mark on LubosMart purple on pre-Android 12 and Android 12+ without a timer or changes to the existing session-routing flow.
+
+The supplied delivery-rider PNG is used on Rider login; the rider-avatar PNG is used on dashboard and profile inside a clipped violet/orange frame. Registration stays compact without another logo or hero banner, while retaining its three-step form. The supplied PNG icon set is bundled as transparent assets and tinted with the LubosMart violet/orange palette in Rider navigation and information rows. These presentation changes do not alter API calls, permissions, authentication, or task workflows.
+
+The mobile app already supports `POST /api/v1/auth/google` and only shows its Google button when `GOOGLE_SERVER_CLIENT_ID` is supplied at build time. The value must be the Google OAuth **Web application** client ID used as the server client ID; do not commit it. The Android OAuth client must separately be registered for package `com.lubosmart.lubosmart_mobile` and the certificate SHA-1 that signs the installed APK. The ordinary Rider build script does not supply a client ID, so Google Sign-In remains hidden in that build.
+
+The backend verifies the Google access token and verified email, requires an already-linked account to sign in, and returns a registration-required response for an unknown Google identity. It does not create or approve a Rider through sign-in. Rider registration and approval/onboarding remain server-controlled. The local APK currently uses the existing Android debug signing configuration; a production signing certificate and its Google OAuth registration are not configured in this workspace.
+
 ## Implemented functionality
 
 - Rider login, persistent encrypted token storage, token revocation, session expiration and existing verification/approval onboarding.
-- Rider-only registration with existing address lookups, operational-center selection, private documents and server field validation.
-- Home, Tasks, Returns, History and Profile bottom navigation; server-supplied dashboard counts, pull-to-refresh and foreground refresh.
+- Rider-only registration presented in three visual steps (Personal, Vehicle, Documents), while retaining existing address lookups, operational-center selection, private documents, password/policy requirements and server field validation.
+- Home, Tasks, Returns, History and Profile use a floating, safe-area-aware bottom bar with a small animated selection indicator. Rider-only status labels and history dates are human-readable and Philippine-localized; server-supplied dashboard counts, pull-to-refresh and foreground refresh remain unchanged.
 - Pickup, dispatch, active delivery, exception, COD, completed and all-parcel queues, with pagination and parcel history.
 - Parcel identity, available contacts/addresses, COD amount and only server-permitted actions.
 - Camera QR decoding and exact authenticated backend assignment lookup. Pickup, dispatch and transfer checkpoints require an actual scanner result; selected identifiers are reused automatically.
 - Camera proof capture, compression, preview, retake, 5 MB validation, recipient name, delivery notes, COD confirmation and multipart upload progress. Failed-attempt notes and optional supporting photo follow the backend rules.
 - Delivery action UUIDs survive interrupted responses and are reused on explicit retry. Writes are never automatically replayed.
 - Return collection, seller dispatch acceptance and seller delivery, when allowed by the API; fresh camera proof and recipient for collection/delivery, original references and private proof viewing. Interrupted return writes require checking refreshed state before retry because this endpoint has no idempotency key.
-- Completed delivery history, tracking events, Rider profile, supported earnings/payment records, light/dark appearance and bundled Poppins typography.
+- Searchable completed delivery history, tracking events, Rider profile with illustrated rider avatar, supported earnings/payment records, light/dark appearance and bundled Poppins typography.
 
 The server remains authoritative for assignment, contacts, allowed transitions, COD, approval and return eligibility. There is no direct database connection or mobile refund approval.
 
 ## Installation and launch
 
-**Recommended APK:** `C:\xampp\htdocs\lubosmart-app\apps\mobile\build\app\outputs\flutter-apk\app-release.apk`. This path now contains the presentation refresh; see [current build results and backup](REDESIGN_2026_11_17.md) for its checksum and acceptance limits. It retains universal ARMv7/ARM64/x86-64 support, Android 7.0/API 24 minimum and target API 36. The earlier 70,976,594-byte build is preserved separately as the before-redesign backup.
+**Recommended APK:** `C:\xampp\htdocs\lubosmart-app\apps\mobile\build\app\outputs\flutter-apk\app-release.apk`. The current icon/splash build and checksum are recorded in [the reference-layout delivery report](REFERENCE_UI_1_0_1.md). It retains universal ARMv7/ARM64/x86-64 support, Android 7.0/API 24 minimum and target API 36. The earlier 70,976,594-byte build is preserved separately as the before-redesign backup.
 
 The latest installed version is **1.0.1 (code 2)**. Use the [current reference-layout delivery report](REFERENCE_UI_1_0_1.md) for its checksum, native observations and remaining verification.
 
@@ -65,7 +75,7 @@ Use `app-release.apk` in the install command for the release build. No local Lar
 
 The subsequent connected-device session is recorded separately in [Physical Android check](DEVICE_TEST_2026_11_17.md). Installation and launch passed on an Infinix X6876 running Android 16; remaining steps below are not assumed complete.
 
-No device was connected during implementation. These steps still require a phone and operator participation:
+The final APK was installed on the connected Android test device with `adb install -r`; app data was preserved. No credential-based live sign-in, physical scan, camera capture, upload or parcel/return mutation was performed in this check. These steps still require a phone and operator participation:
 
 1. Login; compare Home counts and the pickup/dispatch/delivery queues against the Rider website. Force-close and reopen to check secure session restoration.
 2. Open an assigned pickup. Scan its real printed/displayed waybill QR. Confirm the reference resolves to that assignment. Cancel before confirming pickup to preserve the demonstration. Scan an unrelated/invalid QR and verify a clear error without any status change.
@@ -80,7 +90,7 @@ Prepared demo deliveries #52–53, #58–59, #60–61 and completed parcel #31 w
 
 ## Verification limits
 
-Current automated results: **20 Flutter tests passed**, **Flutter analysis: no issues**, **Dart formatting: clean**, and **52 relevant Laravel tests passed with 490 assertions**. Both native debug and optimized release APK builds passed. The final release build took 145 seconds after build caches were prepared; initial attempts failed on protected cache writes, a manifest conflict and restricted artifact downloads, which were resolved. A nonfatal SDK XML version warning remains. No failing automated tests remain. The live check returned 201 for Rider login, 200 for all read checks and 204 for token revocation. At verification time the actual workspace reported 3 pickups, 2 dispatch parcels, 2 active deliveries and 17 completed parcels; the app fetches fresh values rather than embedding this snapshot.
+Current UI code verification: **26 Flutter tests passed** and **Flutter analysis reported no issues**. The final optimized release APK build passed and was verified/installed with `adb install -r`, preserving app data. The build remains development-signed. Backend/Laravel tests were not rerun for the icon/splash-only changes; prior results are historical, not a current backend verification.
 
 Live login, read-only endpoints, exact QR reference lookup and token revocation were verified after explicit approval. Automated multipart tests use synthetic bytes to verify transport; they do not prove physical camera acquisition or a successful live POD update. No placeholder proof was uploaded to the live service. Successful live delivery/return mutations, website propagation, fresh registration/email delivery, physical accessibility and camera behavior remain unverified. Automated tests do not establish WCAG compliance.
 

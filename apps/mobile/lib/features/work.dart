@@ -10,8 +10,29 @@ import 'package:printing/printing.dart';
 
 import '../core/api.dart';
 import '../ui/common.dart';
+import '../ui/rider_design.dart';
 
 String readable(String value) => value.replaceAll('_', ' ');
+
+Future<String?> captureRiderProof() async {
+  try {
+    final image = await ImagePicker().pickImage(
+      source: ImageSource.camera,
+      imageQuality: 80,
+      maxWidth: 1800,
+    );
+    if (image == null) return null;
+    if (await File(image.path).length() > 5120 * 1024) {
+      throw const ApiFailure(422, 'Photo exceeds 5 MB. Retake the photo.');
+    }
+    return image.path;
+  } on PlatformException {
+    throw const ApiFailure(
+      422,
+      'Camera unavailable. Allow camera access in Android app settings, then retry taking the photo.',
+    );
+  }
+}
 
 Future<void> privateFile(BuildContext context, Api api, String path) async {
   final bytes = await api.bytes(path);
@@ -357,44 +378,160 @@ class DeliveriesPage extends StatelessWidget {
   );
 }
 
-class ScanPage extends StatelessWidget {
+class ScanPage extends StatefulWidget {
   const ScanPage({super.key});
   @override
-  Widget build(BuildContext context) {
-    bool returned = false;
-    return PageFrame(
-      'Scan attached waybill',
-      MobileScanner(
-        onDetect: (capture) {
-          final value = capture.barcodes.firstOrNull?.rawValue;
-          if (!returned && value != null && value.isNotEmpty) {
-            returned = true;
-            Navigator.pop(context, value);
-          }
-        },
-      ),
-    );
+  State<ScanPage> createState() => _ScanPageState();
+}
+
+class _ScanPageState extends State<ScanPage> {
+  final controller = MobileScannerController(
+    formats: [BarcodeFormat.qrCode],
+    detectionSpeed: DetectionSpeed.noDuplicates,
+  );
+  bool returned = false;
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
   }
+
+  @override
+  Widget build(BuildContext context) => PageFrame(
+    'Scan parcel QR code',
+    Column(
+      children: [
+        const Padding(
+          padding: EdgeInsets.all(16),
+          child: Text(
+            'Place the parcel QR label inside the frame. Camera access is required to verify the physical handover.',
+          ),
+        ),
+        Expanded(
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              MobileScanner(
+                controller: controller,
+                errorBuilder: (context, error) => Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          'Camera unavailable. Allow camera access in Android Settings → Apps → LubosMart Rider → Permissions, then return and retry.',
+                        ),
+                        ActionButton('Retry camera', () => controller.start()),
+                      ],
+                    ),
+                  ),
+                ),
+                onDetect: (capture) {
+                  final value = capture.barcodes.firstOrNull?.rawValue;
+                  if (!returned && value != null && value.isNotEmpty) {
+                    returned = true;
+                    Navigator.pop(context, value);
+                  }
+                },
+              ),
+              IgnorePointer(
+                child: Container(
+                  width: 250,
+                  height: 250,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.white, width: 3),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        TextButton.icon(
+          onPressed: () => controller.toggleTorch(),
+          icon: const Icon(Icons.flash_on),
+          label: const Text('Toggle flashlight'),
+        ),
+      ],
+    ),
+  );
 }
 
 class DeliveryPage extends StatefulWidget {
   final Api api;
   final int id;
-  const DeliveryPage(this.api, this.id, {super.key});
+  final String? scannedReference;
+  final bool riderPresentation;
+  final String? pageTitle;
+  const DeliveryPage(
+    this.api,
+    this.id, {
+    this.scannedReference,
+    this.riderPresentation = false,
+    this.pageTitle,
+    super.key,
+  });
   @override
   State<DeliveryPage> createState() => _DeliveryPageState();
 }
 
 class _DeliveryPageState extends State<DeliveryPage> {
-  final tracking = TextEditingController(), reason = TextEditingController();
+  final tracking = TextEditingController(),
+      reason = TextEditingController(),
+      recipient = TextEditingController();
   String method = 'manual';
   String? photo;
   String note = '', outcome = '';
   bool codConfirmed = false;
   String receiptCondition = '';
+  bool recovering = false;
+  @override
+  void initState() {
+    super.initState();
+    if (widget.scannedReference != null) {
+      tracking.text = widget.scannedReference!;
+      method = 'scanner';
+    }
+    restorePending();
+  }
+
+  Future<void> restorePending() async {
+    try {
+      for (final action in [
+        'delivered',
+        'failed_attempt',
+        'picked_up',
+        'accept_dispatch',
+        'accept_transfer',
+        'out_for_delivery',
+      ]) {
+        final pending = await widget.api.pending(
+          'delivery:${widget.id}:$action',
+        );
+        if (pending == null || !mounted) continue;
+        final payload = pending['payload'] as Map;
+        setState(() {
+          recovering = true;
+          outcome = action;
+          tracking.text = payload['tracking_reference']?.toString() ?? '';
+          method = payload['capture_method']?.toString() ?? 'manual';
+          reason.text = payload['reason']?.toString() ?? '';
+          recipient.text = payload['recipient_name']?.toString() ?? '';
+          note = payload['note']?.toString() ?? '';
+          codConfirmed = payload['cod_confirmed'] == 1;
+          photo = pending['files']?['proof'] as String?;
+        });
+        break;
+      }
+    } catch (error) {
+      if (mounted) feedback(context, error);
+    }
+  }
+
   @override
   void dispose() {
-    for (final c in [tracking, reason]) {
+    for (final c in [tracking, reason, recipient]) {
       c.dispose();
     }
     super.dispose();
@@ -404,53 +541,206 @@ class _DeliveryPageState extends State<DeliveryPage> {
   Widget build(BuildContext context) => ResourcePage(
     api: widget.api,
     path: 'deliveries/${widget.id}',
-    title: 'Parcel handover',
+    title: widget.pageTitle ?? 'Parcel details',
     builder: (context, response, reload) {
       final delivery = response['data'] as Json;
       final parcel = delivery['parcel'] as Json;
-      final receiver = parcel['recipient'] as Json;
+      final receiver = parcel['recipient'] as Json? ?? {};
       final actions = List<String>.from(
         delivery['allowed_actions'] as List? ?? [],
       );
       return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          InfoCard(
-            '${delivery['tracking_reference']}',
-            subtitle:
-                '${readable('${delivery['fulfillment_status'] ?? delivery['status']}')}\n${receiver['name']} · ${receiver['phone']}\n${receiver['line1']}, ${receiver['barangay']}, ${receiver['city']}\nCOD to collect: ${pesos(cents(parcel['cod_total']))}',
-          ),
-          if (delivery['pickup_address'] != null)
-            InfoCard(
-              'Seller pickup address',
-              subtitle:
-                  '${delivery['pickup_address']['line1']}, ${delivery['pickup_address']['city']}\n${delivery['pickup_address']['phone']}',
+          RiderPanel(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: const BoxDecoration(
+                    color: Color(0xfffff0d9),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const RiderIcon(
+                    Icons.inventory_2_outlined,
+                    color: Color(0xffaa5c18),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SelectableText(
+                        '${delivery['tracking_reference']}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      RiderStatus(
+                        '${delivery['fulfillment_status'] ?? delivery['status']}',
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
+          ),
+          if (widget.riderPresentation)
+            RiderPanel(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Parcel details',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                  ),
+                  RiderLine(
+                    Icons.storefront_outlined,
+                    '${parcel['store']?['name'] ?? 'LubosMart seller'}',
+                  ),
+                  if (delivery['pickup_address'] != null)
+                    RiderLine(
+                      Icons.store_mall_directory_outlined,
+                      addressText(delivery['pickup_address']),
+                    ),
+                  RiderLine(Icons.location_on_outlined, addressText(receiver)),
+                  const Divider(height: 20),
+                  RiderLine(
+                    Icons.account_balance_wallet_outlined,
+                    'COD amount: ${riderPesos(cents(parcel['cod_total']))}',
+                    strong: true,
+                  ),
+                ],
+              ),
+            ),
+          if (!widget.riderPresentation) ...[
+            RiderPanel(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Store',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                  ),
+                  RiderLine(
+                    Icons.storefront_outlined,
+                    '${parcel['store']?['name'] ?? 'LubosMart seller'}',
+                  ),
+                ],
+              ),
+            ),
+            if (delivery['pickup_address'] != null)
+              RiderPanel(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Pickup',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    RiderLine(
+                      Icons.location_on_outlined,
+                      addressText(delivery['pickup_address']),
+                    ),
+                  ],
+                ),
+              ),
+            RiderPanel(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Delivery',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                  ),
+                  RiderLine(Icons.location_on_outlined, addressText(receiver)),
+                ],
+              ),
+            ),
+            RiderPanel(
+              child: Row(
+                children: [
+                  const RiderIcon(
+                    Icons.account_balance_wallet_outlined,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 10),
+                  const Expanded(
+                    child: Text('COD amount', style: TextStyle(fontSize: 14)),
+                  ),
+                  Flexible(
+                    child: Text(
+                      riderPesos(cents(parcel['cod_total'])),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           if (parcel['delivery']?['notes'] != null)
             Text('Delivery notes: ${parcel['delivery']['notes']}'),
           if (actions.isEmpty)
-            const InfoCard(
-              'Waiting for the next handover',
-              subtitle: 'Check with Logistics for receipt, sorting, dispatch or exception handling.',
+            InfoCard(
+              delivery['status'] == 'delivered'
+                  ? 'Delivery completed'
+                  : 'Status: ${readable('${delivery['fulfillment_status'] ?? delivery['status']}')}',
+              subtitle: 'No Rider action is currently available. Shipment history and existing evidence remain accessible below.',
             ),
           if (actions.isNotEmpty) ...[
+            UploadStatus(widget.api),
+            if (recovering)
+              const InfoCard(
+                'Earlier submission awaiting confirmation',
+                subtitle: 'The saved action and request key will be reused on retry. Check the current parcel status first.',
+              ),
             if (actions.contains('picked_up') ||
                 actions.contains('accept_dispatch') ||
+                actions.contains('accept_transfer') ||
                 actions.contains('receive')) ...[
               TextField(
                 controller: tracking,
+                readOnly: true,
                 decoration: const InputDecoration(
                   labelText: 'Attached waybill reference',
+                  helperText: 'Use the camera scanner to confirm custody.',
                 ),
                 onChanged: (_) => method = 'manual',
               ),
-              ActionButton('Scan barcode with camera', () async {
+              ActionButton('Scan parcel QR code', () async {
                 final scanned = await Navigator.of(context).push<String>(
                   MaterialPageRoute(builder: (_) => const ScanPage()),
                 );
                 if (scanned != null && mounted) {
+                  final matches = rows(
+                    (await widget.api.request(
+                      'GET',
+                      'deliveries?search=${Uri.encodeQueryComponent(scanned.trim())}',
+                    ))['data'],
+                  );
+                  if (!matches.any(
+                    (item) =>
+                        item['id'] == widget.id &&
+                        item['tracking_reference'] == scanned.trim(),
+                  )) {
+                    throw const ApiFailure(
+                      422,
+                      'This QR code does not match the selected assigned parcel.',
+                    );
+                  }
+                  if (!mounted) return;
                   setState(() {
-                    tracking.text = scanned;
+                    tracking.text = scanned.trim();
                     method = 'scanner';
                   });
                 }
@@ -459,7 +749,7 @@ class _DeliveryPageState extends State<DeliveryPage> {
                 controller: reason,
                 maxLines: 3,
                 decoration: const InputDecoration(
-                  labelText: 'Handover notes / manual entry reason',
+                  labelText: 'Handover notes (optional)',
                 ),
               ),
             ],
@@ -481,7 +771,9 @@ class _DeliveryPageState extends State<DeliveryPage> {
             if (actions.contains('delivered')) ...[
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                initialValue: outcome.isEmpty ? null : outcome,
+                initialValue: ['delivered', 'failed_attempt'].contains(outcome)
+                    ? outcome
+                    : null,
                 decoration: const InputDecoration(labelText: 'Delivery action'),
                 items: const [
                   DropdownMenuItem(
@@ -525,12 +817,20 @@ class _DeliveryPageState extends State<DeliveryPage> {
                   onChanged: (_) => setState(() {}),
                 ),
               if (outcome == 'delivered')
+                TextField(
+                  controller: recipient,
+                  maxLength: 150,
+                  decoration: const InputDecoration(
+                    labelText: 'Person receiving the parcel (required)',
+                  ),
+                ),
+              if (outcome == 'delivered' && cents(parcel['cod_total']) > 0)
                 CheckboxListTile(
                   value: codConfirmed,
                   onChanged: (value) =>
                       setState(() => codConfirmed = value ?? false),
                   title: Text(
-                    'I confirm receipt of the full COD payment of ${pesos(cents(parcel['cod_total']))}.',
+                    'I confirm receipt of the full COD payment of ${riderPesos(cents(parcel['cod_total']))}.',
                   ),
                 ),
               if (outcome.isNotEmpty)
@@ -541,13 +841,9 @@ class _DeliveryPageState extends State<DeliveryPage> {
                             : 'Take supporting photo (optional, only when safe)')
                       : 'Replace proof photo',
                   () async {
-                    final image = await ImagePicker().pickImage(
-                      source: ImageSource.camera,
-                      imageQuality: 80,
-                      maxWidth: 1800,
-                    );
+                    final image = await captureRiderProof();
                     if (image != null && mounted) {
-                      setState(() => photo = image.path);
+                      setState(() => photo = image);
                     }
                   },
                   outlined: true,
@@ -638,35 +934,37 @@ class _DeliveryPageState extends State<DeliveryPage> {
                   if ([
                         'picked_up',
                         'accept_dispatch',
+                        'accept_transfer',
                         'receive',
                       ].contains(action) &&
                       tracking.text != delivery['tracking_reference']) {
                     throw const ApiFailure(
                       422,
-                      'Scan or enter the label attached to this parcel.',
+                      'Scan the QR label attached to this parcel.',
                     );
                   }
                   if ([
                         'picked_up',
                         'accept_dispatch',
+                        'accept_transfer',
                         'receive',
                       ].contains(action) &&
-                      method == 'manual' &&
-                      reason.text.trim().isEmpty) {
+                      method != 'scanner') {
                     throw const ApiFailure(
                       422,
-                      'Explain manual tracking entry.',
+                      'Use the camera scanner to confirm custody.',
                     );
                   }
                   if (action == 'delivered' &&
                       (photo == null ||
-                          !codConfirmed ||
+                          (cents(parcel['cod_total']) > 0 && !codConfirmed) ||
+                          recipient.text.trim().isEmpty ||
                           note.isEmpty ||
                           (note == 'Other / Custom notes' &&
                               reason.text.trim().isEmpty))) {
                     throw const ApiFailure(
                       422,
-                      'Capture proof, select delivery notes and confirm full COD payment.',
+                      'Enter the recipient name, capture proof, select delivery notes and confirm any COD payment.',
                     );
                   }
                   if (!await confirm(
@@ -684,7 +982,9 @@ class _DeliveryPageState extends State<DeliveryPage> {
                       ? Json.from(pending['payload'] as Map)
                       : {
                           'action': action,
-                          'tracking_reference': tracking.text,
+                          'tracking_reference': tracking.text.isEmpty
+                              ? delivery['tracking_reference']
+                              : tracking.text,
                           'capture_method': method,
                           'reason': reason.text,
                           if (action == 'receive')
@@ -693,6 +993,8 @@ class _DeliveryPageState extends State<DeliveryPage> {
                             'note': note,
                           if (action == 'delivered')
                             'cod_confirmed': codConfirmed ? 1 : 0,
+                          if (action == 'delivered')
+                            'recipient_name': recipient.text.trim(),
                         };
                   await widget.api.intent(
                     tag,
@@ -704,6 +1006,17 @@ class _DeliveryPageState extends State<DeliveryPage> {
                         ? {'proof': photo!}
                         : {},
                   );
+                  if (context.mounted) {
+                    feedback(context, 'Parcel status updated successfully.');
+                  }
+                  if (!mounted) return;
+                  setState(() {
+                    photo = null;
+                    note = '';
+                    outcome = '';
+                    codConfirmed = false;
+                    recovering = false;
+                  });
                   reload();
                 },
                 enabled:
@@ -712,25 +1025,33 @@ class _DeliveryPageState extends State<DeliveryPage> {
                         (note != 'Other / Custom notes' ||
                             reason.text.trim().isNotEmpty) &&
                         (action != 'delivered' ||
-                            (photo != null && codConfirmed))),
+                            (photo != null &&
+                                (cents(parcel['cod_total']) == 0 ||
+                                    codConfirmed)))),
               ),
           ],
-          for (final event in rows(delivery['history']))
-            InfoCard(
-              readable(event['type'].toString()),
-              subtitle: event['notes']?.toString(),
-              child: event['has_proof'] == true
-                  ? ActionButton(
-                      'View supporting photo',
-                      () => privateFile(
-                        context,
-                        widget.api,
-                        'deliveries/${widget.id}/proof?event=${event['id']}',
-                      ),
-                      outlined: true,
-                    )
-                  : null,
-            ),
+          ExpansionTile(
+            title: const Text('Shipment timeline'),
+            children: [
+              for (final event in rows(delivery['history']))
+                InfoCard(
+                  readable(event['type'].toString()),
+                  subtitle:
+                      '${localEventTime(event['occurred_at'])}\n${event['notes'] ?? ''}',
+                  child: event['has_proof'] == true
+                      ? ActionButton(
+                          'View supporting photo',
+                          () => privateFile(
+                            context,
+                            widget.api,
+                            'deliveries/${widget.id}/proof?event=${event['id']}',
+                          ),
+                          outlined: true,
+                        )
+                      : null,
+                ),
+            ],
+          ),
           if (parcel['delivery']?['has_proof'] == true)
             ActionButton(
               'View delivery proof',

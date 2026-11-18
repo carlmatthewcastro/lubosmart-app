@@ -3,6 +3,7 @@ import 'package:image_picker/image_picker.dart';
 
 import '../core/api.dart';
 import '../ui/common.dart';
+import '../ui/rider_design.dart';
 
 class InventoryPage extends StatelessWidget {
   final Api api;
@@ -509,30 +510,354 @@ class SettlementsPage extends StatelessWidget {
 class EarningsPage extends StatelessWidget {
   final Api api;
   const EarningsPage(this.api, {super.key});
+
   @override
   Widget build(BuildContext context) => ResourcePage(
     api: api,
     path: 'rider/earnings',
     title: 'Your earnings',
+    appBarTitle: const RiderBrand(),
     builder: (context, response, reload) {
       final data = response['data'] as Json;
+      final entries = rows(data['entries']);
+      final totals = data['totals'] as Json;
+      final fees = totals['fees'] as int;
+      final paid = totals['paid'] as int;
+      final pending = fees - paid;
       return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          InfoCard(
-            'Logistics-approved fees',
-            subtitle:
-                'Earned: ${pesos(data['totals']['fees'] as int)}\nPaid: ${pesos(data['totals']['paid'] as int)}\nCOD and shipping collections are separate liabilities, not wages.',
+          const Text(
+            'Your earnings',
+            style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
           ),
-          for (final row in rows(data['entries']))
-            InfoCard(
-              '${row['leg']} · Delivery #${row['delivery_id']}',
-              subtitle:
-                  '${pesos(row['amount_cents'] as int)}\n${row['paid_at'] == null ? 'Unpaid fee' : 'Paid · ${row['payment_reference']}'}',
+          Text(
+            'Track your earnings and payment history.',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              fontSize: 13,
             ),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            color: const Color(0xff6941a5),
+            margin: const EdgeInsets.only(bottom: 16),
+            clipBehavior: Clip.antiAlias,
+            child: Stack(
+              children: [
+                Positioned(
+                  top: 14,
+                  right: 12,
+                  child: ExcludeSemantics(
+                    child: Icon(
+                      Icons.account_balance_wallet_outlined,
+                      size: 88,
+                      color: Colors.white.withValues(alpha: .13),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 24,
+                  right: 38,
+                  child: ExcludeSemantics(
+                    child: Container(
+                      width: 15,
+                      height: 15,
+                      decoration: const BoxDecoration(
+                        color: Color(0xfff59e42),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          const RiderIcon(
+                            Icons.account_balance_wallet_outlined,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                          const SizedBox(width: 10),
+                          const Text(
+                            'Total Earned',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        riderPesos(fees),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 30,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      Row(
+                        children: [
+                          _EarningsSummary(
+                            label: 'Paid',
+                            amount: paid,
+                            icon: Icons.check_circle_outline,
+                            color: const Color(0xff198754),
+                          ),
+                          const SizedBox(width: 8),
+                          _EarningsSummary(
+                            label: 'Pending',
+                            amount: pending,
+                            icon: Icons.schedule_outlined,
+                            color: const Color(0xffd97706),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const RiderPanel(
+            child: RiderLine(
+              Icons.info_outline,
+              'Logistics-approved fees only. COD and shipping collections are separate liabilities, not wages.',
+            ),
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Compensation history',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          if (entries.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              child: Column(
+                children: [
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Container(
+                        width: 100,
+                        height: 100,
+                        decoration: const BoxDecoration(
+                          color: Color(0xfff1eafd),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const RiderIcon(
+                        Icons.account_balance_wallet_outlined,
+                        size: 56,
+                        color: Color(0xff6941a5),
+                      ),
+                      const Positioned(
+                        top: 10,
+                        right: 6,
+                        child: Icon(
+                          Icons.auto_awesome,
+                          size: 16,
+                          color: Color(0xfff59e42),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  const Text(
+                    'No payment records yet.',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    'Recorded fees and payments will appear here.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          for (final row in entries) _CompensationEntryCard(row),
         ],
       );
     },
   );
+}
+
+class _EarningsSummary extends StatelessWidget {
+  final String label;
+  final int amount;
+  final IconData icon;
+  final Color color;
+
+  const _EarningsSummary({
+    required this.label,
+    required this.amount,
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) => Expanded(
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 16, color: color),
+              const SizedBox(width: 5),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Color(0xff27232e),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 5),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              riderPesos(amount),
+              style: const TextStyle(
+                color: Color(0xff18181b),
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+class _CompensationEntryCard extends StatelessWidget {
+  final Json row;
+  const _CompensationEntryCard(this.row);
+
+  @override
+  Widget build(BuildContext context) {
+    final isPaid = row['paid_at'] != null;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final statusColor = isPaid
+        ? (dark ? const Color(0xffa5e8b7) : const Color(0xff198754))
+        : (dark ? const Color(0xffffce92) : const Color(0xffd97706));
+    final reference = row['payment_reference']?.toString();
+    return RiderPanel(
+      padding: const EdgeInsets.all(14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: statusColor.withValues(alpha: .12),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: RiderIcon(
+              isPaid ? Icons.check_circle_outline : Icons.schedule_outlined,
+              size: 21,
+              color: statusColor,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${riderDisplayValue('${row['leg']}')} compensation',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                if (row['delivery_id'] != null)
+                  Text(
+                    'Delivery #${row['delivery_id']}',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontSize: 12,
+                    ),
+                  ),
+                if (row['paid_at'] != null)
+                  Text(
+                    riderDateTime(row['paid_at']),
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontSize: 11,
+                    ),
+                  ),
+                if (reference != null && reference.isNotEmpty)
+                  Text(
+                    'Ref. $reference',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontSize: 11,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                riderPesos(row['amount_cents'] as int),
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: .12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  isPaid ? 'Paid' : 'Pending',
+                  style: TextStyle(
+                    color: statusColor,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class ReportsPage extends StatelessWidget {
