@@ -1,24 +1,22 @@
 <div align="center">
 
-# 🔒 Registration field coverage
+# Registration field coverage
 
 **Registration reference fields and website coverage.**
 
-[🛒 Home](../../README.md) · [📚 Documentation](../README.md) · [Current access rules](../backend/README.md)
+[Home](../../README.md) · [Documentation](../README.md) · [Website](https://lubosmart.app)
 
 </div>
 
 ---
 
-<a id="overview"></a>
-
-## 🛒 Overview
+## Overview
 
 This reference maps the supplied ERP registration fields to the website and stored data. It is for maintainers checking field coverage; dated or legacy onboarding descriptions must be read with the current role guides.
 
 <a id="how-it-works"></a>
 
-## 🔄 How it works
+## How it works
 
 User-requested registration reference: `ERP-Components.pdf`, supplied on
 2026-10-14. This maps its registration fields; it does not expand the task into
@@ -26,10 +24,10 @@ the PDF's marketplace, payment or reporting features.
 
 <a id="registration-requirements"></a>
 
-## 🔒 Registration requirements
+## Registration requirements
 
 > [!NOTE]
-> The table preserves the supplied registration reference. Current password Buyer signup activates after email verification; legacy/Google onboarding can still require Admin review. See the [Buyer guide](../functions/buyer/README.md).
+> The table preserves the supplied registration reference. Current password Buyer signup activates after email verification; legacy/Google onboarding can still require Admin review. See the [Buyer guide](../WORKSPACES.md#buyer).
 
 | PDF registration requirement            | Website and stored data                                                                               |
 | --------------------------------------- | ----------------------------------------------------------------------------------------------------- |
@@ -52,7 +50,7 @@ Registration approval and account access remain separate workflows.
 
 <a id="google-registration"></a>
 
-## 🔒 Google registration
+## Google registration
 
 Unknown Google sign-in identities first choose a registration role. Google name
 and email prefill the selected form; provider ID is retained only in the server
@@ -69,6 +67,6 @@ The age control is labeled Age and remains calculated/read-only.
 
 <div align="center">
 
-**LubosMart** · Registration field coverage · [Back to Documentation](../README.md)
+**LubosMart** · Registration field coverage · [Documentation](../README.md)
 
 </div>

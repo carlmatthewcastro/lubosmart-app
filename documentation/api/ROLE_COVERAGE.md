@@ -1,24 +1,22 @@
 <div align="center">
 
-# 👥 Mobile role coverage
+# Mobile role coverage
 
 **Implemented mobile role coverage and remaining device acceptance.**
 
-[🛒 Home](../../README.md) · [📚 Documentation](../README.md) · [Endpoints](ENDPOINTS.md)
+[Home](../../README.md) · [Documentation](../README.md) · [Website](https://lubosmart.app)
 
 </div>
 
 ---
 
-<a id="overview"></a>
-
-## 🛒 Overview
+## Overview
 
 This guide maps the implemented Buyer, Seller and Rider mobile modules. It is for developers and reviewers distinguishing native coverage from website operations and device acceptance.
 
 <a id="how-it-works"></a>
 
-## 🔄 How it works
+## How it works
 
 Implemented November 5, 2026. “Implemented” below means source and relevant automated checks exist; native device acceptance is still outstanding. See verification.
 
@@ -41,7 +39,7 @@ The server supplies allowed_actions for preparations/custody/returns. UI visibil
 
 <a id="operations-retained-on-the-website"></a>
 
-## 🔄 Operations retained on the website
+## Operations retained on the website
 
 Admin approval/moderation/content/user management, full Logistics center/coverage/rider management, pickup approval/allocation, dispatch/receipt/reconciliation administration, company invitation activation, return approval/assignment/refund/closure and payout recording remain existing website workflows. Some original custody/configuration APIs also support company/Admin roles; the Flutter app intentionally provides only the three requested workspaces.
 
@@ -49,7 +47,7 @@ This is broad coverage of the three mobile roles, not a claim that every website
 
 <a id="reading-responses"></a>
 
-## 🔌 Reading responses
+## Reading responses
 
 | Response                                                                              | Contract                                                                                                                                                      |
 | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -70,6 +68,6 @@ The [endpoint inventory](ENDPOINTS.md) enumerates all 82 operations and their mi
 
 <div align="center">
 
-**LubosMart** · Mobile role coverage · [Back to Documentation](../README.md)
+**LubosMart** · Mobile role coverage · [Documentation](../README.md)
 
 </div>

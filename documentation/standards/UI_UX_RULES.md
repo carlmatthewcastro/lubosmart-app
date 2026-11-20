@@ -1,31 +1,57 @@
 <div align="center">
 
-# 🏗️ LubosMart UI/UX standards
+# LubosMart UI/UX standards
 
 **Brand, component, accessibility and frontend validation rules.**
 
-[🛒 Home](../../README.md) · [📚 Documentation](../README.md) · [Frontend](../front-end/README.md)
+[Home](../../README.md) · [Documentation](../README.md) · [Website](https://lubosmart.app)
 
 </div>
 
 ---
 
-<a id="overview"></a>
-
-## 🛒 Overview
+## Overview
 
 This standard covers LubosMart interface identity, shared patterns and accessibility targets. It is for contributors maintaining the completed website while preserving its branding, permissions and workflows.
 
 <a id="how-it-works"></a>
 
-## 🔄 How it works
+## How it works
 
 This is the permanent source of truth for frontend work. Read it before changing
-pages, components, layouts, or styles. Updated 2026-10-11.
+pages, components, layouts, or styles. Updated 2026-11-20.
+
+<a id="tailwind-design-freedom"></a>
+
+## Tailwind design freedom
+
+Use the full Tailwind CSS feature set supported by the installed version when it
+improves the screen. Choose the visual treatment for the task; the shared patterns
+below are starting points, not a closed list of permitted utilities or effects.
+No blanket restriction limits the UI to basic utilities, flat surfaces, a fixed
+spacing scale, or the current component variants.
+
+| Design area   | Available tools                                                                                                        |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Layout        | Flexbox, grid, responsive breakpoints, container queries, positioning, aspect ratios and fluid sizing                  |
+| Interaction   | Hover, focus-visible, active, disabled, group, peer, data, ARIA and arbitrary variants                                 |
+| Appearance    | Typography, gradients, borders, rings, shadows, opacity, filters, backdrop effects and transforms                      |
+| Motion        | Transitions, animations, custom keyframes and reduced-motion variants                                                  |
+| Customization | Arbitrary values and properties, CSS variables, extended `@theme` tokens, `@utility`, `@variant` and `@custom-variant` |
+
+Use the [official Tailwind customization guide](https://tailwindcss.com/docs/adding-custom-styles)
+for syntax and check feature availability against the installed version. Extend
+the shared theme and components for reusable designs; use local arbitrary values
+or custom CSS when a screen needs them. Apply effects where they improve hierarchy,
+feedback or readability. A feature does not need to appear on every screen.
+
+Keep LubosMart identity, responsive behavior, accessible contrast, visible focus,
+reduced-motion support and performance intact. UI freedom covers presentation;
+server authorization, validation and business workflows remain authoritative.
 
 <a id="identity-and-tokens"></a>
 
-## 🔒 Identity and tokens
+## Identity and tokens
 
 Preserve the existing LubosMart logo, purple identity, orange logo accent, Poppins
 typography (user request dated 2026-11-14), lavender surfaces, and rounded cards. Do not redesign the brand.
@@ -34,34 +60,39 @@ Preserve its design, category artwork, product presentation and navbar. Public
 pages linked from the homepage, including Marketplace, reuse that same navbar.
 `resources/css/app.css` owns semantic light and dark tokens through Tailwind v4
 `@theme`. Use `primary`, `background`, `foreground`, `card`, `muted`, `accent`,
-`destructive`, `success`, `warning`, `input`, and `ring` rather than arbitrary colors.
+`destructive`, `success`, `warning`, `input`, and `ring` for shared semantic roles.
+Extend the palette or use arbitrary colors for a deliberate screen-specific
+treatment, while preserving brand recognition, contrast and light/dark behavior.
 Primary remains `hsl(262, 43%, 49%)` in light mode. Orange is a brand accent, not
 an error indicator. Status must have text or an icon as well as color.
 Respect the user's theme preference; a role must never overwrite it.
 
 <a id="typography-spacing-and-layout"></a>
 
-## 🏗️ Typography, spacing, and layout
+## Typography, spacing, and layout
 
-- Use one descriptive page heading; operational page titles use 24–30px semibold.
-  Section titles use 18–20px; body copy uses 14–16px with comfortable line height.
+- Use one descriptive page heading. Default operational page titles use 24–30px
+  semibold, section titles 18–20px and body copy 14–16px with comfortable line
+  height. Adapt the type scale to the screen; these defaults are not hard limits.
 - Inputs use at least 16px on mobile to avoid focus zoom. Use tabular numbers for
   money and operational metrics; format pesos with the existing `money` helper.
-- Use the Tailwind 4px spacing scale: 8px between labels and controls, 16px between
-  related items, 24px between sections. Avoid arbitrary spacing without a reason.
+- Start with the Tailwind 4px spacing scale: 8px between labels and controls, 16px
+  between related items and 24px between sections. Use fluid spacing, extended
+  theme values or arbitrary values when they better fit the composition.
 - Standard operational pages use `Page`: full available width, 16px mobile gutters,
   24–32px desktop gutters, a clear title, purpose, and primary action.
   Keep readable widths for individual forms, authentication, and focused onboarding.
   Full-width pages follow the user requirement dated 2026-11-10.
-- Cards use quiet borders, modest shadows, rounded corners, and responsive padding.
-  Keep long identifiers and user text from overflowing with wrapping and `min-w-0`.
+- Choose card borders, shadows, gradients, corners and responsive padding to suit
+  the screen's hierarchy. Keep long identifiers and user text from overflowing
+  with wrapping and `min-w-0`.
 - Start with a single mobile column; add columns when content fits. Verify 320px
   width, common tablet/desktop widths, landscape, and 200%/400% zoom. Confine
   necessary horizontal scrolling to named table regions, never the whole page.
 
 <a id="components-and-navigation"></a>
 
-## 🏗️ Components and navigation
+## Components and navigation
 
 Reuse `marketplace-ui`, `components/ui`, and existing Radix primitives. Use the
 shared Button, Field, Select, Textarea, feedback, and card patterns. Extend existing
@@ -75,7 +106,7 @@ location; do not introduce links to workflows that do not exist.
 
 <a id="accessibility-wcag-22-aa-target"></a>
 
-## 🔒 Accessibility: WCAG 2.2 AA target
+## Accessibility: WCAG 2.2 AA target
 
 - Normal text needs 4.5:1 contrast; large text and essential UI boundaries need 3:1.
   Check actual foreground/background pairs, including hover, error, and dark states.
@@ -93,7 +124,7 @@ location; do not introduce links to workflows that do not exist.
 
 <a id="forms-and-feedback"></a>
 
-## 🏗️ Forms and feedback
+## Forms and feedback
 
 Label every control; show optional/required expectations and useful hints. Use
 appropriate input types, input modes, autocomplete, and server-aligned limits.
@@ -112,7 +143,7 @@ when safe. Distinguish zero records from filters returning no matches.
 
 <a id="operational-surfaces"></a>
 
-## 🏗️ Operational surfaces
+## Operational surfaces
 
 Accounts and registration management pages use concise result counts instead of
 summary metric card strips, per the user's preference. Do not reintroduce those
@@ -131,7 +162,7 @@ avoid jargon, and use consistent order/parcel/payment terminology.
 
 <a id="role-specific-experience"></a>
 
-## 👥 Role-specific experience
+## Role-specific experience
 
 | Role            | Priorities and protected workflow                                                                                            |
 | --------------- | ---------------------------------------------------------------------------------------------------------------------------- |
@@ -149,7 +180,7 @@ must follow the same shared accessibility and feedback patterns.
 
 <a id="shared-account-settings-reference-2026-11-14"></a>
 
-## ⚙️ Shared account settings reference (2026-11-14)
+## Shared account settings reference (2026-11-14)
 
 Buyer, Seller, Rider and Logistics use the same settings presentation, with categories
 based on available role settings. Follow the user-supplied reference: personal details
@@ -162,7 +193,7 @@ settings. Preserve backend authorization, approval and account-retention protect
 
 <a id="performance-and-validation"></a>
 
-## 🧪 Performance and validation
+## Performance and validation
 
 Reuse existing dependencies; avoid adding libraries for basic UI behavior. Preserve
 code splitting. Give images dimensions or an aspect ratio; lazy-load below-fold
@@ -178,7 +209,7 @@ access is available. Document limitations and remaining issues in the UI audit.
 
 <a id="requirements-evidence"></a>
 
-## 📚 Requirements evidence
+## Requirements evidence
 
 For registration, follow the user's 2026-10-14 requirement to retain all fields
 from ERP-Components.pdf. See [registration field coverage](REGISTRATION_REQUIREMENTS.md).
@@ -196,6 +227,6 @@ later supplied SRS with these rules without silently changing business logic.
 
 <div align="center">
 
-**LubosMart** · LubosMart UI/UX standards · [Back to Documentation](../README.md)
+**LubosMart** · LubosMart UI/UX standards · [Documentation](../README.md)
 
 </div>
