@@ -1,25 +1,48 @@
-# Marketplace redesign and responsive layout review
+<div align="center">
+
+# 🏗️ Marketplace redesign and responsive layout review
+
+**Recorded marketplace changes, layout findings and verification limits.**
+
+[🛒 Home](../../README.md) · [📚 Documentation](../README.md) · [Reference refinement](MARKETPLACE_COMPACT_REFERENCE_2026_11_14.md)
+
+</div>
+
+---
+
+<a id="overview"></a>
+
+## 🛒 Overview
+
+This report covers the November 14, 2026 marketplace implementation batch and its validation. It is for maintainers tracing product visibility and responsive layout work, including the recorded superseding homepage restoration.
+
+<a id="how-it-works"></a>
+
+## 🔄 How it works
 
 Date: 2026-11-14 (Asia/Manila)
 
-Follow-up correction: the user requires the original homepage design and navbar
-to remain the visual reference. Homepage presentation has been restored and its
-navbar is reused on Marketplace and other public pages. The implementation
-inventory below describes the initial batch; see
-the restoration report for the superseding changes.
+> [!IMPORTANT]
+> Follow-up correction: the user requires the original homepage design and navbar
+> to remain the visual reference. Homepage presentation has been restored and its
+> navbar is reused on Marketplace and other public pages. The implementation
+> inventory below describes the initial batch; see
+> the restoration report for the superseding changes.
 
-## Product provenance and visibility
+<a id="product-provenance-and-visibility"></a>
+
+## 🏗️ Product provenance and visibility
 
 A read-only review of the configured local database found seven products. IDs 12–14
 are Sample Everyday Tote, Organizer, and Pouch, owned by the reserved local test
-seller and carrying the exact description written by `CreateTestAccounts::createDemo`:
+Seller and carrying the exact description written by `CreateTestAccounts::createDemo`:
 `Synthetic sample listing for local workflow testing.` They previously passed the
 public eligibility scope. That exact provenance marker is now excluded by
 `Product::availableToShoppers`; names containing “sample” are not broadly blocked.
 
 The two DEMO Test Parcel records (15–16) were already hidden. Valora's The Day She
 Said Goodnight (17) remains hidden. Sentient Magazine (18) belongs to the separate
-approved Valora store, has ordinary seller content, passes the existing seller,
+approved Valora store, has ordinary Seller content, passes the existing Seller,
 verification, category and publication checks, and remains eligible. This is a
 classification from local records and creation code, not an external identity audit.
 
@@ -30,7 +53,9 @@ approval, category and email-verification gates remain in force. Homepage photo 
 positive-stock requirements remain unchanged. No replacement products or reviews
 were generated for the application.
 
-## Implementation and modified files
+<a id="implementation-and-modified-files"></a>
+
+## 🏗️ Implementation and modified files
 
 Paths below are relative to the repository root. Many already contained unrelated
 pending work; that work was retained. No branch switch, commit, push or deployment
@@ -58,7 +83,9 @@ was performed.
 | `tests/Frontend/responsive-layout-matrix.cjs`               | Extend geometry checks to 320/375/768/1024/1440/1920px, public catalog/details, wishlists/cart, messaging and notifications.                                                                                                                           |
 | `tests/Frontend/dashboard-browser-check.cjs`                | Optional marketplace module and scoped login form selector, so navbar search is not mistaken for login submission.                                                                                                                                     |
 
-## Shared layout findings
+<a id="shared-layout-findings"></a>
+
+## 🏗️ Shared layout findings
 
 The existing working tree already gives `Page`, `AppContent`, `SidebarInset`,
 header-layout content and settings wrappers fluid outer widths. These were
@@ -74,7 +101,11 @@ desktop catalog results fit 3–6 columns, depending on available sidebar space;
 mobile uses one column below 380px and two above it. Tablets fit 2–3 columns.
 The homepage and catalog share the same card component and grid behavior.
 
-## Validation
+<a id="validation"></a>
+
+<a id="testing"></a>
+
+## 🧪 Testing
 
 - Targeted ESLint, TypeScript and Prettier checks pass.
 - Relevant PHP formatting checks pass.
@@ -83,14 +114,14 @@ The homepage and catalog share the same card component and grid behavior.
 - Production build passes. Obsolete category sprite references were removed after
   switching to actual category links.
 - Full browser matrix: 408 viewport/sidebar geometry cases pass across 39 role/page
-  combinations and three public pages. Totals: public 18, buyer 100, seller 80,
-  rider 70, logistics 80 and admin 60. No document-level horizontal overflow, runtime
+  combinations and three public pages. Totals: public 18, Buyer 100, Seller 80,
+  Rider 70, Logistics 80 and Admin 60. No document-level horizontal overflow, runtime
   exceptions or console errors were reported. Both expanded and collapsed workspace
   navigation are exercised at 768/1024/1440/1920px; mobile checks use 320/375px.
 - Public interaction checks pass: search preserves sorting, sparse cards stay
   bounded, desktop filter collapse expands results, mobile filtering/reset/empty
   state works, Escape restores mobile-menu focus, dark mode works, and missing
-  images use a neutral fallback. Desktop catalog, mobile dark catalog and logistics
+  images use a neutral fallback. Desktop catalog, mobile dark catalog and Logistics
   report screenshots were visually inspected.
 - Browser fixtures run only in a guarded disposable SQLite stage with synthetic
   accounts; they do not populate or change the configured application database.
@@ -102,7 +133,9 @@ Evidence: `storage/app/marketplace-redesign-check/` (screenshots and `results.js
 `storage/app/marketplace-redesign-final-public/` (final public asset check), and
 `storage/app/marketplace-redesign-build.log`.
 
-## Limits and remaining verification
+<a id="limits-and-remaining-verification"></a>
+
+## 🧪 Limits and remaining verification
 
 Representative route geometry does not establish every record/action combination.
 The cart page contains checkout in this application; no new checkout or tracking
@@ -112,3 +145,11 @@ browser checks cover representative layout and navigation. Manual screen reader,
 Vitals remain unverified; this is not a WCAG certification. Other unmarked test
 data introduced outside the inspected local creation paths cannot be inferred from
 names alone and would require provenance review.
+
+---
+
+<div align="center">
+
+**LubosMart** · Marketplace redesign and responsive layout review · [Back to Documentation](../README.md)
+
+</div>

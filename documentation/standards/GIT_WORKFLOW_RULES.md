@@ -1,11 +1,33 @@
-# LubosMart Git workflow rules
+<div align="center">
+
+# 🤝 LubosMart Git workflow rules
+
+**Repository branching, review, commit and release authorization rules.**
+
+[🛒 Home](../../README.md) · [📚 Documentation](../README.md) · [UI/UX standards](UI_UX_RULES.md)
+
+</div>
+
+---
+
+<a id="overview"></a>
+
+## 🛒 Overview
+
+This standard defines the repository Git workflow and authorization boundaries. It is for contributors and agents inspecting or changing branches, commits and pull requests.
+
+<a id="how-it-works"></a>
+
+## 🔄 How it works
 
 This is the permanent source of truth for branching, commits, GitHub pushes, and
 pull requests. Read it before any Git operation, including status/diff inspection,
 branching, staging, committing, pushing, merging, or renaming branches.
 For frontend work, also read [UI/UX rules](UI_UX_RULES.md).
 
-## Branches
+<a id="branches"></a>
+
+## 🤝 Branches
 
 `main` is the stable production branch. Never commit or push directly to `main`,
 or merge into it, without the user's explicit authorization. Deployment requires
@@ -27,7 +49,9 @@ Use lowercase, descriptive names with hyphen-separated words:
 A branch represents logically related work, not a file or an individual commit.
 Existing historical names do not need retroactive renaming.
 
-## Before significant work
+<a id="before-significant-work"></a>
+
+## 🤝 Before significant work
 
 1. Inspect the current branch, tracking branch, staged/unstaged changes, untracked
    files, and relevant history. Identify unrelated work already present.
@@ -48,7 +72,9 @@ Never rename a shared or published branch without approval. Preserve history,
 coordinate active pull requests, and never automatically delete the old remote
 branch. Do not rewrite history without explicit authorization.
 
-## Commits
+<a id="commits"></a>
+
+## 🤝 Commits
 
 Use Conventional Commits with a clear module scope:
 
@@ -82,7 +108,9 @@ Never commit populated `.env` files, secrets, tokens, credentials, or private ke
 Inspect the actual content being staged; an ignore rule alone is not proof that
 sensitive information is excluded. Do not reveal credentials in command output.
 
-## GitHub push workflow
+<a id="github-push-workflow"></a>
+
+## 🤝 GitHub push workflow
 
 When the user instructs Codex to push:
 
@@ -109,7 +137,9 @@ A general instruction to "push" authorizes committing and pushing the current
 task's appropriate feature branch. It does not authorize merging, force-pushing,
 deleting branches, unrelated changes, or deploying.
 
-## Pull requests
+<a id="pull-requests"></a>
+
+## 🤝 Pull requests
 
 Prefer focused pull requests that are easy to review and test. Include:
 
@@ -122,7 +152,9 @@ Prefer focused pull requests that are easy to review and test. Include:
 Do not automatically merge a pull request. Obtain an explicit instruction before
 merging into `main`.
 
-## Safety and authorization
+<a id="safety-and-authorization"></a>
+
+## 🤝 Safety and authorization
 
 Never force-push, delete branches, reset/discard uncommitted changes, rewrite
 existing history, or rename published/shared branches without explicit approval.
@@ -133,7 +165,9 @@ requires a different branch. Pushing does not authorize deployment.
 Setting up these rules alone does not authorize branch changes, staging, commits,
 pushes, merges, renames, or deployment.
 
-## Existing repository workflow
+<a id="existing-repository-workflow"></a>
+
+## 🔄 Existing repository workflow
 
 Reviewed 2026-10-11: branch history already uses descriptive feature/fix/docs
 branches and mostly Conventional Commits; older unscoped messages and historical
@@ -148,3 +182,11 @@ enforcement system. Remote protection settings were not verified during setup.
 
 Sources: `.github/workflows/tests.yml`, `.github/workflows/lint.yml`, repository
 branch/history inspection, and [deployment guide](../deployment/README.md).
+
+---
+
+<div align="center">
+
+**LubosMart** · LubosMart Git workflow rules · [Back to Documentation](../README.md)
+
+</div>

@@ -1,8 +1,32 @@
-# Connect the Flutter client
+<div align="center">
+
+# 🔌 Connect the Flutter client
+
+**Connect the native client to the shared Laravel API.**
+
+[🛒 Home](../../README.md) · [📚 Documentation](../README.md) · [Flutter setup](../setup/FLUTTER.md)
+
+</div>
+
+---
+
+<a id="overview"></a>
+
+## 🛒 Overview
+
+This guide covers test networking, token sessions and safe mobile mutations. It is for developers connecting the Flutter client to an isolated Laravel test installation.
+
+<a id="how-it-works"></a>
+
+## 🔄 How it works
 
 The native client is in [mobile](../../mobile/README.md). Follow that README for Flutter/Android setup. The Laravel root remains the server; do not duplicate its database or business logic into the app folder.
 
-## Test network
+<a id="test-network"></a>
+
+<a id="configuration"></a>
+
+## ⚙️ Configuration
 
 Use synthetic accounts in an isolated test installation. From the Laravel root:
 
@@ -12,7 +36,9 @@ php artisan serve --host=0.0.0.0 --port=8000
 
 From mobile, use flutter run with API_BASE_URL=http://10.0.2.2:8000/api/v1 for an Android emulator, or the PC's reachable LAN address for a phone. Local HTTP is enabled only for debug development; use HTTPS for actual operation. APP_URL and asset/pagination URLs must be reachable from the phone. No firewall or deployment change was performed.
 
-## Session flow
+<a id="session-flow"></a>
+
+## 🔄 Session flow
 
 1. POST auth/session with email/password/device_name, or configured Google provider access token to auth/google.
 2. Securely save data.access_token, kind, user and expires_at; send Authorization: Bearer.
@@ -22,10 +48,20 @@ From mobile, use flutter run with API_BASE_URL=http://10.0.2.2:8000/api/v1 for a
 
 For new accounts use multipart auth/register with required role fields/documents. The Flutter form performs location selection and policy consent. Backend validation remains authoritative. Google enrollment still requires documents and approval; company invitations retain their activation flow.
 
-## Safely submit changes
+<a id="safely-submit-changes"></a>
+
+## 🏗️ Safely submit changes
 
 Keep action UUIDs until a response conclusively resolves the action. Never create a new checkout_key/request_key just because a response timed out. Compare latest server state after conflicts. Stock editing sends the last-read expected_stock; do not silently overwrite newer stock.
 
 Use multipart POST plus \_method for file-bearing PUT/PATCH. Private proof/evidence downloads require bearer headers. GET locations is a raw array; other lists can use either Resource or nested Laravel paginator envelopes. See [API details](README.md).
 
 The Android SDK is now installed and its toolchain checks pass. See the Android setup and APK report for the current build status and USB testing instructions. No Android phone or emulator was connected during setup; actual native integration still needs the device checklist.
+
+---
+
+<div align="center">
+
+**LubosMart** · Connect the Flutter client · [Back to Documentation](../README.md)
+
+</div>

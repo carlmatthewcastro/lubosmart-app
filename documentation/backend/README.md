@@ -1,10 +1,32 @@
-# Backend
+<div align="center">
 
-Laravel handles authentication, approvals, products, checkout, delivery operations and administration. Existing routes return Inertia pages, redirects, downloads and selected JSON responses.
+# 🏗️ Backend
+
+**Laravel code organization, access boundaries and business rules.**
+
+[🛒 Home](../../README.md) · [📚 Documentation](../README.md) · [API](../api/README.md)
+
+</div>
+
+---
+
+<a id="overview"></a>
+
+## 🛒 Overview
+
+This guide covers backend responsibilities, account access and shared business rules. It is for developers maintaining Laravel routes, services and protected operations.
+
+<a id="how-it-works"></a>
+
+## 🔄 How it works
+
+Laravel handles authentication, approvals, products, checkout, delivery operations and administration. Existing routes return Inertia.js pages, redirects, downloads and selected JSON responses.
 
 November 5, 2026 update: `routes/api.php` adds stateless mobile API v1 routing alongside the website. See [the API guide](../api/README.md) for device-token lifecycle, safe Resources, shared checkout/custody operations, tests and remaining parity. `routes/account.php` retains its existing session-based account endpoints.
 
-## Code organization
+<a id="code-organization"></a>
+
+## 🏗️ Code organization
 
 | Location                                                   | Responsibility                                                |
 | ---------------------------------------------------------- | ------------------------------------------------------------- |
@@ -18,7 +40,9 @@ November 5, 2026 update: `routes/api.php` adds stateless mobile API v1 routing a
 | `app/Services/`                                            | Shipping quotes, locations, email security and workspace data |
 | `app/Notifications/`, `routes/console.php`                 | Notifications and scheduled cleanup                           |
 
-## Accounts and access
+<a id="accounts-and-access"></a>
+
+## 🔒 Accounts and access
 
 Current public role identifiers are `buyer`, `seller`, `rider` and `logistics`; older records use courier/sorting-center terminology. Admin accounts are provisioned with `php artisan lubosmart:create-admin`.
 
@@ -35,17 +59,31 @@ Rider signup collects its application in the combined registration form; after v
 
 Google signup requires a verified provider email and still follows application approval for the selected role. Google login does not create unknown accounts. Linking preserves existing roles and approval decisions. Email/password signup requires Terms and Privacy Policy acceptance; application submission also requires consent to review the submitted details and documents.
 
-## Security and business rules
+<a id="security-and-business-rules"></a>
+
+## 🔒 Security and business rules
 
 - Passwords are hashed; bank fields are encrypted and hidden from ordinary serialization.
 - Registration verification uses emailed six-digit codes; the old verification-link endpoint returns 410. Recovery codes are a separate flow. See `EmailVerificationLinks`, `RegistrationEmailCodes` and `VerifyEmailController` for the current handlers.
 - Registration documents and delivery proofs are private. Downloads recheck permission; registration links also have a short-lived signature.
-- Checkout locks inventory, uses server prices, snapshots address/shipping/commission data and supports a buyer-scoped UUID retry key.
-- Shipping remains cash; merchandise can also use opt-in Lubos Coins as described in the [current finance contract](../workflows/FINANCE_AND_RETURNS.md). The default commission is 10% of item subtotal, excluding shipping. Delivery completion records commission; this is not proof of a seller payout.
+- Checkout locks inventory, uses server prices, snapshots address/shipping/commission data and supports a Buyer-scoped UUID retry key.
+- Shipping remains cash; merchandise can also use opt-in Lubos Coins as described in the [current finance contract](../workflows/FINANCE_AND_RETURNS.md). The default commission is 10% of item subtotal, excluding shipping. Delivery completion records commission; this is not proof of a Seller payout.
 - Security mail sends synchronously. Decision/status mail queues after commit. Daily cleanup requires the scheduler to run.
 
-The implemented API and website share actions/services where available. Web and API controllers must share business rules. See [API](../api/README.md) and [setup](../deployment/README.md).
+The implemented API and website share actions/services where available. Web and API controllers must share business rules. See [API](../api/README.md) and [setup](../setup/README.md).
 
 Checks: `php artisan test`, `php vendor/bin/pint --test`. Tests exist under `tests/`; production locking behavior also needs MySQL checks.
 
+<a id="related-documentation"></a>
+
+## 📚 Related documentation
+
 [Documentation](../README.md)
+
+---
+
+<div align="center">
+
+**LubosMart** · Backend · [Back to Documentation](../README.md)
+
+</div>
