@@ -1,9 +1,31 @@
-# LubosMart UI/UX standards
+<div align="center">
+
+# 🏗️ LubosMart UI/UX standards
+
+**Brand, component, accessibility and frontend validation rules.**
+
+[🛒 Home](../../README.md) · [📚 Documentation](../README.md) · [Frontend](../front-end/README.md)
+
+</div>
+
+---
+
+<a id="overview"></a>
+
+## 🛒 Overview
+
+This standard covers LubosMart interface identity, shared patterns and accessibility targets. It is for contributors maintaining the completed website while preserving its branding, permissions and workflows.
+
+<a id="how-it-works"></a>
+
+## 🔄 How it works
 
 This is the permanent source of truth for frontend work. Read it before changing
 pages, components, layouts, or styles. Updated 2026-10-11.
 
-## Identity and tokens
+<a id="identity-and-tokens"></a>
+
+## 🔒 Identity and tokens
 
 Preserve the existing LubosMart logo, purple identity, orange logo accent, Poppins
 typography (user request dated 2026-11-14), lavender surfaces, and rounded cards. Do not redesign the brand.
@@ -17,7 +39,9 @@ Primary remains `hsl(262, 43%, 49%)` in light mode. Orange is a brand accent, no
 an error indicator. Status must have text or an icon as well as color.
 Respect the user's theme preference; a role must never overwrite it.
 
-## Typography, spacing, and layout
+<a id="typography-spacing-and-layout"></a>
+
+## 🏗️ Typography, spacing, and layout
 
 - Use one descriptive page heading; operational page titles use 24–30px semibold.
   Section titles use 18–20px; body copy uses 14–16px with comfortable line height.
@@ -35,19 +59,23 @@ Respect the user's theme preference; a role must never overwrite it.
   width, common tablet/desktop widths, landscape, and 200%/400% zoom. Confine
   necessary horizontal scrolling to named table regions, never the whole page.
 
-## Components and navigation
+<a id="components-and-navigation"></a>
+
+## 🏗️ Components and navigation
 
 Reuse `marketplace-ui`, `components/ui`, and existing Radix primitives. Use the
 shared Button, Field, Select, Textarea, feedback, and card patterns. Extend existing
 components before adding a competing abstraction. Use `cn` for class overrides.
-Use Inertia `Link` for application navigation and existing `useForm` patterns for
+Use Inertia.js `Link` for application navigation and existing `useForm` patterns for
 mutations; preserve URLs, request shapes, scroll behavior, and server validation.
 Navigation needs accessible names and `aria-current` for the selected destination.
 Provide a visible-on-focus skip link to a focusable main-content target. Keep
 mobile navigation and account actions reachable without hover. Breadcrumbs reflect
 location; do not introduce links to workflows that do not exist.
 
-## Accessibility: WCAG 2.2 AA target
+<a id="accessibility-wcag-22-aa-target"></a>
+
+## 🔒 Accessibility: WCAG 2.2 AA target
 
 - Normal text needs 4.5:1 contrast; large text and essential UI boundaries need 3:1.
   Check actual foreground/background pairs, including hover, error, and dark states.
@@ -63,7 +91,9 @@ location; do not introduce links to workflows that do not exist.
 - Check keyboard, screen reader, zoom, and touch behavior manually. Passing builds
   is not a WCAG certification. See the [WCAG 2.2 reference](https://www.w3.org/WAI/WCAG22/quickref/).
 
-## Forms and feedback
+<a id="forms-and-feedback"></a>
+
+## 🏗️ Forms and feedback
 
 Label every control; show optional/required expectations and useful hints. Use
 appropriate input types, input modes, autocomplete, and server-aligned limits.
@@ -80,7 +110,9 @@ announcements for completion; alerts for actionable failures. Empty states expla
 why there are no results and provide a valid next step. Error states offer retry
 when safe. Distinguish zero records from filters returning no matches.
 
-## Operational surfaces
+<a id="operational-surfaces"></a>
+
+## 🏗️ Operational surfaces
 
 Accounts and registration management pages use concise result counts instead of
 summary metric card strips, per the user's preference. Do not reintroduce those
@@ -97,7 +129,9 @@ on small screens; long content must not hide close or submit controls.
 Write short sentence-case labels and specific action verbs. Explain consequences,
 avoid jargon, and use consistent order/parcel/payment terminology.
 
-## Role-specific experience
+<a id="role-specific-experience"></a>
+
+## 👥 Role-specific experience
 
 | Role            | Priorities and protected workflow                                                                                            |
 | --------------- | ---------------------------------------------------------------------------------------------------------------------------- |
@@ -113,7 +147,9 @@ payments, payouts, ratings, returns, or product variants. Keep COD and existing
 commission calculation intact. Authentication, onboarding, settings, and support
 must follow the same shared accessibility and feedback patterns.
 
-## Shared account settings reference (2026-11-14)
+<a id="shared-account-settings-reference-2026-11-14"></a>
+
+## ⚙️ Shared account settings reference (2026-11-14)
 
 Buyer, Seller, Rider and Logistics use the same settings presentation, with categories
 based on available role settings. Follow the user-supplied reference: personal details
@@ -124,7 +160,9 @@ server-confirmed email verification. Keep Change password and My addresses in th
 navigation. Do not show photo-ID replacement or account-deletion panels in these role
 settings. Preserve backend authorization, approval and account-retention protections.
 
-## Performance and validation
+<a id="performance-and-validation"></a>
+
+## 🧪 Performance and validation
 
 Reuse existing dependencies; avoid adding libraries for basic UI behavior. Preserve
 code splitting. Give images dimensions or an aspect ratio; lazy-load below-fold
@@ -138,7 +176,9 @@ relevant Laravel tests and the production build. Review light/dark themes, mobil
 reflow, keyboard paths, forms, dialogs, and loading/error/empty states where browser
 access is available. Document limitations and remaining issues in the UI audit.
 
-## Requirements evidence
+<a id="requirements-evidence"></a>
+
+## 📚 Requirements evidence
 
 For registration, follow the user's 2026-10-14 requirement to retain all fields
 from ERP-Components.pdf. See [registration field coverage](REGISTRATION_REQUIREMENTS.md).
@@ -151,3 +191,11 @@ The repository source and concise role guides describe implemented behavior. The
 previously supplied five-page ERP components document is a role reference, not an
 identified official SRS. No official SRS was found during this audit. Reconcile any
 later supplied SRS with these rules without silently changing business logic.
+
+---
+
+<div align="center">
+
+**LubosMart** · LubosMart UI/UX standards · [Back to Documentation](../README.md)
+
+</div>

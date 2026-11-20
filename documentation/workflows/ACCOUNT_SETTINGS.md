@@ -1,10 +1,32 @@
-# Logistics account settings
+<div align="center">
 
-The logistics owner page is `/settings/account`; `/settings/profile` renders the
-same feature for approved logistics accounts. Administrators review requests at
+# ⚙️ Logistics account settings
+
+**Approved account data, change proposals and private documents.**
+
+[🛒 Home](../../README.md) · [📚 Documentation](../README.md) · [Logistics functions](../functions/logistics/README.md)
+
+</div>
+
+---
+
+<a id="overview"></a>
+
+## 🛒 Overview
+
+This guide covers implemented Logistics account settings and administrator review. It is for maintainers managing approved registration data, change proposals and private document access.
+
+<a id="how-it-works"></a>
+
+## 🔄 How it works
+
+The Logistics owner page is `/settings/account`; `/settings/profile` renders the
+same feature for approved Logistics accounts. Administrators review requests at
 `/admin/change-requests`, linked from the registration review queue.
 
-## Data and approval rules
+<a id="data-and-approval-rules"></a>
+
+## 🔒 Data and approval rules
 
 `registration_applications`, `user_profiles`, the application's linked address,
 and its private registration documents remain the approved source of truth.
@@ -30,7 +52,11 @@ all proposed additions closes the request as rejected with an owner-withdrawal
 reason. An approved address automatically includes its new region. An older
 service proposal that omits that region must be revised or rejected.
 
-## Setup
+<a id="setup"></a>
+
+<a id="configuration"></a>
+
+## ⚙️ Configuration
 
 Run these during the normal release process; no configured application database
 was migrated as part of implementation:
@@ -50,25 +76,28 @@ The importer expects this exact CSV header:
 region_code,region_name,province_code,province_name,city_code,city_name,barangay_code,barangay_name,postal_code
 ```
 
-Supply a vetted hierarchy joined to an authoritative postal-code crosswalk.
-No production dataset or postal crosswalk was supplied. The feature deliberately
-ships no invented location rows. Address changes are unavailable until imported,
-and unknown hierarchy/postal combinations return 422. Multiple postal codes per
-barangay can be imported; the UI fills the first available code. NCR uses the
-existing registration convention of a synthetic Metro Manila province code
-`130000000`. This application uses legacy nine-digit codes; normalize modern
-ten-digit PSGC exports to the established registration codes before importing.
+> [!IMPORTANT]
+> Supply a vetted hierarchy joined to an authoritative postal-code crosswalk.
+> No production dataset or postal crosswalk was supplied. The feature deliberately
+> ships no invented location rows. Address changes are unavailable until imported,
+> and unknown hierarchy/postal combinations return 422. Multiple postal codes per
+> barangay can be imported; the UI fills the first available code. NCR uses the
+> existing registration convention of a synthetic Metro Manila province code
+> `130000000`. This application uses legacy nine-digit codes; normalize modern
+> ten-digit PSGC exports to the established registration codes before importing.
 
 PSGC source: [Philippine Statistics Authority](https://psa.gov.ph/classification/psgc/).
 Region labels include the [Negros Island Region](https://psa.gov.ph/content/second-quarter-2024-psgc-updates-creation-negros-island-region-and-correction-names-two).
 
-## Authentication and private files
+<a id="authentication-and-private-files"></a>
+
+## 🔒 Authentication and private files
 
 The `/api/account/*` and `/api/admin/change-requests*` routes use `auth:sanctum`
-within the existing web session/CSRF boundary. This is a same-origin Inertia SPA;
-personal access token issuance is outside this feature. Sanctum's session
+within the existing web session/CSRF boundary. This is a same-origin Inertia.js SPA;
+personal access token issuance is outside this feature. Laravel Sanctum's session
 middleware is used on these routes to preserve password-session invalidation.
-See [Sanctum's first-party authentication guidance](https://laravel.com/framework/docs/12.x/sanctum).
+See [Laravel Sanctum's first-party authentication guidance](https://laravel.com/framework/docs/12.x/sanctum).
 
 Only an owner or an authorized registration administrator can download submitted
 documents, even if another user obtains a signed URL. URLs expire after five
@@ -77,10 +106,12 @@ minutes. Documents and proposed replacement uploads use the existing private
 signed proposed-document URLs from the review queue. Expired URLs can be renewed
 by refreshing the relevant page. Never expose `storage/app/private` publicly.
 
-## Assumptions
+<a id="assumptions"></a>
+
+## 🔄 Assumptions
 
 - “Account” maps to `users`; this feature applies to the `logistics`
-  logistics-company role. Existing buyer/seller/rider settings remain intact.
+  Logistics-company role. Existing buyer/seller/rider settings remain intact.
 - OTP authorizes contact changes using the project's existing registered-email
   code service. Tokens expire after ten minutes and are consumed once. A new
   email additionally requires the existing destination verification link.
@@ -96,19 +127,31 @@ by refreshing the relevant page. Never expose `storage/app/private` publicly.
 - Existing approved accounts can only be snapshotted from the registration data
   available now; historical values altered before this feature cannot be recovered.
 
-## Validation
+<a id="validation"></a>
+
+<a id="testing"></a>
+
+## 🧪 Testing
 
 Feature tests cover locked fields, initial approval snapshots, named regions,
 masked/revealed TIN, hierarchy/postal validation, immediate removals and pending
 additions, mandatory-region checks at approval time, re-verification, owner-only
-documents, admin decisions, OTP consumption, and transaction rollback on audit
+documents, Admin decisions, OTP consumption, and transaction rollback on audit
 failure. Relevant existing registration/settings tests are also run.
 
 Browser artifacts are under `storage/app/account-settings-ui-check/`. Checks use
 an isolated temporary SQLite database with synthetic owners/admins and fake mail.
 They cover 320/768/1440 pixel reflow, cascading selects/postcode fill, TIN reveal,
-CSRF-protected proposals, pending comparisons, keyboard focus, and admin approval.
+CSRF-protected proposals, pending comparisons, keyboard focus, and Admin approval.
 Screenshots include light and dark states. These checks do not certify WCAG
 compliance; screen-reader testing and comprehensive zoom/contrast checks remain.
 
 Run the browser check with `node tests/Frontend/account-settings-browser-check.cjs`.
+
+---
+
+<div align="center">
+
+**LubosMart** · Logistics account settings · [Back to Documentation](../README.md)
+
+</div>

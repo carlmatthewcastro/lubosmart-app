@@ -1,4 +1,28 @@
-# Marketplace reference refinement � 2026-11-14
+<div align="center">
+
+# 🏗️ Marketplace reference refinement — 2026-11-14
+
+**Recorded catalog refinement, follow-up changes and validation.**
+
+[🛒 Home](../../README.md) · [📚 Documentation](../README.md) · [Redesign report](MARKETPLACE_REDESIGN_2026_11_14.md)
+
+</div>
+
+---
+
+<a id="overview"></a>
+
+## 🛒 Overview
+
+This report records the November 14, 2026 catalog reference refinement and follow-up. It is for maintainers tracing the implemented design changes, browser evidence and remaining accessibility verification.
+
+<a id="how-it-works"></a>
+
+## 🔄 How it works
+
+<a id="implementation"></a>
+
+## 🏗️ Implementation
 
 - Applied the supplied reference direction to the catalog only: lavender logo banner, category strip, bordered result toolbar, unified filter panel and compact cards.
 - Uses the existing LubosMart SVG logo. Product images retain their original aspect ratio with object-fit: contain; cards are capped at 280px, including a single result and authenticated layouts with app navigation.
@@ -8,7 +32,9 @@
 - Browser visual checks, actual sidebar geometry, light/dark contrast, keyboard, screen reader and zoom verification remain outstanding. Automated checks do not establish WCAG compliance.
 - Existing pending work retained; no commit, branch change, push or deployment.
 
-## Closer reference match follow-up
+<a id="closer-reference-match-follow-up"></a>
+
+## 🔄 Closer reference match follow-up
 
 The user clarified that the supplied image itself should determine the composition.
 Replaced the separate slogan banner with the Marketplace heading/description and
@@ -22,7 +48,7 @@ permission and cart request logic. Existing homepage cards remain unchanged.
 Validation: targeted ESLint, TypeScript, Prettier, 11 catalog tests / 221 assertions,
 and production build passed. An isolated temporary-SQLite Chrome run verified
 320, 375, 768, 1024 and 1440px reflow, a single-result search, bounded grid cards,
-grid/list switching, dark theme and authenticated buyer sidebar without page
+grid/list switching, dark theme and authenticated Buyer sidebar without page
 overflow. Screenshots are under storage/app/home-reference-match-check/catalog-reference-\*.png.
 The browser harness lives under ignored storage/app/catalog-reference-check.cjs.
 The first exploratory browser run had no product fixtures; a second exploratory
@@ -33,3 +59,11 @@ Screen-reader, full keyboard, zoom and measured color-contrast review remain
 outstanding; this is not a WCAG certification. Existing category atlas build warning
 remains. This is a close implementation of the reference with the requested logo,
 product proportions, live data and existing app navigation; no pixel-identity claim.
+
+---
+
+<div align="center">
+
+**LubosMart** · Marketplace reference refinement — 2026-11-14 · [Back to Documentation](../README.md)
+
+</div>

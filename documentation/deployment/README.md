@@ -1,4 +1,24 @@
-# Deployment and backups
+<div align="center">
+
+# 🚀 Deployment and backups
+
+**Deployment topology, release commands and recovery requirements.**
+
+[🛒 Home](../../README.md) · [📚 Documentation](../README.md) · [Environment](../setup/ENVIRONMENT.md)
+
+</div>
+
+---
+
+<a id="overview"></a>
+
+## 🛒 Overview
+
+This runbook covers the documented production services, deployment steps and backups. It is for operators carrying out an explicitly authorized release; live infrastructure verification remains installation-specific.
+
+<a id="how-it-works"></a>
+
+## 🔄 How it works
 
 Repository layout update: deployment files and the environment now live in
 `web/`. Run the commands in this guide from `web/` and use it as the Docker build
@@ -8,11 +28,17 @@ must continue supplying that name. No deployment was performed for this move.
 
 The repository describes production on an Azure Ubuntu VM with Docker Compose and Cloudflare DNS. Live VM/DNS settings, deployed versions, Cloudflare proxy/WAF/cache features and backup execution are unverified. Deployment is manual; GitHub Actions builds/tests do not deploy the VM.
 
-## Local setup
+<a id="local-setup"></a>
+
+## ⚙️ Local setup
 
 Use the canonical [Laravel/web setup](../setup/WEB.md), [Flutter setup](../setup/FLUTTER.md) and [environment reference](../setup/ENVIRONMENT.md). Commands below concern separately authorized deployment work, not this documentation cleanup.
 
-## Email and Google configuration
+<a id="email-and-google-configuration"></a>
+
+<a id="configuration"></a>
+
+## ⚙️ Configuration
 
 Set `MAIL_MAILER=smtp` and `MAIL_SECURITY_MAILER=smtp` with your provider's credentials and authorized sender. For Gmail, the existing guide uses `MAIL_HOST=smtp.gmail.com`, `MAIL_PORT=587`, `MAIL_SCHEME=smtp`, `MAIL_ENCRYPTION=tls` and an App Password. Keep the username, sender and reply-to consistent with the authorized mailbox. Never use a log mailer for real security codes.
 
@@ -25,7 +51,9 @@ A successful connection does not prove inbox delivery; test an actual registrati
 
 Google sign-in uses private `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and an exact `GOOGLE_REDIRECT_URI`: locally `http://localhost:8000/auth/google/callback`, production `https://lubosmart.app/auth/google/callback`. Use the same hostname throughout login and register the callback in the provider.
 
-## Production services
+<a id="production-services"></a>
+
+## 🚀 Production services
 
 | Service | Role                                                                    | Storage                                |
 | ------- | ----------------------------------------------------------------------- | -------------------------------------- |
@@ -47,9 +75,14 @@ flowchart LR
 
 Only Caddy publishes ports. Caddy manages origin certificates; Apache runs PHP behind it. MySQL and uploads survive container recreation through named volumes. No Nginx, Redis, SSR or scheduler service is defined in Compose.
 
-## Release steps
+<a id="release-steps"></a>
 
-Execute only with explicit deployment authorization for the reviewed release. A documentation change or Git push/merge alone is not that authorization.
+<a id="deployment-steps"></a>
+
+## 🚀 Deployment steps
+
+> [!IMPORTANT]
+> Execute only with explicit deployment authorization for the reviewed release. A documentation change or Git push/merge alone is not that authorization.
 
 Review/merge to `main`, connect through your established SSH access, and retrieve the approved release. Preserve production credentials and `APP_KEY`. Verify database/private-upload backups stored outside Docker volumes and copied off the VM before migrations.
 
@@ -76,8 +109,21 @@ curl -I https://lubosmart.app/up
 
 Production requires `APP_ENV=production`, `APP_DEBUG=false`, HTTPS `APP_URL`, secure cookies and MySQL `DB_HOST=db`. Keep `.env` private. Do not expose database port 3306. Arrange `schedule:run` every minute for the existing daily cleanup; live scheduling is unverified.
 
-Check queue/logs, real email, login and role journeys after release. Keep a compatible previous image/revision for recovery; several account migrations cannot be rolled back. Never run `migrate:fresh`, demo/test-account seeders or `docker compose down -v` in production. Restore tested database/uploads together when recovery requires it.
+> [!WARNING]
+> Check queue/logs, real email, login and role journeys after release. Keep a compatible previous image/revision for recovery; several account migrations cannot be rolled back. Never run `migrate:fresh`, demo/test-account seeders or `docker compose down -v` in production. Restore tested database/uploads together when recovery requires it.
 
 Sources: `Dockerfile`, `docker-compose.yml`, `Caddyfile`, `.github/workflows/`, `routes/console.php`.
 
+<a id="related-documentation"></a>
+
+## 📚 Related documentation
+
 [Documentation](../README.md)
+
+---
+
+<div align="center">
+
+**LubosMart** · Deployment and backups · [Back to Documentation](../README.md)
+
+</div>

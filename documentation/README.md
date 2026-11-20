@@ -1,6 +1,30 @@
-# LubosMart documentation
+<div align="center">
+
+# 📚 LubosMart documentation
+
+**Guides for the LubosMart platform, implementation and operations.**
+
+[🛒 Home](../README.md) · [📚 Documentation](README.md) · [Workflows](workflows/README.md)
+
+</div>
+
+---
+
+<a id="overview"></a>
+
+## 🛒 Overview
+
+This index covers the maintained LubosMart guides and project standards. It is for developers, maintainers and operators working with the completed website and its shared backend.
+
+<a id="how-it-works"></a>
+
+## 🔄 How it works
 
 The maintained guides explain the product, its implementation and how to run it.
+
+<a id="documentation"></a>
+
+## 📚 Documentation
 
 | Topic                                       | Guide                                          |
 | ------------------------------------------- | ---------------------------------------------- |
@@ -15,7 +39,9 @@ The maintained guides explain the product, its implementation and how to run it.
 | Installation and local development          | [Setup](setup/README.md)                       |
 | Hosting, environment and recovery           | [Deployment and backups](deployment/README.md) |
 
-## Project standards
+<a id="project-standards"></a>
+
+## 📚 Project standards
 
 - [Git workflow](standards/GIT_WORKFLOW_RULES.md)
 - [UI/UX standards](standards/UI_UX_RULES.md)
@@ -24,3 +50,11 @@ The maintained guides explain the product, its implementation and how to run it.
 - [Logistics workspace](standards/LOGISTICS_WORKSPACE.md)
 
 Automated tests remain in the application source. Product guides describe implemented behavior; deployment and external-service verification depend on the target environment.
+
+---
+
+<div align="center">
+
+**LubosMart** · LubosMart documentation · [Back to Documentation](README.md)
+
+</div>

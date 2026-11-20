@@ -1,6 +1,30 @@
-# Tech Stack
+<div align="center">
 
-LubosMart is a Laravel modular monolith: one backend handles commerce, accounts, logistics and administration.
+# 🧰 Technology stack
+
+**The website, API, native client and infrastructure technologies.**
+
+[🛒 Home](../../README.md) · [📚 Documentation](../README.md) · [Architecture](../architecture/README.md)
+
+</div>
+
+---
+
+<a id="overview"></a>
+
+## 🛒 Overview
+
+This guide covers the technologies declared for LubosMart and their responsibilities. It is for developers reviewing the implemented stack and the recorded limits of infrastructure and native-client acceptance.
+
+<a id="how-it-works"></a>
+
+## 🔄 How it works
+
+LubosMart is a Laravel modular monolith: one backend handles commerce, accounts, Logistics and administration.
+
+<a id="technology"></a>
+
+## 🧰 Technology
 
 | Layer           | Technology                                     | Purpose                                                                            |
 | --------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------- |
@@ -18,8 +42,20 @@ Composer requires PHP 8.2+. Docker uses PHP 8.3; CI uses PHP 8.4. The reviewed C
 
 Azure Ubuntu VM hosting and Cloudflare DNS are described in the repository runbook. Their live settings are unverified. No Redis service or external database pool is configured.
 
-**Implemented locally, November 5, 2026:** core Laravel JSON API under `/api/v1`, with Sanctum device tokens and API Resources, alongside the existing website. See [API coverage, OpenAPI and mobile setup](../api/README.md) for implemented endpoints and remaining parity.
+**Implemented locally, November 5, 2026:** core Laravel JSON API under `/api/v1`, with Laravel Sanctum device tokens and API Resources, alongside the existing website. See [API coverage, OpenAPI and mobile setup](../api/README.md) for implemented endpoints and remaining parity.
 
 Sources: `composer.json`, `composer.lock`, `package.json`, `Dockerfile`, `docker-compose.yml`, `Caddyfile`, `.github/workflows/`.
 
+<a id="related-documentation"></a>
+
+## 📚 Related documentation
+
 [Documentation](../README.md)
+
+---
+
+<div align="center">
+
+**LubosMart** · Technology stack · [Back to Documentation](../README.md)
+
+</div>

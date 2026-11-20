@@ -1,6 +1,30 @@
-# Environment-variable reference
+<div align="center">
+
+# ⚙️ Environment-variable reference
+
+**Laravel environment settings and Flutter compile-time definitions.**
+
+[🛒 Home](../../README.md) · [📚 Documentation](../README.md) · [Mail verification](../deployment/MAIL_VERIFICATION.md)
+
+</div>
+
+---
+
+<a id="overview"></a>
+
+## 🛒 Overview
+
+This reference covers environment-variable names and configuration boundaries. It is for developers and operators configuring an installation while preserving keys, data and private uploads.
+
+<a id="how-it-works"></a>
+
+## 🔄 How it works
 
 Set values privately in the intended installation. This reference lists names, not credentials. Preserve existing `APP_KEY`, database contents and private uploads. Flutter compile-time definitions are separate from Laravel `.env` settings.
+
+<a id="environment-variables"></a>
+
+## ⚙️ Environment variables
 
 | Area             | Names and purpose                                                                                                                                       |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -12,7 +36,11 @@ Set values privately in the intended installation. This reference lists names, n
 | Google web login | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`                                                                                       |
 | Flutter          | `API_BASE_URL`, ending in `/api/v1`; optional `GOOGLE_SERVER_CLIENT_ID` for mobile Google login                                                         |
 
-## Mail and Google login
+<a id="mail-and-google-login"></a>
+
+<a id="configuration"></a>
+
+## ⚙️ Configuration
 
 Configure `MAIL_MAILER=smtp` and `MAIL_SECURITY_MAILER=smtp` with the provider's authorized sender, host, port and scheme. Security mail is synchronous; approval/status mail uses the queue. The [mail verification runbook](../deployment/MAIL_VERIFICATION.md) distinguishes provider connection from actual inbox acceptance. Do not paste real credentials into reports.
 
@@ -22,4 +50,16 @@ The example environment defaults to SQLite, database sessions and database queue
 
 Sources: [example environment](../../web/.env.example), [database configuration](../../web/config/database.php), [mail configuration](../../web/config/mail.php), [provider configuration](../../web/config/services.php), [Compose definition](../../web/docker-compose.yml).
 
+<a id="related-documentation"></a>
+
+## 📚 Related documentation
+
 [Setup index](README.md)
+
+---
+
+<div align="center">
+
+**LubosMart** · Environment-variable reference · [Back to Documentation](../README.md)
+
+</div>
