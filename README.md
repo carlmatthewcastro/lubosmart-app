@@ -47,29 +47,16 @@ Read the [workflow guide](documentation/WORKFLOWS.md) for current scanning, fina
 
 ## Technology
 
-<p align="center">
-  <img src="documentation/assets/icons/php.svg" width="34" height="34" alt="PHP" title="PHP" />&nbsp;&nbsp;
-  <img src="documentation/assets/icons/laravel.svg" width="34" height="34" alt="Laravel" title="Laravel" />&nbsp;&nbsp;
-  <img src="documentation/assets/icons/react.svg" width="34" height="34" alt="React" title="React" />&nbsp;&nbsp;
-  <img src="documentation/assets/icons/typescript.svg" width="34" height="34" alt="TypeScript" title="TypeScript" />&nbsp;&nbsp;
-  <img src="documentation/assets/icons/tailwindcss.svg" width="34" height="34" alt="Tailwind CSS" title="Tailwind CSS" />&nbsp;&nbsp;
-  <img src="documentation/assets/icons/vite.svg" width="34" height="34" alt="Vite" title="Vite" />&nbsp;&nbsp;
-  <img src="documentation/assets/icons/mysql.svg" width="34" height="34" alt="MySQL" title="MySQL" />&nbsp;&nbsp;
-  <img src="documentation/assets/icons/flutter.svg" width="34" height="34" alt="Flutter" title="Flutter" />&nbsp;&nbsp;
-  <img src="documentation/assets/icons/docker.svg" width="34" height="34" alt="Docker" title="Docker" />&nbsp;&nbsp;
-  <img src="documentation/assets/icons/nodejs.svg" width="34" height="34" alt="Node.js" title="Node.js" />
-</p>
-
-| Layer                 | Stack                                                     |
-| --------------------- | --------------------------------------------------------- |
-| Website               | React 19, TypeScript, Inertia.js 2                        |
-| Interface             | Tailwind CSS 4, Radix UI, Lucide                          |
-| Backend               | Laravel 12, PHP 8.2+, Eloquent                            |
-| API                   | Versioned JSON endpoints, Laravel Sanctum                 |
-| Mobile                | Flutter and Dart; separate Buyer, Seller and Rider client |
-| Assets                | Vite 6, Node.js 22, npm                                   |
-| Database              | MySQL; SQLite supported for local development             |
-| Hosting configuration | Docker Compose, Apache, Caddy                             |
+| Layer                 | Logos                                                                                                                                                                                 | Stack                                                     |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| Website               | <img src="documentation/assets/icons/react.svg" width="26" height="26" alt="React" /> <img src="documentation/assets/icons/typescript.svg" width="26" height="26" alt="TypeScript" /> | React 19, TypeScript, Inertia.js 2                        |
+| Interface             | <img src="documentation/assets/icons/tailwindcss.svg" width="26" height="26" alt="Tailwind CSS" />                                                                                    | Tailwind CSS 4, Radix UI, Lucide                          |
+| Backend               | <img src="documentation/assets/icons/laravel.svg" width="26" height="26" alt="Laravel" /> <img src="documentation/assets/icons/php.svg" width="26" height="26" alt="PHP" />           | Laravel 12, PHP 8.2+, Eloquent                            |
+| API                   | —                                                                                                                                                                                     | Versioned JSON endpoints, Laravel Sanctum                 |
+| Mobile                | <img src="documentation/assets/icons/flutter.svg" width="26" height="26" alt="Flutter" />                                                                                             | Flutter and Dart; separate Buyer, Seller and Rider client |
+| Assets                | <img src="documentation/assets/icons/vite.svg" width="26" height="26" alt="Vite" /> <img src="documentation/assets/icons/nodejs.svg" width="26" height="26" alt="Node.js" />          | Vite 6, Node.js 22, npm                                   |
+| Database              | <img src="documentation/assets/icons/mysql.svg" width="26" height="26" alt="MySQL" />                                                                                                 | MySQL; SQLite supported for local development             |
+| Hosting configuration | <img src="documentation/assets/icons/docker.svg" width="26" height="26" alt="Docker" />                                                                                               | Docker Compose, Apache, Caddy                             |
 
 Laravel serves the website and owns authentication, authorization, business rules and data. Queue workers process background notifications. The [architecture guide](documentation/ARCHITECTURE.md) brings the system map, technology choices, backend and database together.
 
@@ -140,13 +127,3 @@ The index also links project standards, dated reviews and [documentation decisio
 Follow the [Git workflow](documentation/standards/GIT_WORKFLOW_RULES.md) and [UI/UX standards](documentation/standards/UI_UX_RULES.md). Use the existing LubosMart identity, shared components and supported Tailwind feature set. Preserve authentication, authorization and business workflows.
 
 Agent guidance starts at [AGENTS.md](AGENTS.md), with detailed instructions and reusable skills under `.agents/`.
-
----
-
-<div align="center">
-
-**LubosMart** · Built for Filipino communities · [lubosmart.app](https://lubosmart.app)
-
-Technology logos: [Devicon](https://github.com/devicons/devicon/tree/v2.17.0) · [License](documentation/assets/icons/LICENSE.txt)
-
-</div>
