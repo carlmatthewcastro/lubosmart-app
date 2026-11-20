@@ -12,23 +12,23 @@ flowchart LR
     Worker[Queue worker] --> DB
 ```
 
-The API is implemented in [routes/api.php](../../routes/api.php) and [routes/mobile.php](../../routes/mobile.php), with controllers under `app/Http/Controllers/Api/V1`. This replaces the root README's older diagram that labelled the API planned. The [original PNG](../assets/system-architecture.png) remains a historical asset; neither this diagram nor route presence establishes deployed acceptance. Web sessions and mobile bearer tokens have separate access boundaries.
+The API is implemented in [routes/api.php](../../web/routes/api.php) and [routes/mobile.php](../../web/routes/mobile.php), with controllers under `web/app/Http/Controllers/Api/V1`. Web sessions and API bearer tokens have separate access boundaries.
 
 ## Repository map
 
-| Location | Purpose |
-| --- | --- |
-| `app/` | Controllers, models, policies, requests, services and shared actions |
-| `routes/` | Web/auth/settings routes and versioned API routes |
-| `resources/js/` | React entry points, hooks, types and utilities |
-| `resources/views/` | Inertia React pages, components and layouts, plus Blade/mail templates; frontend aliases intentionally resolve here |
-| `resources/css/`, `resources/data/` | Styles and reference data |
-| `database/`, `config/`, `bootstrap/` | Schema/factories/seeders, configuration and bootstrapping |
-| `public/`, `storage/` | Web document root, runtime files and private uploads |
-| `apps/mobile/` | Flutter source, assets, Android/iOS projects and tests |
-| `tests/` | Laravel tests, fixtures and Node browser/API harnesses |
-| `scripts/`, `.github/workflows/` | Development utilities and automation |
-| `documentation/` | Current guides, standards, contracts and historical evidence |
+| Location                                         | Purpose                                                                                                             |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| `web/app/`                                       | Controllers, models, policies, requests, services and shared actions                                                |
+| `web/routes/`                                    | Web/auth/settings routes and versioned API routes                                                                   |
+| `web/resources/js/`                              | React entry points, hooks, types and utilities                                                                      |
+| `web/resources/views/`                           | Inertia React pages, components and layouts, plus Blade/mail templates; frontend aliases intentionally resolve here |
+| `web/resources/css/`, `web/resources/data/`      | Styles and reference data                                                                                           |
+| `web/database/`, `web/config/`, `web/bootstrap/` | Schema/factories/seeders, configuration and bootstrapping                                                           |
+| `web/public/`, `web/storage/`                    | Web document root, runtime files and private uploads                                                                |
+| `mobile/`                                        | Flutter source, assets, Android/iOS projects and tests                                                              |
+| `web/tests/`                                     | Laravel tests, fixtures and Node browser/API harnesses                                                              |
+| `web/scripts/`, `.github/workflows/`             | Development utilities and automation                                                                                |
+| `documentation/`                                 | Product guides, standards and API contracts                                                                         |
 
 Dependencies, SDKs, build outputs and caches are local artifacts. Databases and uploads need separate backups; they are not disposable source build output.
 

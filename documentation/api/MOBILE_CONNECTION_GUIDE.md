@@ -1,6 +1,6 @@
 # Connect the Flutter client
 
-The native client is in [apps/mobile](../../apps/mobile/README.md). Follow that README for Flutter/Android setup. The Laravel root remains the server; do not duplicate its database or business logic into the app folder.
+The native client is in [mobile](../../mobile/README.md). Follow that README for Flutter/Android setup. The Laravel root remains the server; do not duplicate its database or business logic into the app folder.
 
 ## Test network
 
@@ -10,7 +10,7 @@ Use synthetic accounts in an isolated test installation. From the Laravel root:
 php artisan serve --host=0.0.0.0 --port=8000
 ```
 
-From apps/mobile, use flutter run with API_BASE_URL=http://10.0.2.2:8000/api/v1 for an Android emulator, or the PC's reachable LAN address for a phone. Local HTTP is enabled only for debug development; use HTTPS for actual operation. APP_URL and asset/pagination URLs must be reachable from the phone. No firewall or deployment change was performed.
+From mobile, use flutter run with API_BASE_URL=http://10.0.2.2:8000/api/v1 for an Android emulator, or the PC's reachable LAN address for a phone. Local HTTP is enabled only for debug development; use HTTPS for actual operation. APP_URL and asset/pagination URLs must be reachable from the phone. No firewall or deployment change was performed.
 
 ## Session flow
 
@@ -28,4 +28,4 @@ Keep action UUIDs until a response conclusively resolves the action. Never creat
 
 Use multipart POST plus \_method for file-bearing PUT/PATCH. Private proof/evidence downloads require bearer headers. GET locations is a raw array; other lists can use either Resource or nested Laravel paginator envelopes. See [API details](README.md).
 
-The Android SDK is now installed and its toolchain checks pass. See the [Android setup and APK report](ANDROID_SETUP_2026_11_05.md) for the current build status and USB testing instructions. No Android phone or emulator was connected during setup; actual native integration still needs the [device checklist](../archive/api/MOBILE_COMPLETION_2026_11_05.md).
+The Android SDK is now installed and its toolchain checks pass. See the Android setup and APK report for the current build status and USB testing instructions. No Android phone or emulator was connected during setup; actual native integration still needs the device checklist.

@@ -1,6 +1,6 @@
 # Admin approval and registration notifications
 
-This guide retains the notification design and October 26 local results. Deployment status was not verified by this cleanup. Current Buyer password signup activates after verification; Buyer review statements below apply to applications that still require review (for example legacy onboarding), rather than every new Buyer. See the [Buyer guide](../functions/buyer/README.md).
+Buyer password signup activates after email verification. Buyer review statements below apply to applications that still require review, such as legacy onboarding. See the [Buyer guide](../functions/buyer/README.md).
 
 Seller, Logistics and review-required Buyer applications require Admin approval. Email verification confirms the email address; it does not approve the account. A complete, verified registration remains `pending`, shows the waiting-for-approval page, and cannot access its operational dashboard. Only a valid Admin decision grants approval. Rider review remains exclusively with the affiliated Logistics company.
 
@@ -14,11 +14,6 @@ Seller, Logistics and review-required Buyer applications require Admin approval.
 
 `GET /admin/notifications` remains active-Admin-only and private/no-store. Its existing `permissions` and `badges` are preserved. It also returns `registrationCounts` for the three roles and `registrationAlerts` containing only review identifiers, role, label, verification state, and submission time. It exposes no private documents or identity numbers.
 
-## Historical verification ? October 26, 2026
-
-- 415 related feature tests pass (3 existing manual/environment cases skipped), covering real registration, email verification, pending dashboard restrictions, all three Admin notifications/review rows, approval, alert removal, approval emails, and access control.
-- The account-settings browser harness passes nine scenarios, including the three role alerts, mobile menu reflow, and opening the Seller review directly from its notification.
-- TypeScript, targeted ESLint/Prettier, PHP Pint, and the production build pass. A read-only query check also passes on the configured local MySQL database.
-- Tests do not grant approval to real accounts. No account status repair, production database update, push, merge, or deployment was performed.
+## Environment
 
 For live testing, the applicant and Admin must both use **lubosmart.app**. An account registered there cannot appear in the separate localhost/XAMPP database. Check the deployed revision separately before expecting this behavior on the live site.

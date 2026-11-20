@@ -6,7 +6,7 @@ Follow-up correction: the user requires the original homepage design and navbar
 to remain the visual reference. Homepage presentation has been restored and its
 navbar is reused on Marketplace and other public pages. The implementation
 inventory below describes the initial batch; see
-[the restoration report](../archive/ui-audits/HOME_DESIGN_RESTORATION_2026_11_14.md) for the superseding changes.
+the restoration report for the superseding changes.
 
 ## Product provenance and visibility
 
@@ -36,27 +36,27 @@ Paths below are relative to the repository root. Many already contained unrelate
 pending work; that work was retained. No branch switch, commit, push or deployment
 was performed.
 
-| File | Change for this task |
-| --- | --- |
-| `app/Models/Product.php` | Exclude the confirmed synthetic provenance marker in the shared shopper scope. |
-| `app/Http/Controllers/MarketplaceController.php` | Validate and apply price bounds, availability including active variants, visible-review rating and allowlisted sorts; stable ID tie-breaks; 24 results per page; omit children of inactive category parents. |
-| `routes/web.php` | Supply real active root categories to the homepage; existing routes and homepage product requirements retained. |
-| `resources/views/components/navigation/public-header.tsx` | Compact shared public navigation and integrated search; preserve applied shop filters on search; mobile menu and account access. |
-| `resources/css/public-header.css` | Responsive 64px desktop navbar, compact controls, two-row search below 1200px, mobile menu below 768px. |
-| `resources/views/pages/marketplace/catalog.tsx` | Compact heading/category links, result count, working filters/sorts, desktop collapsible sidebar and Radix mobile drawer, reset and truthful empty states; public navbar supplies the search field, authenticated workspace supplies one local search. |
-| `resources/css/storefront-catalog.css` | Neutral catalog background and heading; remove restrictive catalog width caps and decorative banner. |
-| `resources/views/components/shared/marketplace-ui.tsx` | Compact storefront spacing and heading while retaining shared fluid workspace gutters and focused form widths. |
-| `resources/views/components/marketplace/product-card.tsx` | Shared flat bordered cards, smaller rounded wishlist/cart controls, proportional contained photos and honest zero-review display; existing mutations, variant selection and authentication retained. |
-| `resources/views/components/marketplace/home-discovery.tsx` | Reuse the catalog card treatment and responsive grid; show an actionable empty state. |
-| `resources/views/pages/public/home.tsx` | Replace hardcoded category-name searches with links to actual active category IDs. |
-| `resources/views/pages/marketplace/product.tsx` | Use shared storefront navigation and limit the individual product panel within the fluid page. |
-| `resources/css/app.css` | Shared available-width product grid: one/two mobile columns, auto-fill desktop columns, bounded individual card width. |
-| `resources/css/reference-marketplace.css` | Remove competing homepage-only product card/grid styling. |
-| `resources/css/storefront-home-reference.css` | Remove competing homepage product styling and obsolete unused category sprite references. |
-| `tests/Feature/MarketplaceCatalogTest.php` | Exercise visibility/non-deletion, genuine listings, wishlist/cart/API protection, price boundaries/sorts, variant availability, moderated ratings and invalid filter input. |
-| `tests/Frontend/marketplace-redesign-check.cjs` | Exercise search/sort persistence, sparse results, collapse/drawer/reset/empty behavior, keyboard menu close, dark mode, missing images and requested viewport widths. |
-| `tests/Frontend/responsive-layout-matrix.cjs` | Extend geometry checks to 320/375/768/1024/1440/1920px, public catalog/details, wishlists/cart, messaging and notifications. |
-| `tests/Frontend/dashboard-browser-check.cjs` | Optional marketplace module and scoped login form selector, so navbar search is not mistaken for login submission. |
+| File                                                        | Change for this task                                                                                                                                                                                                                                   |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `app/Models/Product.php`                                    | Exclude the confirmed synthetic provenance marker in the shared shopper scope.                                                                                                                                                                         |
+| `app/Http/Controllers/MarketplaceController.php`            | Validate and apply price bounds, availability including active variants, visible-review rating and allowlisted sorts; stable ID tie-breaks; 24 results per page; omit children of inactive category parents.                                           |
+| `routes/web.php`                                            | Supply real active root categories to the homepage; existing routes and homepage product requirements retained.                                                                                                                                        |
+| `resources/views/components/navigation/public-header.tsx`   | Compact shared public navigation and integrated search; preserve applied shop filters on search; mobile menu and account access.                                                                                                                       |
+| `resources/css/public-header.css`                           | Responsive 64px desktop navbar, compact controls, two-row search below 1200px, mobile menu below 768px.                                                                                                                                                |
+| `resources/views/pages/marketplace/catalog.tsx`             | Compact heading/category links, result count, working filters/sorts, desktop collapsible sidebar and Radix mobile drawer, reset and truthful empty states; public navbar supplies the search field, authenticated workspace supplies one local search. |
+| `resources/css/storefront-catalog.css`                      | Neutral catalog background and heading; remove restrictive catalog width caps and decorative banner.                                                                                                                                                   |
+| `resources/views/components/shared/marketplace-ui.tsx`      | Compact storefront spacing and heading while retaining shared fluid workspace gutters and focused form widths.                                                                                                                                         |
+| `resources/views/components/marketplace/product-card.tsx`   | Shared flat bordered cards, smaller rounded wishlist/cart controls, proportional contained photos and honest zero-review display; existing mutations, variant selection and authentication retained.                                                   |
+| `resources/views/components/marketplace/home-discovery.tsx` | Reuse the catalog card treatment and responsive grid; show an actionable empty state.                                                                                                                                                                  |
+| `resources/views/pages/public/home.tsx`                     | Replace hardcoded category-name searches with links to actual active category IDs.                                                                                                                                                                     |
+| `resources/views/pages/marketplace/product.tsx`             | Use shared storefront navigation and limit the individual product panel within the fluid page.                                                                                                                                                         |
+| `resources/css/app.css`                                     | Shared available-width product grid: one/two mobile columns, auto-fill desktop columns, bounded individual card width.                                                                                                                                 |
+| `resources/css/reference-marketplace.css`                   | Remove competing homepage-only product card/grid styling.                                                                                                                                                                                              |
+| `resources/css/storefront-home-reference.css`               | Remove competing homepage product styling and obsolete unused category sprite references.                                                                                                                                                              |
+| `tests/Feature/MarketplaceCatalogTest.php`                  | Exercise visibility/non-deletion, genuine listings, wishlist/cart/API protection, price boundaries/sorts, variant availability, moderated ratings and invalid filter input.                                                                            |
+| `tests/Frontend/marketplace-redesign-check.cjs`             | Exercise search/sort persistence, sparse results, collapse/drawer/reset/empty behavior, keyboard menu close, dark mode, missing images and requested viewport widths.                                                                                  |
+| `tests/Frontend/responsive-layout-matrix.cjs`               | Extend geometry checks to 320/375/768/1024/1440/1920px, public catalog/details, wishlists/cart, messaging and notifications.                                                                                                                           |
+| `tests/Frontend/dashboard-browser-check.cjs`                | Optional marketplace module and scoped login form selector, so navbar search is not mistaken for login submission.                                                                                                                                     |
 
 ## Shared layout findings
 

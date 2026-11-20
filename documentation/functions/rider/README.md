@@ -6,17 +6,17 @@ Riders submit one registration at `/register?role=rider`, presented in three ste
 
 Existing company-created invitations and their activation URLs remain compatible. They are no longer the main signup flow. The Company Riders page prioritizes application review and account management.
 
-| Function | Current behavior |
-| --- | --- |
-| Assigned work | View parcels assigned to the rider |
-| Pickup/delivery | Advance assigned → picked_up → in_transit → out_for_delivery → delivered |
-| Proof | Upload a private delivery photo before confirming completion |
-| COD | Confirm collection at delivery; center receives cash and Admin reconciles |
-| History/support | View delivery history/reports and authorized conversations |
+| Function        | Current behavior                                                          |
+| --------------- | ------------------------------------------------------------------------- |
+| Assigned work   | View parcels assigned to the rider                                        |
+| Pickup/delivery | Advance assigned → picked_up → in_transit → out_for_delivery → delivered  |
+| Proof           | Upload a private delivery photo before confirming completion              |
+| COD             | Confirm collection at delivery; center receives cash and Admin reconciles |
+| History/support | View delivery history/reports and authorized conversations                |
 
 Operations require an approved account and operational center. Assignment must match center and service-area eligibility. Center receipt/sorting is required before dispatch for destination/weight quoted orders.
 
-Reasoned failed attempts, Logistics holds/retries and scanned return-to-center receipt are implemented. Riders also see their own Logistics-recorded fees/payment history and can collect approved return-to-seller parcels assigned by Logistics. Admin has no Rider-payments access. Fees require actual work evidence; COD/shipping totals are not wages. First-come self-assignment and automatic bank transfers are not implemented. See [finance and returns](../../workflows/FINANCE_AND_RETURNS.md) and the [Logistics and Rider demo](../../archive/reports/LOGISTICS_DEMO.md).
+Reasoned failed attempts, Logistics holds/retries and scanned return-to-center receipt are implemented. Riders also see their own Logistics-recorded fees/payment history and can collect approved return-to-seller parcels assigned by Logistics. Admin has no Rider-payments access. Fees require actual work evidence; COD/shipping totals are not wages. First-come self-assignment and automatic bank transfers are not implemented. See [finance and returns](../../workflows/FINANCE_AND_RETURNS.md) and the Logistics and Rider demo.
 
 Sources: `DeliveryController`, `DashboardController`, `ReportController`, `User::canOperate`, `rider_service_area`.
 

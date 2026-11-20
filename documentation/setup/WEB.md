@@ -1,10 +1,11 @@
 # Laravel and web setup
 
-Requires PHP 8.2+ with Laravel's required extensions, Composer 2, Node.js 22/npm and a local database. The Composer and npm manifests at the repository root belong to the Laravel application.
+Requires PHP 8.2+ with Laravel's required extensions, Composer 2, Node.js 22/npm and a local database. The Composer and npm manifests in `web/` belong to the Laravel application.
 
-Clone the [repository](https://github.com/carlmatthewcastro/lubosmart-app) for a new installation. From its root:
+Clone the [repository](https://github.com/carlmatthewcastro/lubosmart-app) for a new installation. From its root, enter the website folder first:
 
 ```powershell
+cd web
 composer install
 npm ci
 Copy-Item .env.example .env
@@ -27,6 +28,6 @@ Security email requires a working mail provider; operational notifications requi
 
 The website uses session authentication through Inertia. The Flutter client uses a separate [Sanctum bearer-token boundary](../api/README.md). Do not use a live database or production accounts to try either client.
 
-Sources: [Composer manifest](../../composer.json), [npm manifest](../../package.json), [example environment](../../.env.example), [category seeder](../../database/seeders/MarketplaceCategorySeeder.php).
+Sources: [Composer manifest](../../web/composer.json), [npm manifest](../../web/package.json), [example environment](../../web/.env.example), [category seeder](../../web/database/seeders/MarketplaceCategorySeeder.php).
 
 [Setup index](README.md)

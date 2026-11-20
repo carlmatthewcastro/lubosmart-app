@@ -8,6 +8,6 @@ Locked checkout revalidates store eligibility, activation, expiry, minimum spend
 
 Cancellation releases usage under the supported cancellation rules. A completed return does not automatically restore it. Vouchers are seller-funded discounts; they are not prepaid balances or gift cards.
 
-Sources: [voucher controller](../../app/Http/Controllers/StoreVoucherController.php), [checkout action](../../app/Actions/Checkout/CreateOrderFromCart.php), and [historical implementation details](../archive/reports/SELLER_BUYER_COMPLETION.md). This guide consolidates the documented contract; it does not claim new acceptance results.
+Sources: [voucher controller](../../web/app/Http/Controllers/StoreVoucherController.php), [checkout action](../../web/app/Actions/Checkout/CreateOrderFromCart.php).
 
 [Workflow index](README.md)

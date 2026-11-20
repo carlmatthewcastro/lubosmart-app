@@ -4,18 +4,18 @@ Docker Compose specifies MySQL 8.4. Laravel uses Eloquent and Query Builder; mig
 
 ## Main tables
 
-| Area | Tables and relationships |
-| --- | --- |
-| Accounts | `users`; one profile, rider profile and registration application per user; application drafts/documents |
-| Catalog | One `stores` record per seller; `categories` with parent/child hierarchy; `products` reference store/category and hold stock |
-| Shopping | One `carts` record per buyer; `cart_items` link products/quantities; user-owned `addresses` |
-| Orders | `orders` reference buyer/address; `seller_orders` split by store; `order_items` snapshot product names/prices |
-| Delivery | One `deliveries` record per seller order; optional rider, center and area; `parcel_events` record history |
-| Centers | `sorting_centers`, `service_areas`, `shipping_rates`; `sorting_center_user` and `rider_service_area` memberships |
-| COD | One `cod_collections` record per delivery; `seller_settlements` provides settlement storage, not a complete payout workflow |
-| Administration | `audit_events`, `product_moderations`, `platform_contents`, `commerce_settings` |
-| Support | `order_messages`, `support_cases`, participants, messages and read cursors |
-| Infrastructure | Sessions, verification/security challenges, jobs, cache and locks |
+| Area           | Tables and relationships                                                                                                     |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Accounts       | `users`; one profile, rider profile and registration application per user; application drafts/documents                      |
+| Catalog        | One `stores` record per seller; `categories` with parent/child hierarchy; `products` reference store/category and hold stock |
+| Shopping       | One `carts` record per buyer; `cart_items` link products/quantities; user-owned `addresses`                                  |
+| Orders         | `orders` reference buyer/address; `seller_orders` split by store; `order_items` snapshot product names/prices                |
+| Delivery       | One `deliveries` record per seller order; optional rider, center and area; `parcel_events` record history                    |
+| Centers        | `sorting_centers`, `service_areas`, `shipping_rates`; `sorting_center_user` and `rider_service_area` memberships             |
+| COD            | One `cod_collections` record per delivery; `seller_settlements` provides settlement storage, not a complete payout workflow  |
+| Administration | `audit_events`, `product_moderations`, `platform_contents`, `commerce_settings`                                              |
+| Support        | `order_messages`, `support_cases`, participants, messages and read cursors                                                   |
+| Infrastructure | Sessions, verification/security challenges, jobs, cache and locks                                                            |
 
 Business tables generally use bigint `id` primary keys and declared foreign keys. `commerce_settings` uses a singleton tinyint key. Composite uniqueness protects cart/product pairs, order/store splits and memberships. Audit subjects and support read-message IDs are application-managed references, not declared foreign keys.
 

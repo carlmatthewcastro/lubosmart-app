@@ -2,7 +2,7 @@
 
 ## Current source contract — November 16, 2026
 
-This is the current consolidated workflow guide; earlier release details are archived. Implementation is local source work, not a deployment or a certification of production acceptance. See the [audit](../archive/reports/FINANCIAL_FULFILLMENT_AUDIT_2026_11_11.md), [parcel checkpoints](PARCEL_SCANNING.md), [API compatibility](../api/FINANCE_2026_11_11.md), and [handoff](../archive/reports/GITHUB_HANDOFF_2026_11_15.md).
+This guide describes the implemented finance and returns contract. See [parcel checkpoints](PARCEL_SCANNING.md) and [API compatibility](../api/FINANCE_2026_11_11.md).
 
 ### Responsibilities and custody
 
@@ -44,7 +44,7 @@ Logistics may agree a future seven-day weekly compensation period for an individ
 
 ### Returns and refund funding
 
-The [November 16 return/refund repair](../archive/reports/RETURN_REFUND_REPAIR_2026_11_16.md) supersedes earlier return, consent and reserve-gating descriptions. New requests use workflow version 3 and can select original items/quantities and repeat requests against remaining eligibility. Pending requests reserve quantities; rejection releases them. Net paid prices, discounts, original coin allocations, original shipping and prior refunds cap every approval.
+The November 16 return/refund repair supersedes earlier return, consent and reserve-gating descriptions. New requests use workflow version 3 and can select original items/quantities and repeat requests against remaining eligibility. Pending requests reserve quantities; rejection releases them. Net paid prices, discounts, original coin allocations, original shipping and prior refunds cap every approval.
 
 Admin approval records the reviewed financial decision, spendable coin credit, liability, adjustments, audit and any required physical-return task atomically. Wallet operation keys and a unique task/case reference prevent replay. A successful approval does not wait for buyer acceptance, seller receipt or recorded cash-reserve funding. It records an obligation, not a cash receipt or bank transfer. Actual cash funding and responsible-party recoveries remain separately evidenced.
 
@@ -70,8 +70,8 @@ Finance separates expected, collected, Logistics-received, reconciled, platform-
 
 ## Release and verification history
 
-See the [historical composite](../archive/reports/FINANCE_AND_RETURNS_HISTORY.md) for local migration details, original stock/cost rules and dated results, and the [November 16 repair report](../archive/reports/RETURN_REFUND_REPAIR_2026_11_16.md) for version-3 changes. These are recorded prior runs, not fresh acceptance. [Deployment and backup instructions](../deployment/README.md) require separate release authorization.
+See [deployment and backup instructions](../deployment/README.md) for release procedures.
 
-Automatic bank transfers, top-ups and withdrawals are not implemented in the described contract. Full physical return/cash handovers, accessibility and live-service acceptance remain unverified by this documentation cleanup.
+Automatic bank transfers, top-ups and withdrawals are not implemented in the described contract. Full physical return/cash handovers, accessibility and live-service acceptance remain subject to environment-specific acceptance.
 
 [Workflow index](README.md)

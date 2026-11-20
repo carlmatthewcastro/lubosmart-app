@@ -1,8 +1,8 @@
-# LubosMart API and Flutter client
+# LubosMart API
 
-The versioned Laravel API is served under /api/v1. A separate Flutter application lives in [apps/mobile](../../apps/mobile/README.md), focused on Buyer, Seller and Rider. Existing Laravel/Inertia pages and the shared database remain in place.
+The versioned Laravel API is served under /api/v1. A separate Flutter application lives in [mobile](../../mobile/README.md), focused on Buyer, Seller and Rider. Existing Laravel/Inertia pages and the shared database remain in place.
 
-Start with the [role coverage](ROLE_COVERAGE.md), [endpoint inventory](ENDPOINTS.md), [OpenAPI contract](openapi.json), [Postman collection](lubosmart-v1.postman_collection.json) and [connection guide](MOBILE_CONNECTION_GUIDE.md). The [completion report](../archive/api/MOBILE_COMPLETION_2026_11_05.md) records passing checks and native build limitations. The earlier [initial implementation report](../archive/api/IMPLEMENTATION_2026_11_05.md) describes the historical 24-operation slice.
+Start with the [role coverage](ROLE_COVERAGE.md), [endpoint inventory](ENDPOINTS.md), [OpenAPI contract](openapi.json), [Postman collection](lubosmart-v1.postman_collection.json) and [connection guide](MOBILE_CONNECTION_GUIDE.md).
 
 ## Authentication and boundaries
 
@@ -31,6 +31,8 @@ Checkout shares the website action, locks and reviewed totals. Preserve checkout
 JSON writes use their documented HTTP method. For uploaded files use multipart POST; PUT/PATCH additionally supply \_method=PUT/PATCH so PHP parses files. Waybill audit requires packages=1 and request_key; the client creates the printable PDF from the authorized parcel response.
 
 ## Regenerate and validate
+
+Run from `web/`:
 
 ```powershell
 node scripts/generate-mobile-api-contract.cjs
