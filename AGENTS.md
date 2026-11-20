@@ -1,5 +1,21 @@
 # Repository instructions
 
+## Repository layout
+
+`web/` contains Laravel, the React/Inertia website, the shared mobile API,
+backend tests, dependency manifests and Docker configuration. Run PHP, Composer,
+npm and Docker commands from `web/`. `mobile/` contains the Flutter application;
+run Flutter commands there. Android helper scripts live in `mobile/scripts/`.
+Shared documentation, Git configuration and local SDKs remain at the repository
+root. Paths in standards such as `resources/` are relative to `web/` unless stated
+otherwise. Open either application folder directly; no workspace file is needed.
+
+Keep development snapshots, source copies, browser artifacts and completed build
+logs in the ignored root `.tools/development-artifacts/` directory. Never create
+them inside Laravel `web/storage/`; that folder is reserved for application
+uploads, private files, runtime logs, sessions and framework caches. Never remove
+customer uploads or private documents as part of development cleanup.
+
 ## Git operations
 
 Before any Git operation, including read-only inspection, branching, staging,

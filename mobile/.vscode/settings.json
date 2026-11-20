@@ -1,0 +1,27 @@
+{
+  "window.title": "LubosMart MOBILE — ${activeEditorShort}",
+  "git.openRepositoryInParentFolders": "always",
+  "dart.flutterSdkPath": "../.tools/flutter",
+  "files.exclude": {
+    "**/.dart_tool": true,
+    "**/.gradle": true,
+    "build": true
+  },
+  "search.exclude": {
+    "**/.dart_tool/**": true,
+    "**/.gradle/**": true,
+    "build/**": true
+  },
+  "files.watcherExclude": {
+    "**/.dart_tool/**": true,
+    "**/.gradle/**": true,
+    "**/build/**": true
+  },
+  "terminal.integrated.cwd": "${workspaceFolder}",
+  "terminal.integrated.env.windows": {
+    "ANDROID_HOME": "${workspaceFolder}/../.tools/android-sdk",
+    "ANDROID_SDK_ROOT": "${workspaceFolder}/../.tools/android-sdk",
+    "GRADLE_USER_HOME": "${workspaceFolder}/../.tools/gradle",
+    "PATH": "${workspaceFolder}/../.tools/flutter/bin;${workspaceFolder}/../.tools/android-sdk/platform-tools;${env:PATH}"
+  }
+}

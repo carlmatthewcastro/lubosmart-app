@@ -1,0 +1,25 @@
+{
+  "window.title": "LubosMart WEB + API — ${activeEditorShort}",
+  "files.exclude": {
+    "**/.tools": true
+  },
+  "search.exclude": {
+    "**/.tools/**": true,
+    "vendor/**": true,
+    "public/build/**": true,
+    "storage/**": true
+  },
+  "files.watcherExclude": {
+    "**/.tools/**": true,
+    "**/vendor/**": true,
+    "**/storage/**": true,
+    "**/public/build/**": true
+  },
+  "terminal.integrated.cwd": "${workspaceFolder}",
+  "dart.analysisExcludedFolders": [
+    "../.tools",
+    "storage",
+    "vendor",
+    "node_modules"
+  ]
+}
