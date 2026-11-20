@@ -1,4 +1,4 @@
-# Marketplace reference refinement — 2026-11-14
+# Marketplace reference refinement ï¿½ 2026-11-14
 
 - Applied the supplied reference direction to the catalog only: lavender logo banner, category strip, bordered result toolbar, unified filter panel and compact cards.
 - Uses the existing LubosMart SVG logo. Product images retain their original aspect ratio with object-fit: contain; cards are capped at 280px, including a single result and authenticated layouts with app navigation.
@@ -23,7 +23,7 @@ Validation: targeted ESLint, TypeScript, Prettier, 11 catalog tests / 221 assert
 and production build passed. An isolated temporary-SQLite Chrome run verified
 320, 375, 768, 1024 and 1440px reflow, a single-result search, bounded grid cards,
 grid/list switching, dark theme and authenticated buyer sidebar without page
-overflow. Screenshots are under storage/app/home-reference-match-check/catalog-reference-*.png.
+overflow. Screenshots are under storage/app/home-reference-match-check/catalog-reference-\*.png.
 The browser harness lives under ignored storage/app/catalog-reference-check.cjs.
 The first exploratory browser run had no product fixtures; a second exploratory
 run targeted the navbar search submit instead of login. These harness issues were

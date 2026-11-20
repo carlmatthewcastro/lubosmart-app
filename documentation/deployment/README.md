@@ -1,5 +1,11 @@
 # Deployment and backups
 
+Repository layout update: deployment files and the environment now live in
+`web/`. Run the commands in this guide from `web/` and use it as the Docker build
+context. Compose explicitly retains the `lubosmart-app` project name to preserve
+the prior default volume names. Existing deployments using a custom project name
+must continue supplying that name. No deployment was performed for this move.
+
 The repository describes production on an Azure Ubuntu VM with Docker Compose and Cloudflare DNS. Live VM/DNS settings, deployed versions, Cloudflare proxy/WAF/cache features and backup execution are unverified. Deployment is manual; GitHub Actions builds/tests do not deploy the VM.
 
 ## Local setup
@@ -21,12 +27,12 @@ Google sign-in uses private `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and an ex
 
 ## Production services
 
-| Service | Role | Storage |
-| --- | --- | --- |
-| `app` | PHP 8.3/Apache Laravel image; Node 22 builds assets in an earlier stage | `app-storage` |
-| `queue` | Shared image, operational notification worker | Shared `app-storage` and database jobs |
-| `db` | MySQL 8.4, internal network, ping health check | `mysql-data` |
-| `caddy` | Public HTTPS, compression and reverse proxy to `app:80` | `caddy-data`, `caddy-config` |
+| Service | Role                                                                    | Storage                                |
+| ------- | ----------------------------------------------------------------------- | -------------------------------------- |
+| `app`   | PHP 8.3/Apache Laravel image; Node 22 builds assets in an earlier stage | `app-storage`                          |
+| `queue` | Shared image, operational notification worker                           | Shared `app-storage` and database jobs |
+| `db`    | MySQL 8.4, internal network, ping health check                          | `mysql-data`                           |
+| `caddy` | Public HTTPS, compression and reverse proxy to `app:80`                 | `caddy-data`, `caddy-config`           |
 
 ```mermaid
 flowchart LR

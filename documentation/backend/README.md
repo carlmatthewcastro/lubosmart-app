@@ -6,17 +6,17 @@ November 5, 2026 update: `routes/api.php` adds stateless mobile API v1 routing a
 
 ## Code organization
 
-| Location | Responsibility |
-| --- | --- |
-| `routes/web.php`, `routes/auth.php`, `routes/settings.php` | Web endpoints |
-| `bootstrap/app.php` | Routing and middleware |
-| `app/Http/Controllers/` | Requests and responses; some business operations |
-| `app/Http/Requests/` | Form validation and request authorization |
-| `app/Models/` | Relationships, casts and queries |
-| `app/Policies/` | Account, application and support permissions |
-| `app/Actions/Checkout/CreateOrderFromCart.php` | Transactional checkout |
-| `app/Services/` | Shipping quotes, locations, email security and workspace data |
-| `app/Notifications/`, `routes/console.php` | Notifications and scheduled cleanup |
+| Location                                                   | Responsibility                                                |
+| ---------------------------------------------------------- | ------------------------------------------------------------- |
+| `routes/web.php`, `routes/auth.php`, `routes/settings.php` | Web endpoints                                                 |
+| `bootstrap/app.php`                                        | Routing and middleware                                        |
+| `app/Http/Controllers/`                                    | Requests and responses; some business operations              |
+| `app/Http/Requests/`                                       | Form validation and request authorization                     |
+| `app/Models/`                                              | Relationships, casts and queries                              |
+| `app/Policies/`                                            | Account, application and support permissions                  |
+| `app/Actions/Checkout/CreateOrderFromCart.php`             | Transactional checkout                                        |
+| `app/Services/`                                            | Shipping quotes, locations, email security and workspace data |
+| `app/Notifications/`, `routes/console.php`                 | Notifications and scheduled cleanup                           |
 
 ## Accounts and access
 
@@ -24,12 +24,12 @@ Current public role identifiers are `buyer`, `seller`, `rider` and `logistics`; 
 
 Rider signup collects its application in the combined registration form; after verification, a complete submission waits for Logistics review. See the [Rider guide](../functions/rider/README.md). Current Buyer password signup activates after email verification. Complete Seller/Logistics registrations become pending after verification for Admin review. Legacy/Google onboarding can require completing an application first. Rejected applicants can correct and resubmit. Suspension/deactivation blocks existing sessions as well as new access.
 
-| Role | Reviewer | Required documents |
-| --- | --- | --- |
-| Buyer | Admin for review-required applications; current password signup activates after verification | ID |
-| Seller | Admin | ID and business permit |
-| Courier / Rider | Selected Logistics company / sorting center | ID, driver's license and OR/CR |
-| Sorting Center | Admin | ID and business/DTI permit |
+| Role            | Reviewer                                                                                     | Required documents             |
+| --------------- | -------------------------------------------------------------------------------------------- | ------------------------------ |
+| Buyer           | Admin for review-required applications; current password signup activates after verification | ID                             |
+| Seller          | Admin                                                                                        | ID and business permit         |
+| Courier / Rider | Selected Logistics company / sorting center                                                  | ID, driver's license and OR/CR |
+| Sorting Center  | Admin                                                                                        | ID and business/DTI permit     |
 
 `User::canOperate()` checks approval/verification and courier center eligibility. Middleware, Policies/Gates and ownership checks protect operations. An inactive center or unapproved center operator blocks affiliated couriers.
 

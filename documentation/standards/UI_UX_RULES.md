@@ -99,13 +99,13 @@ avoid jargon, and use consistent order/parcel/payment terminology.
 
 ## Role-specific experience
 
-| Role | Priorities and protected workflow |
-| --- | --- |
-| Buyer | Product discovery, stock visibility, editable cart, address choice, shipping quote feedback, clear COD total, order tracking |
-| Seller | Inventory validation, product images, stock/weight clarity, order preparation, waybills, sales reports |
-| Rider / Courier | Large mobile actions, parcel identity, delivery proof upload progress, COD collection, failed-delivery feedback |
-| Sorting Center | Center-scoped queues, receiving/sorting/dispatch, courier affiliation, shipping rates, cash handovers and reconciliation |
-| Admin | Search and review queues, clear approval/rejection reasons, compliance, commission, audit history, platform settings |
+| Role            | Priorities and protected workflow                                                                                            |
+| --------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Buyer           | Product discovery, stock visibility, editable cart, address choice, shipping quote feedback, clear COD total, order tracking |
+| Seller          | Inventory validation, product images, stock/weight clarity, order preparation, waybills, sales reports                       |
+| Rider / Courier | Large mobile actions, parcel identity, delivery proof upload progress, COD collection, failed-delivery feedback              |
+| Sorting Center  | Center-scoped queues, receiving/sorting/dispatch, courier affiliation, shipping rates, cash handovers and reconciliation     |
+| Admin           | Search and review queues, clear approval/rejection reasons, compliance, commission, audit history, platform settings         |
 
 Use server-provided permissions and allowed actions. Do not bypass approval or
 verification, expose private proof, broaden center access, or create unsupported

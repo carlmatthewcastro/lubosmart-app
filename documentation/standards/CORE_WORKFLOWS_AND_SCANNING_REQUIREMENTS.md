@@ -2,11 +2,11 @@
 
 Reviewed: 2026-10-15 (Asia/Manila).
 
-Implementation update, 2026-10-16: [Logistics implementation and acceptance](LOGISTICS_IMPLEMENTATION_ACCEPTANCE.md) records the subsequently added tracking labels, scan-confirmed operations, dispatch handovers, exceptions and amount-checked COD. The observed-source statements below retain the 2026-10-15 baseline; consult that update for current behavior and remaining acceptance limits. In particular, preparation/receipt/sorting gates now also apply to legacy flat-fee parcels, and dispatch assignment requires separate rider acceptance.
+Implementation update, 2026-10-16: Logistics implementation and acceptance records the subsequently added tracking labels, scan-confirmed operations, dispatch handovers, exceptions and amount-checked COD. The observed-source statements below retain the 2026-10-15 baseline; consult that update for current behavior and remaining acceptance limits. In particular, preparation/receipt/sorting gates now also apply to legacy flat-fee parcels, and dispatch assignment requires separate rider acceptance.
 
 ## Purpose and authority
 
-Implementation update, 2026-10-25: [seller/buyer completion and role connections](../archive/reports/SELLER_BUYER_COMPLETION.md) records the added size/color stock, store vouchers, verified-purchase ratings, buyer search/queues and handover tracking, with current verification evidence. Historical observed-source gaps below retain their original review date; they do not override that update.
+The website includes size/color stock, store vouchers, verified-purchase ratings, buyer search and parcel handover tracking. Use the [current workflows](../workflows/README.md) for implemented behavior.
 
 This document preserves the website's core requirements, explains who is responsible at each stage, and supplies a proposed scanning workflow that the ERP reference leaves undefined. It is a planning and acceptance reference; creating it does not implement features or authorize website changes, deployment, or changes to business policy.
 
@@ -25,13 +25,13 @@ Use the checklists to preserve unfinished work across sessions. Check an item on
 
 LubosMart connects a commercial transaction, a physical parcel journey, and a money journey. These must remain linked but have separate statuses.
 
-| Role | Own responsibility | Main connections | Boundary |
-| --- | --- | --- | --- |
-| Buyer (`buyer`) | Provide valid details, order products, receive goods, pay applicable COD, raise issues | Seller for products; rider for delivery; admin for disputes | Own orders and conversations only; cannot mark parcels sorted or cash reconciled |
-| Seller (`seller`) | Maintain compliant listings and stock; pack correct items; attach label; request pickup | Buyer, logistics, pickup rider | Own store; cannot claim a parcel was delivered or approve riders |
-| Rider (`courier`) | Accept assigned physical parcels, transport them, record delivery evidence and collected COD, hand over cash | Seller at pickup; logistics at receipt/dispatch; buyer at delivery | Assigned work and affiliated operational center; cannot approve own account or assign work |
-| Logistics / Sorting Center (`sorting_center`) | Approve affiliated riders; approve pickup; receive, sort and dispatch parcels; verify cash handover | Seller, pickup rider, delivery rider, admin | Own company/centers and authorized riders; cannot administer unrelated companies |
-| Admin (`admin`) | Approve buyer/seller/logistics applications, oversee accounts/compliance/disputes, commission, reporting and policy | All roles for oversight and escalation | Normal parcel handling remains with logistics/riders; exceptional corrections require evidence and audit |
+| Role                                          | Own responsibility                                                                                                  | Main connections                                                   | Boundary                                                                                                 |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| Buyer (`buyer`)                               | Provide valid details, order products, receive goods, pay applicable COD, raise issues                              | Seller for products; rider for delivery; admin for disputes        | Own orders and conversations only; cannot mark parcels sorted or cash reconciled                         |
+| Seller (`seller`)                             | Maintain compliant listings and stock; pack correct items; attach label; request pickup                             | Buyer, logistics, pickup rider                                     | Own store; cannot claim a parcel was delivered or approve riders                                         |
+| Rider (`courier`)                             | Accept assigned physical parcels, transport them, record delivery evidence and collected COD, hand over cash        | Seller at pickup; logistics at receipt/dispatch; buyer at delivery | Assigned work and affiliated operational center; cannot approve own account or assign work               |
+| Logistics / Sorting Center (`sorting_center`) | Approve affiliated riders; approve pickup; receive, sort and dispatch parcels; verify cash handover                 | Seller, pickup rider, delivery rider, admin                        | Own company/centers and authorized riders; cannot administer unrelated companies                         |
+| Admin (`admin`)                               | Approve buyer/seller/logistics applications, oversee accounts/compliance/disputes, commission, reporting and policy | All roles for oversight and escalation                             | Normal parcel handling remains with logistics/riders; exceptional corrections require evidence and audit |
 
 Pickup rider and delivery rider are assignments, not additional account roles. One person may perform both legs, but each handover must still be recorded. Admin does not replace logistics as the rider application approver.
 
@@ -56,12 +56,12 @@ flowchart LR
 
 **PDF requirements:** personal/contact/address information, identification documents, email approval notifications, and role-specific requirements. Sellers supply business information/permit; logistics supplies business/DTI documentation; riders supply vehicle, plate, OR/CR and ID/license. Address selection uses province, municipality/city and barangay, with manual street/house details. Age is derived from birthday.
 
-| Application | Approver | Outcome |
-| --- | --- | --- |
-| Buyer | Admin | Approved access, or rejection with correction instructions |
-| Seller | Admin | Approved selling access within registered category |
-| Logistics | Admin | Operational company/center access |
-| Rider | Affiliated logistics | Operational rider access after required verification |
+| Application | Approver             | Outcome                                                    |
+| ----------- | -------------------- | ---------------------------------------------------------- |
+| Buyer       | Admin                | Approved access, or rejection with correction instructions |
+| Seller      | Admin                | Approved selling access within registered category         |
+| Logistics   | Admin                | Operational company/center access                          |
+| Rider       | Affiliated logistics | Operational rider access after required verification       |
 
 Email verification proves control of an email address. Application approval records the review decision. They are different gates. Suspended or inactive accounts must not continue operational actions merely because they have a saved session or parcel code.
 
@@ -104,35 +104,35 @@ A product barcode identifies an item/SKU. A waybill parcel code identifies the p
 
 The following is the **proposed complete journey**, retaining the existing role split:
 
-| Step | Responsible role | Action and evidence | Who takes responsibility next? |
-| --- | --- | --- | --- |
-| 1 | Buyer | Submit order with confirmed address, items and shipping/payment amounts | Seller prepares its own seller order |
-| 2 | Seller | Check stock/order, pack, print and attach unique parcel waybill; mark ready and request pickup | Seller keeps physical custody until rider accepts |
-| 3 | Logistics | Verify pickup request and coverage; assign eligible pickup rider | Assigned rider gets pickup task; parcel remains with seller |
-| 4 | Pickup rider | Scan label at seller; compare parcel/store and condition; confirm actual collection | Rider takes custody |
-| 5 | Logistics receiver | Scan each parcel physically arriving at the correct center; confirm condition and rider handover | Center takes custody |
-| 6 | Logistics sorter | Scan parcel and confirm destination service area/bin | Center retains custody |
-| 7 | Logistics dispatcher | Assign eligible delivery rider; scan parcel into dispatch manifest | Center retains custody until rider acceptance |
-| 8 | Delivery rider | Scan and accept each assigned parcel from center; confirm dispatch | Delivery rider takes custody and starts delivery leg |
-| 9 | Delivery rider | Scan at destination, verify intended recipient, record required proof and actual COD payment, confirm delivery | Recipient takes custody |
-| 10 | Logistics cashier | Verify cash physically received from rider against collection references and amount | Logistics takes custody of cash |
-| 11 | Admin finance | Reconcile records and discrepancies; record settlement through the approved payout process | Finance closes only verified financial obligations |
+| Step | Responsible role     | Action and evidence                                                                                            | Who takes responsibility next?                              |
+| ---- | -------------------- | -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| 1    | Buyer                | Submit order with confirmed address, items and shipping/payment amounts                                        | Seller prepares its own seller order                        |
+| 2    | Seller               | Check stock/order, pack, print and attach unique parcel waybill; mark ready and request pickup                 | Seller keeps physical custody until rider accepts           |
+| 3    | Logistics            | Verify pickup request and coverage; assign eligible pickup rider                                               | Assigned rider gets pickup task; parcel remains with seller |
+| 4    | Pickup rider         | Scan label at seller; compare parcel/store and condition; confirm actual collection                            | Rider takes custody                                         |
+| 5    | Logistics receiver   | Scan each parcel physically arriving at the correct center; confirm condition and rider handover               | Center takes custody                                        |
+| 6    | Logistics sorter     | Scan parcel and confirm destination service area/bin                                                           | Center retains custody                                      |
+| 7    | Logistics dispatcher | Assign eligible delivery rider; scan parcel into dispatch manifest                                             | Center retains custody until rider acceptance               |
+| 8    | Delivery rider       | Scan and accept each assigned parcel from center; confirm dispatch                                             | Delivery rider takes custody and starts delivery leg        |
+| 9    | Delivery rider       | Scan at destination, verify intended recipient, record required proof and actual COD payment, confirm delivery | Recipient takes custody                                     |
+| 10   | Logistics cashier    | Verify cash physically received from rider against collection references and amount                            | Logistics takes custody of cash                             |
+| 11   | Admin finance        | Reconcile records and discrepancies; record settlement through the approved payout process                     | Finance closes only verified financial obligations          |
 
 Buyer tracking should translate these events into understandable progress. Assignment alone never means physical pickup. Printing a waybill never means shipment. Arrival at a center never means delivery to the buyer.
 
 ### Current status mapping and limitations
 
-| Existing source representation | Actual meaning in current code | Proposed clarification |
-| --- | --- | --- |
-| Seller order `pending` | Order placed | Awaiting seller preparation |
-| Seller order `processing` | Seller preparing | Preparing parcel |
-| Seller order `shipped` | Seller marked ready for center pickup | Display “Ready for pickup”; reserve physical shipment language for pickup event |
-| Delivery `unassigned` / `assigned` | No rider / rider allocated | Does not establish custody |
-| Delivery `picked_up` | Rider recorded collection | Rider has collected parcel |
-| `received_at`, then `sorted_at` | Logistics recorded receipt and sorting | Center receipt and destination sorting are separate milestones |
-| Delivery `in_transit` | Intermediate transport state; also set on post-sort assignment | Must not infer physical dispatch solely from this value |
-| Delivery `out_for_delivery` | Rider began final delivery stage | Delivery route in progress |
-| Delivery `delivered`; seller order `completed` | Rider submitted photo; source also records COD and commission | Physical completion; financial reconciliation remains separate |
+| Existing source representation                 | Actual meaning in current code                                 | Proposed clarification                                                          |
+| ---------------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Seller order `pending`                         | Order placed                                                   | Awaiting seller preparation                                                     |
+| Seller order `processing`                      | Seller preparing                                               | Preparing parcel                                                                |
+| Seller order `shipped`                         | Seller marked ready for center pickup                          | Display “Ready for pickup”; reserve physical shipment language for pickup event |
+| Delivery `unassigned` / `assigned`             | No rider / rider allocated                                     | Does not establish custody                                                      |
+| Delivery `picked_up`                           | Rider recorded collection                                      | Rider has collected parcel                                                      |
+| `received_at`, then `sorted_at`                | Logistics recorded receipt and sorting                         | Center receipt and destination sorting are separate milestones                  |
+| Delivery `in_transit`                          | Intermediate transport state; also set on post-sort assignment | Must not infer physical dispatch solely from this value                         |
+| Delivery `out_for_delivery`                    | Rider began final delivery stage                               | Delivery route in progress                                                      |
+| Delivery `delivered`; seller order `completed` | Rider submitted photo; source also records COD and commission  | Physical completion; financial reconciliation remains separate                  |
 
 **Observed:** one mutable `rider_id` represents the current rider. Reassignment can replace it. Existing parcel events record actors/actions, but there is no explicit pickup-leg/delivery-leg custody model. Distinct leg assignments and handover evidence are needed for the proposed journey.
 
@@ -150,15 +150,15 @@ All rules in this section are **proposed requirements** because the PDFs do not 
 
 ### Who scans what, and when
 
-| Scan purpose | Who scans | Physical object | Required server checks | Successful result |
-| --- | --- | --- | --- | --- |
-| Pickup | Assigned pickup rider | Seller's attached waybill | Right rider/company; approved pickup; ready parcel; valid prior state | Pickup event and custody transfer to rider |
-| Center receipt | Authorized logistics receiver | Same label on arriving parcel | Correct center; expected inbound parcel; prior pickup; not already received | Receipt event and custody transfer to center |
-| Sorting | Authorized logistics sorter | Same label | Received parcel; correct destination area/bin | Sorting event with destination |
-| Dispatch preparation | Authorized logistics dispatcher | Each label for the manifest | Sorted; correct route; eligible rider; not dispatched elsewhere | Parcel added to dispatch manifest; no premature rider custody |
-| Dispatch acceptance | Assigned delivery rider | Each label being handed over | Correct manifest/rider/center; parcel staged and available | Accepted handover and delivery-leg custody |
-| Delivery | Assigned delivery rider | Same label at destination | Out for delivery; correct parcel; required recipient evidence and COD checks | Delivery event with proof and separately recorded payment outcome |
-| Return receipt | Authorized logistics receiver | Returned parcel label | Open failed-attempt/return case; expected rider and center | Center custody and return receipt event |
+| Scan purpose         | Who scans                       | Physical object               | Required server checks                                                       | Successful result                                                 |
+| -------------------- | ------------------------------- | ----------------------------- | ---------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Pickup               | Assigned pickup rider           | Seller's attached waybill     | Right rider/company; approved pickup; ready parcel; valid prior state        | Pickup event and custody transfer to rider                        |
+| Center receipt       | Authorized logistics receiver   | Same label on arriving parcel | Correct center; expected inbound parcel; prior pickup; not already received  | Receipt event and custody transfer to center                      |
+| Sorting              | Authorized logistics sorter     | Same label                    | Received parcel; correct destination area/bin                                | Sorting event with destination                                    |
+| Dispatch preparation | Authorized logistics dispatcher | Each label for the manifest   | Sorted; correct route; eligible rider; not dispatched elsewhere              | Parcel added to dispatch manifest; no premature rider custody     |
+| Dispatch acceptance  | Assigned delivery rider         | Each label being handed over  | Correct manifest/rider/center; parcel staged and available                   | Accepted handover and delivery-leg custody                        |
+| Delivery             | Assigned delivery rider         | Same label at destination     | Out for delivery; correct parcel; required recipient evidence and COD checks | Delivery event with proof and separately recorded payment outcome |
+| Return receipt       | Authorized logistics receiver   | Returned parcel label         | Open failed-attempt/return case; expected rider and center                   | Center custody and return receipt event                           |
 
 Seller attaches the code; the recommended initial scope does not require a seller scanner. Buyer need not install a scanner or scan their ID. A buyer OTP, if chosen, is separate recipient confirmation and must not be printed on the parcel.
 
@@ -204,29 +204,29 @@ Illustration using a 10% commission on product subtotal: products PHP 1,000 + sh
 
 This is a source review of the local working tree, not a percentage-complete claim or fresh test/deployment certification. Existing uncommitted changes were preserved. “Present” means source exists, not that every edge case passed acceptance testing.
 
-| Capability | Current evidence/status | Remaining work or limit |
-| --- | --- | --- |
-| Five roles and scoped routes | Present: `routes/web.php`, policies and controllers | Verify all alternate paths and negative access cases |
-| Registration and approval chain | Present: registration services, lifecycle, application review/policy | Reconcile older buyer-activation documentation; verify every account contract |
-| Departments/subcategories | Present: category config, seeder and category tests | Confirm all PDF entries and permitted seller-category behavior in live data |
-| Catalog/cart/stock and split checkout | Present: marketplace controller and checkout action | Verify concurrent/repeated checkout and cross-store acceptance scenarios |
-| Product variations | Gap in reviewed capability audit/source | Define SKU-level attributes, price/stock and item snapshots |
-| Vouchers and discounts | No complete workflow identified | Define eligibility, funding, stacking and commission effects |
-| Payment modes | COD present; checkout stores `cod` | Online payment reconciliation/refunds remain outside implemented scope |
-| Seller inventory/order preparation | Present: inventory/order controllers | Resolve ready-for-pickup vs `shipped` terminology |
-| Printable waybill | Present: waybill page and protected route | No parcel QR/barcode generation found in current label |
-| Logistics approval, receipt, sorting, assignment | Present: `DeliveryController`, logistics workspace | Manual actions; no scan-backed custody chain/dispatch acceptance |
-| Rider pickup and delivery states | Present with assigned-rider checks | Distinct leg history and explicit physical handovers incomplete |
-| Shipping quotes and service areas | Present: quotes service, rate controller, area/rider checks | Configuration-dependent behavior; acceptance must cover legacy paths |
-| Recipient delivery evidence | Private photo required and protected retrieval present | Decide stronger recipient proof; separate actual cash confirmation |
-| COD handover and reconciliation | Present manual actions and collection records | Physical amount verification, discrepancies and payout workflow incomplete |
-| Parcel event history | Present: `parcel_events` inserted on delivery actions | Not a scanner workflow; no complete scan/custody/replay model found |
-| Ratings and feedback | No complete product/order review flow identified | Define eligible completed orders, moderation and seller response |
-| Chat/support/disputes | Order messages and scoped support cases present | Do not equate these with verified real-time chat or refund processing |
-| Admin compliance/settings/reports | Present controllers and admin permission routes | Check finance policy and operational exceptions against acceptance criteria |
-| Seller profit / rider earnings | Reporting/proceeds foundations present | No complete cost, rider-pay and payout ledger established |
-| Failed delivery, returns, loss/damage | Schema/support foundations only in reviewed journey | Full transition, retry, custody, refund and inventory logic needed |
-| Account management | Existing settings plus local account-settings work present | Pending local work is not proof of deployed behavior |
+| Capability                                       | Current evidence/status                                              | Remaining work or limit                                                       |
+| ------------------------------------------------ | -------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Five roles and scoped routes                     | Present: `routes/web.php`, policies and controllers                  | Verify all alternate paths and negative access cases                          |
+| Registration and approval chain                  | Present: registration services, lifecycle, application review/policy | Reconcile older buyer-activation documentation; verify every account contract |
+| Departments/subcategories                        | Present: category config, seeder and category tests                  | Confirm all PDF entries and permitted seller-category behavior in live data   |
+| Catalog/cart/stock and split checkout            | Present: marketplace controller and checkout action                  | Verify concurrent/repeated checkout and cross-store acceptance scenarios      |
+| Product variations                               | Gap in reviewed capability audit/source                              | Define SKU-level attributes, price/stock and item snapshots                   |
+| Vouchers and discounts                           | No complete workflow identified                                      | Define eligibility, funding, stacking and commission effects                  |
+| Payment modes                                    | COD present; checkout stores `cod`                                   | Online payment reconciliation/refunds remain outside implemented scope        |
+| Seller inventory/order preparation               | Present: inventory/order controllers                                 | Resolve ready-for-pickup vs `shipped` terminology                             |
+| Printable waybill                                | Present: waybill page and protected route                            | No parcel QR/barcode generation found in current label                        |
+| Logistics approval, receipt, sorting, assignment | Present: `DeliveryController`, logistics workspace                   | Manual actions; no scan-backed custody chain/dispatch acceptance              |
+| Rider pickup and delivery states                 | Present with assigned-rider checks                                   | Distinct leg history and explicit physical handovers incomplete               |
+| Shipping quotes and service areas                | Present: quotes service, rate controller, area/rider checks          | Configuration-dependent behavior; acceptance must cover legacy paths          |
+| Recipient delivery evidence                      | Private photo required and protected retrieval present               | Decide stronger recipient proof; separate actual cash confirmation            |
+| COD handover and reconciliation                  | Present manual actions and collection records                        | Physical amount verification, discrepancies and payout workflow incomplete    |
+| Parcel event history                             | Present: `parcel_events` inserted on delivery actions                | Not a scanner workflow; no complete scan/custody/replay model found           |
+| Ratings and feedback                             | No complete product/order review flow identified                     | Define eligible completed orders, moderation and seller response              |
+| Chat/support/disputes                            | Order messages and scoped support cases present                      | Do not equate these with verified real-time chat or refund processing         |
+| Admin compliance/settings/reports                | Present controllers and admin permission routes                      | Check finance policy and operational exceptions against acceptance criteria   |
+| Seller profit / rider earnings                   | Reporting/proceeds foundations present                               | No complete cost, rider-pay and payout ledger established                     |
+| Failed delivery, returns, loss/damage            | Schema/support foundations only in reviewed journey                  | Full transition, retry, custody, refund and inventory logic needed            |
+| Account management                               | Existing settings plus local account-settings work present           | Pending local work is not proof of deployed behavior                          |
 
 Important source details: receipt/sorting gates for transport actions are conditional on shipping quote basis `destination_and_weight`. Initial assignment has additional pickup-ready/approval checks for that basis. Therefore strict stage enforcement must be verified across both quote-based and legacy deliveries. Post-sort assignment sets `in_transit`; it is not a separately confirmed physical handover.
 
@@ -271,17 +271,17 @@ These boxes are intentionally unchecked: this documentation pass did not execute
 
 ## 11. Decisions to settle and recommended implementation order
 
-| Decision | Recommended starting point (proposed) |
-| --- | --- |
-| What is scanned? | Parcel waybill QR with unique delivery-linked token; manual tracking entry fallback |
-| Can one seller order have multiple boxes? | One physical parcel initially; explicit package records before allowing multiple boxes |
-| Must every shipment pass through a center? | Yes for the initial standard journey; direct seller-to-buyer delivery requires an explicit alternative state path |
-| Can pickup/delivery riders differ? | Yes; retain each assignment and acceptance record |
-| Can parcels move between centers/companies? | Exclude from initial standard flow; add bilateral transfer/receipt records before enabling |
-| How is recipient receipt proved? | Keep private photo baseline; decide OTP/signature and authorized alternative recipients |
-| Are online payments needed now? | Preserve COD baseline; define payment provider and reconciliation before adding another mode |
-| Who earns shipping fees and rider pay? | Require an explicit commercial formula; never treat all COD as rider earnings |
-| What happens after delivery failure? | Reasoned attempt -> logistics decision -> retry or recorded return; define attempt limits and costs |
+| Decision                                    | Recommended starting point (proposed)                                                                             |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| What is scanned?                            | Parcel waybill QR with unique delivery-linked token; manual tracking entry fallback                               |
+| Can one seller order have multiple boxes?   | One physical parcel initially; explicit package records before allowing multiple boxes                            |
+| Must every shipment pass through a center?  | Yes for the initial standard journey; direct seller-to-buyer delivery requires an explicit alternative state path |
+| Can pickup/delivery riders differ?          | Yes; retain each assignment and acceptance record                                                                 |
+| Can parcels move between centers/companies? | Exclude from initial standard flow; add bilateral transfer/receipt records before enabling                        |
+| How is recipient receipt proved?            | Keep private photo baseline; decide OTP/signature and authorized alternative recipients                           |
+| Are online payments needed now?             | Preserve COD baseline; define payment provider and reconciliation before adding another mode                      |
+| Who earns shipping fees and rider pay?      | Require an explicit commercial formula; never treat all COD as rider earnings                                     |
+| What happens after delivery failure?        | Reasoned attempt -> logistics decision -> retry or recorded return; define attempt limits and costs               |
 
 Recommended sequence: agree unresolved policies -> define parcel identity and separate custody/payment states -> generate labels and lookup -> implement pickup/receipt/sorting/dispatch scans -> implement delivery/payment evidence -> exceptions and cash/payout controls -> run the acceptance journey and regression checks.
 
@@ -291,15 +291,15 @@ This document records the work to complete; it cannot guarantee implementation a
 
 Primary sources inspected for this comparison:
 
-- [Routes](../../routes/web.php)
-- [Checkout and store-level order creation](../../app/Actions/Checkout/CreateOrderFromCart.php)
-- [Seller preparation, cancellation, messages and waybill access](../../app/Http/Controllers/OrderController.php)
-- [Delivery transitions, logistics operations, COD and parcel events](../../app/Http/Controllers/DeliveryController.php)
-- [Order model](../../app/Models/Order.php), [seller order model](../../app/Models/SellerOrder.php), [delivery model](../../app/Models/Delivery.php)
-- [Current account verification lifecycle](../../app/Services/AccountVerificationLifecycle.php)
-- [Current printable waybill](../../resources/views/pages/marketplace/waybill.tsx)
-- [Category seeder](../../database/seeders/MarketplaceCategorySeeder.php) and [category configuration](../../config/marketplace_categories.php)
-- [Logistics regression test source](../../tests/Feature/Logistics/LogisticsWorkspaceTest.php) and [checkout test source](../../tests/Feature/Checkout/CreateOrderFromCartTest.php); their presence is not a claim that they ran in this documentation task
-- [Earlier ERP capability audit](../archive/ui-audits/ERP_ROLE_CAPABILITY_AUDIT.md), [logistics workspace reference](LOGISTICS_WORKSPACE.md), and [registration requirements](REGISTRATION_REQUIREMENTS.md)
+- [Routes](../../web/routes/web.php)
+- [Checkout and store-level order creation](../../web/app/Actions/Checkout/CreateOrderFromCart.php)
+- [Seller preparation, cancellation, messages and waybill access](../../web/app/Http/Controllers/OrderController.php)
+- [Delivery transitions, logistics operations, COD and parcel events](../../web/app/Http/Controllers/DeliveryController.php)
+- [Order model](../../web/app/Models/Order.php), [seller order model](../../web/app/Models/SellerOrder.php), [delivery model](../../web/app/Models/Delivery.php)
+- [Current account verification lifecycle](../../web/app/Services/AccountVerificationLifecycle.php)
+- [Current printable waybill](../../web/resources/views/pages/marketplace/waybill.tsx)
+- [Category seeder](../../web/database/seeders/MarketplaceCategorySeeder.php) and [category configuration](../../web/config/marketplace_categories.php)
+- [Logistics regression test source](../../web/tests/Feature/Logistics/LogisticsWorkspaceTest.php) and [checkout test source](../../web/tests/Feature/Checkout/CreateOrderFromCartTest.php); their presence is not a claim that they ran in this documentation task
+- Earlier ERP capability audit, [logistics workspace reference](LOGISTICS_WORKSPACE.md), and [registration requirements](REGISTRATION_REQUIREMENTS.md)
 
 This review leaves the earlier documents intact. Where their historical descriptions differ, consult the dated source finding above and verify the intended requirement before changing application behavior.

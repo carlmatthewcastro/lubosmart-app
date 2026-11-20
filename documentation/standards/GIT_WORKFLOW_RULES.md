@@ -13,16 +13,16 @@ separate authorization; a push or merge does not authorize deployment.
 
 Use lowercase, descriptive names with hyphen-separated words:
 
-| Prefix | Purpose | Example |
-| --- | --- | --- |
-| `feat/` | New features | `feat/buyer-order-tracking` |
-| `fix/` | Bug fixes | `fix/checkout-validation` |
-| `ui/` | UI/UX improvements | `ui/seller-dashboard-redesign` |
-| `refactor/` | Internal improvements | `refactor/order-service` |
-| `docs/` | Documentation | `docs/api-documentation` |
-| `test/` | Automated tests | `test/auth-coverage` |
-| `chore/` | Maintenance and configuration | `chore/ci-checks` |
-| `hotfix/` | Urgent production fixes | `hotfix/checkout-failure` |
+| Prefix      | Purpose                       | Example                        |
+| ----------- | ----------------------------- | ------------------------------ |
+| `feat/`     | New features                  | `feat/buyer-order-tracking`    |
+| `fix/`      | Bug fixes                     | `fix/checkout-validation`      |
+| `ui/`       | UI/UX improvements            | `ui/seller-dashboard-redesign` |
+| `refactor/` | Internal improvements         | `refactor/order-service`       |
+| `docs/`     | Documentation                 | `docs/api-documentation`       |
+| `test/`     | Automated tests               | `test/auth-coverage`           |
+| `chore/`    | Maintenance and configuration | `chore/ci-checks`              |
+| `hotfix/`   | Urgent production fixes       | `hotfix/checkout-failure`      |
 
 A branch represents logically related work, not a file or an individual commit.
 Existing historical names do not need retroactive renaming.

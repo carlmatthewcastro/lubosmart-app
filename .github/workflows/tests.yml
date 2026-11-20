@@ -12,6 +12,9 @@ on:
 
 jobs:
   ci:
+    defaults:
+      run:
+        working-directory: web
     runs-on: ubuntu-latest
 
     steps:
@@ -30,6 +33,7 @@ jobs:
         with:
           node-version: '22'
           cache: 'npm'
+          cache-dependency-path: web/package-lock.json
 
       - name: Install Node Dependencies
         run: npm ci

@@ -1,0 +1,57 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Mobile: Analyze",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/rider-android.cmd",
+      "args": [
+        "analyze"
+      ],
+      "problemMatcher": []
+    },
+    {
+      "label": "Mobile: Tests",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/rider-android.cmd",
+      "args": [
+        "test"
+      ],
+      "group": "test",
+      "problemMatcher": []
+    },
+    {
+      "label": "Mobile: Run multi-role app",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/android-mobile.cmd",
+      "args": [
+        "run",
+        "${input:mobileApiUrl}"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "Mobile: Build Rider debug APK",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/rider-android.cmd",
+      "args": [
+        "build",
+        "debug",
+        "${input:mobileApiUrl}"
+      ],
+      "group": "build",
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "mobileApiUrl",
+      "type": "promptString",
+      "description": "Test API URL ending in /api/v1 (10.0.2.2 is for an Android emulator)",
+      "default": "http://10.0.2.2:8000/api/v1"
+    }
+  ]
+}

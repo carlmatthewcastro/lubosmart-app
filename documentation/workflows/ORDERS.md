@@ -11,6 +11,6 @@ Use [scanning/POD](PARCEL_SCANNING.md) for custody and completion details and [f
 
 Stock, custody, money and API retries require server confirmation. Preserve mutation keys across uncertain retries. There is no verified offline custody synchronization feature.
 
-Sources: [checkout action](../../app/Actions/Checkout/CreateOrderFromCart.php), [delivery handler](../../app/Http/Controllers/DeliveryController.php), current finance contract, and the [historical seller/buyer report](../archive/reports/SELLER_BUYER_COMPLETION.md). Historical recipient/actual-COD and whole-parcel return examples in that report are superseded by the current guides.
+Sources: [checkout action](../../web/app/Actions/Checkout/CreateOrderFromCart.php), [delivery handler](../../web/app/Http/Controllers/DeliveryController.php), and the [finance contract](FINANCE_AND_RETURNS.md).
 
 [Workflow index](README.md)

@@ -1,8 +1,9 @@
 # Local setup
 
-Use a dedicated development database, synthetic accounts and local uploads. Preserve an existing `.env`, application key and data when updating. These are instructions for a future local installation; the documentation cleanup did not execute them.
+Use a dedicated development database, synthetic accounts and local uploads. Preserve an existing `.env`, application key and data when updating.
 
 - [Laravel and web setup](WEB.md)
+- [Open the Web and Mobile folders](DEVELOPMENT.md)
 - [Flutter setup and API connection](FLUTTER.md)
 - [Environment-variable reference](ENVIRONMENT.md)
 
