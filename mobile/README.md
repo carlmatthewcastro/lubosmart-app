@@ -1,6 +1,6 @@
 # LubosMart Flutter application
 
-Open this `mobile/` folder directly in VS Code. The website and shared API live in `../web/`. See the [development guide](../documentation/setup/DEVELOPMENT.md).
+Open this `mobile/` folder directly in VS Code. The website and shared API live in `../web/`. See the [development guide](../documentation/SETUP.md#development).
 
 The latest installed **1.0.1 reference-layout correction**, verification results and remaining phone checks are documented in [Rider 1.0.1 delivery](REFERENCE_UI_1_0_1.md). The [earlier redesign report](REDESIGN_2026_11_17.md) is retained as historical evidence.
 
@@ -8,7 +8,7 @@ For the dedicated live **Rider Android application**, use `lib/rider_main.dart` 
 
 Separate native client for Buyer, Seller and Rider. Laravel lives in ../web/ and remains the shared backend for the website and mobile app. The client derives its workspace from the authenticated account; it cannot grant itself a role.
 
-See the [Flutter setup guide](../documentation/setup/FLUTTER.md) for SDK installation and API configuration. Physical-device journeys and release signing require separate acceptance.
+See the [Flutter setup guide](../documentation/SETUP.md#flutter) for SDK installation and API configuration. Physical-device journeys and release signing require separate acceptance.
 
 ## Run locally
 
