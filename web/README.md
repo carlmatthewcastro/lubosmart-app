@@ -2,6 +2,8 @@
 
 Open this folder directly in VS Code. It contains the Laravel backend, React/Inertia website and shared mobile API.
 
-Run `php artisan serve --host=127.0.0.1 --port=8000` and `npm run dev` in separate terminals. Run `php artisan queue:work --tries=1` for queued notifications. Build assets with `npm run build`.
+After initial setup, Windows users can double-click **[Start LubosMart.cmd](../Start%20LubosMart.cmd)** in the repository root to start Laravel, Vite and the notification queue and open the website. Keep its terminal open; press **Ctrl+C** to stop the development servers.
 
-See [setup](../documentation/setup/WEB.md), [development guide](../documentation/setup/DEVELOPMENT.md), and the [project README](../README.md).
+For other operating systems or separate terminals, follow [manual startup](../documentation/SETUP.md#development-manual-startup). Build assets with `npm run build` from this folder.
+
+See [setup](../documentation/SETUP.md#web), the [development guide](../documentation/SETUP.md#development), and the [project README](../README.md).
