@@ -2,104 +2,56 @@
 
 # Setup and development
 
-**Install, configure and run Web and Mobile from one guide.**
+**Install, configure and run the website and shared API.**
 
 [Home](../README.md) · [Documentation](README.md) · [Website](https://lubosmart.app)
 
 </div>
 
----
-
-## Overview
-
-This guide covers local installation, day-to-day development and environment configuration. It brings the Web, Flutter and shared API setup instructions together while keeping each application’s working directory explicit.
-
-**In this guide:** [Setup boundaries](#guide) · [Laravel and website setup](#web) · [Web and Mobile development](#development) · [Flutter and API connection](#flutter) · [Environment configuration](#environment)
-
 <a id="guide"></a>
 
-## Setup boundaries
+## Before you start
 
-<a id="guide-how-it-works"></a>
+Use a dedicated development database, synthetic accounts and local uploads. Preserve existing environment files, application keys, data and private documents when updating an installation. Production procedures belong in [Deployment](DEPLOYMENT.md#deployment).
 
-### How it works
-
-Use a dedicated development database, synthetic accounts and local uploads. Preserve an existing `.env`, application key and data when updating.
-
-<a id="guide-setup-guides"></a>
-
-### Setup guides
-
-- [Laravel and web setup](SETUP.md#web)
-- [Open the Web and Mobile folders](SETUP.md#development)
-- [Flutter setup and API connection](SETUP.md#flutter)
-- [Environment-variable reference](SETUP.md#environment)
-
-Production procedures and backups belong in the [deployment runbook](DEPLOYMENT.md#deployment).
-
----
+[Web installation](#web) · [Local development](#development) · [Flutter connection](#flutter) · [Environment](#environment)
 
 <a id="web"></a>
 
-## Laravel and website setup
+## Web installation
 
-<a id="web-how-it-works"></a>
+Requires PHP 8.2+ with Laravel's required extensions, Composer 2, Node.js 22/npm and a dedicated local database. Dependencies and application commands belong in `web/`.
 
-### How it works
+1. Clone the [repository](https://github.com/carlmatthewcastro/lubosmart-app). For a new installation, run from its root:
 
-Requires PHP 8.2+ with Laravel's required extensions, Composer 2, Node.js 22/npm and a local database. The Composer and npm manifests in `web/` belong to the Laravel application.
+    ```powershell
+    cd web
+    composer install
+    npm ci
+    Copy-Item .env.example .env
+    php artisan key:generate
+    ```
 
-<a id="web-quick-start"></a>
+    Copy the environment example and generate a key only for a new installation. The example selects SQLite; create `web/database/database.sqlite` if absent. MySQL requires a separately created local database and its connection settings. Configure mail privately using the [environment reference](#environment).
 
-### Quick Start
+2. Verify that the selected database contains only disposable development data, then prepare the schema and category taxonomy:
 
-1. Clone the [repository](https://github.com/carlmatthewcastro/lubosmart-app) for a new installation. From its root, enter the website folder first:
+    ```powershell
+    php artisan migrate
+    php artisan db:seed --class=MarketplaceCategorySeeder
+    ```
 
-```powershell
-cd web
-composer install
-npm ci
-Copy-Item .env.example .env
-php artisan key:generate
-```
+    The category seeder avoids the default seeder's synthetic user. Installation, migrations and seeding are separate from ordinary startup.
 
-> [!IMPORTANT]
-> Copy the example and generate a key only for a new installation. Configure your development database and mail settings privately using the [environment reference](SETUP.md#environment). The example selects SQLite; create the local database file if needed. MySQL requires a separately created local database and its connection settings.
+3. Start the application using the [Windows launcher or manual commands](#development-website-and-shared-api).
 
-2. After checking that the selected database is disposable development data:
-
-```powershell
-php artisan migrate
-php artisan db:seed --class=MarketplaceCategorySeeder
-```
-
-3. On Windows, return to the repository root and double-click **[Start LubosMart.cmd](../Start%20LubosMart.cmd)**. It starts Laravel, Vite and the notification queue, then opens the local website automatically. Keep its terminal open while working; press **Ctrl+C** to stop the app. For other operating systems, follow [manual startup](#development-manual-startup).
-
-The category seeder avoids the default seeder's synthetic user. For subsequent local runs, use the launcher after starting your configured database; installation, migrations and seeding are separate setup steps.
-
-<a id="web-configuration"></a>
-
-### Configuration
-
-Security email requires a working mail provider; operational notifications require the queue. Google login requires OAuth credentials and an exact registered callback URL. See [mail and Google configuration](SETUP.md#environment-mail-and-google-login); connection checks alone do not prove inbox delivery.
-
-The website uses session authentication through Inertia.js. The Flutter client uses a separate [Laravel Sanctum bearer-token boundary](api/GUIDE.md). Do not use a live database or production accounts to try either client.
-
-Sources: [Composer manifest](../web/composer.json), [npm manifest](../web/package.json), [example environment](../web/.env.example), [category seeder](../web/database/seeders/MarketplaceCategorySeeder.php).
-
----
+Sources: [Composer](../web/composer.json), [npm](../web/package.json), [example environment](../web/.env.example), [category seeder](../web/database/seeders/MarketplaceCategorySeeder.php).
 
 <a id="development"></a>
 
-## Web and Mobile development
+## Local development
 
-<a id="development-how-it-works"></a>
-
-### How it works
-
-Open actual folders directly. Workspace shortcut files have been removed.
-
-1. From the repository root:
+Open `web/` and optionally `mobile/` directly in your editor; no workspace file is required. Both folders share one repository and backend rules. From the repository root:
 
 ```powershell
 code --new-window web
@@ -110,31 +62,17 @@ code --new-window mobile
 
 ### Website and shared API
 
-On Windows, double-click **[Start LubosMart.cmd](../Start%20LubosMart.cmd)** in the repository root after
-completing installation. It starts Laravel, Vite and the notification queue in
-one terminal, then opens the browser. It uses PHP and Node.js from `PATH` and
-the database configured in `web/.env`. If local MySQL is unavailable, it attempts
-to start the installed MySQL/MariaDB Windows service when exactly one is found.
-If Windows requires administrator access, the launcher opens a Windows permission
-prompt. Accept it to start the database and continue automatically. Only service
-startup runs with administrator access; Laravel, Vite and the queue run normally.
-If the prompt is cancelled, launch again and accept it. If the service still fails
-to start, inspect its error in Windows Services. Keep the terminal open; press **Ctrl+C** to stop the development
-servers. The database service stays running. The launcher expects a local HTTP
-`APP_URL` on port 8000 and requires ports 8000 and 5173 to be available.
+On Windows, double-click **[Start LubosMart.cmd](../Start%20LubosMart.cmd)** in the repository root. It starts Laravel, Vite and the notification queue, then opens the browser. Keep its terminal open; **Ctrl+C** stops the development servers.
 
-If the launcher reports a missing dependency, complete the [web installation](#web)
-first. If port 8000 or 5173 is in use, close the previous development server before
-launching again. The launcher reads the existing `web/.env`; it does not install
-dependencies, generate application keys, migrate or seed the database.
+The launcher uses PHP/Node.js from `PATH` and reads `web/.env`. It expects a local HTTP `APP_URL` on port 8000, with ports 8000 and 5173 available. It does not install dependencies, generate keys, migrate or seed.
+
+If local MySQL is stopped, the launcher attempts to start its Windows service when exactly one MySQL/MariaDB service is found. Accept the administrator prompt if Windows requests it; only service startup runs elevated. The database service stays running after the app stops. If startup fails, check the reported dependency, port conflict or Windows Services error. Restart the launcher after cancelling the permission prompt.
 
 <a id="development-manual-startup"></a>
 
 #### Manual startup
 
-For other operating systems or when you need separate terminals:
-
-1. In a terminal inside `web/`, run these in separate terminals:
+For other operating systems or separate processes, run each command in its own terminal inside `web/`:
 
 ```powershell
 php artisan serve --host=127.0.0.1 --port=8000
@@ -148,17 +86,48 @@ npm run dev
 php artisan queue:work --tries=1
 ```
 
-2. Open http://127.0.0.1:8000. Keep these terminals open while working. Use `npm run build` for production assets. On Windows, the launcher or separate terminals avoid the Unix-only Pail dependency in Composer's combined dev command.
+Open http://127.0.0.1:8000. Use one hostname consistently for session authentication and Google callbacks. The launcher/separate terminals avoid the Unix-only Pail dependency in Composer's combined dev command. Use `npm run build` for production assets.
 
-For a new installation, follow [web setup](SETUP.md#web); preserve existing environment files, keys, databases and uploads.
+### Verification and artifacts
+
+Run relevant backend tests with `php artisan test` and formatting checks with `php vendor/bin/pint --test` from `web/`. The [frontend guide](FRONTEND.md#interface-commands) lists TypeScript, lint and build checks. These commands are procedures, not results from this documentation cleanup.
+
+Laravel `web/storage/` is reserved for uploads, private files and runtime data. Browser evidence, snapshots and completed build logs belong in the ignored root `.tools/development-artifacts/` directory. Historical reports retain their original paths. Test failures involving shared storage may need an isolated rerun; do not overlap harnesses that share output or fixtures.
+
+Docker files and Compose commands belong in `web/`. Existing deployments must preserve their Compose project name and named volumes; see [Deployment](DEPLOYMENT.md#deployment).
 
 <a id="development-mobile"></a>
+<a id="flutter"></a>
 
-### Mobile
+## Flutter setup and API connection
 
-1. Open `mobile/`. Flutter source, assets, Android/iOS projects and tests are all here. VS Code tasks and debug settings are stored inside this folder. The local SDK remains in the shared ignored `.tools/` folder; use your own installed Flutter SDK on another machine.
+Mobile UI work is paused pending a new Figma design. The existing Buyer, Seller and Rider client remains an integration reference. Install Flutter compatible with [pubspec.yaml](../mobile/pubspec.yaml), which requires Dart `^3.13.7`. Android development also needs the Android SDK/platform tools; iOS builds require macOS/Xcode. Local SDKs under the ignored root `.tools/` are machine-specific.
 
-2. From a terminal inside `mobile/`:
+Start Laravel against a test database using the [web setup](#web). Vite is needed for the website, not the native API client. For a phone using a test LAN connection, run from `web/` instead of the loopback-only server:
+
+```powershell
+php artisan serve --host=0.0.0.0 --port=8000
+```
+
+From `mobile/`, run the multi-role entry point:
+
+```powershell
+flutter pub get
+flutter analyze
+flutter test
+flutter run --target lib/main.dart --dart-define=API_BASE_URL=http://10.0.2.2:8000/api/v1
+```
+
+| Connection                 | API address                                                                                          |
+| -------------------------- | ---------------------------------------------------------------------------------------------------- |
+| Android emulator           | `http://10.0.2.2:8000/api/v1`; `10.0.2.2` reaches the host PC                                        |
+| Physical phone on test LAN | A reachable PC/test-server address; the phone's localhost is not the PC                              |
+| USB-connected test phone   | Configure port forwarding before using a localhost API; USB connection alone does not provide access |
+| Release operation          | Reachable HTTPS API; debug HTTP settings do not authorize insecure release traffic                   |
+
+Laravel `APP_URL` must also make generated image/pagination URLs reachable from the client. Configure the local test network as needed; these instructions do not establish deployed networking or device acceptance.
+
+The dedicated Rider target is `lib/rider_main.dart`. Its Windows helper defaults to the live API, so supply an authorized test URL explicitly. For example, from `mobile/`:
 
 ```powershell
 .\scripts\rider-android.cmd analyze
@@ -166,107 +135,39 @@ For a new installation, follow [web setup](SETUP.md#web); preserve existing envi
 .\scripts\android-mobile.cmd run http://10.0.2.2:8000/api/v1
 ```
 
-The URL above is for an Android emulator. Physical devices require USB forwarding or a reachable test API. Mobile needs the Laravel API running; Vite is only needed for the website. The Rider build helper retains its existing live API default; pass an explicit test URL for testing.
+Use the [mobile README](../mobile/README.md) for source structure and Google OAuth configuration, [Rider Android](../mobile/RIDER_ANDROID.md) for build/install/USB commands and [baseline report](../mobile/REFERENCE_UI_1_0_1.md) for retained APK metadata. Release signing and physical-device acceptance require separate verification.
 
-<a id="development-repository-and-deployment"></a>
-
-### Repository and deployment
-
-Laravel `web/storage/` holds application uploads, private files and runtime data.
-Development snapshots and browser-check output belong in the ignored root
-`.tools/development-artifacts/` directory. Browser harnesses default to that
-directory so their output does not accumulate beside application uploads.
-
-Both folders share one Git repository and branch. Changes to shared backend rules or the database can affect both clients.
-
-Docker files live in `web/`; build with `web/` as the context. Compose commands also run inside `web/`, preserving the deployment's existing Compose project name and storage volume names when migrating an existing installation. Deployment requires separate authorization.
-
-> [!NOTE]
-> Historical reports retain their original commands. For current work, run Laravel/npm commands inside `web/`, Flutter commands inside `mobile/`, backend utility scripts from `web/scripts/`, and Android helpers from `mobile/scripts/`.
-
----
-
-<a id="flutter"></a>
-
-## Flutter and API connection
-
-<a id="flutter-how-it-works"></a>
-
-### How it works
-
-Flutter lives in `mobile` and shares the Laravel backend with the website. Start with the [web setup](SETUP.md#web) on a dedicated test installation. Use a Flutter SDK compatible with [pubspec.yaml](../mobile/pubspec.yaml), which declares Dart `^3.13.7`..
-
-<a id="flutter-commands"></a>
-
-### Commands
-
-From `mobile`, for the multi-role client:
-
-```powershell
-flutter pub get
-flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000/api/v1
-```
-
-<a id="flutter-configuration"></a>
-
-### Configuration
-
-`10.0.2.2` reaches the host PC from an Android emulator. A physical phone needs a reachable test LAN/HTTPS address or USB forwarding; its own localhost is not the PC. Laravel `APP_URL` must also make image and pagination URLs reachable. Release requests require HTTPS.
-
-The multi-role entry point is `lib/main.dart`. The dedicated Rider entry point is `lib/rider_main.dart`; its helper defaults to the live API, so supply an authorized test API URL for testing. Follow the existing [Rider Android guide](../mobile/RIDER_ANDROID.md) for explicit target, build arguments, installation and USB setup. Retain the [mobile README](../mobile/README.md) for workspace details and optional Google client configuration.
-
-<a id="flutter-testing"></a>
-
-### Testing
-
-Install the Android SDK and platform tools for Android development. Release signing and physical-device acceptance require separate verification; iOS builds require macOS/Xcode.
-
-Use the [API connection guide](api/MOBILE_CONNECTION_GUIDE.md) for onboarding tokens, retries and uploads, and the [API guide](api/GUIDE.md) for coverage and contract limitations. Native wallet screens and full physical-device journeys remain pending according to the existing records.
-
----
+The [API guide](api/GUIDE.md) owns token lifecycle, onboarding, response formats, uploads and retries. See [role coverage](api/ROLE_COVERAGE.md) for provisional screens and remaining native parity, including wallet interfaces.
 
 <a id="environment"></a>
 
 ## Environment configuration
 
-<a id="environment-how-it-works"></a>
+Set values privately for the intended installation. Preserve `APP_KEY`, databases and private uploads. Flutter compile-time definitions are separate from Laravel environment settings.
 
-### How it works
-
-Set values privately in the intended installation. This reference lists names, not credentials. Preserve existing `APP_KEY`, database contents and private uploads. Flutter compile-time definitions are separate from Laravel `.env` settings.
-
-<a id="environment-environment-variables"></a>
-
-### Environment variables
-
-| Area             | Names and purpose                                                                                                                                       |
+| Area             | Variables                                                                                                                                               |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Application      | `APP_ENV`, `APP_DEBUG`, `APP_URL`, `APP_KEY`: environment, diagnostics, generated URLs and encryption key                                               |
-| Session          | `SESSION_DRIVER`, `SESSION_DOMAIN`, `SESSION_SECURE_COOKIE`: storage and browser cookie scope; the example uses database sessions                       |
-| Database         | `DB_CONNECTION`; MySQL also uses `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`; Compose requires `DB_ROOT_PASSWORD`                 |
-| Queue            | `QUEUE_CONNECTION`: the example uses database jobs; a worker processes operational notifications                                                        |
+| Application      | `APP_ENV`, `APP_DEBUG`, `APP_URL`, `APP_KEY`                                                                                                            |
+| Session          | `SESSION_DRIVER`, `SESSION_DOMAIN`, `SESSION_SECURE_COOKIE`                                                                                             |
+| Database         | `DB_CONNECTION`; MySQL also uses `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD`; Compose needs `DB_ROOT_PASSWORD`                    |
+| Queue            | `QUEUE_CONNECTION`; the example uses database jobs and requires a worker                                                                                |
 | Mail             | `MAIL_MAILER`, `MAIL_SECURITY_MAILER`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_SCHEME`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME` |
 | Google web login | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`                                                                                       |
-| Flutter          | `API_BASE_URL`, ending in `/api/v1`; optional `GOOGLE_SERVER_CLIENT_ID` for mobile Google login                                                         |
+| Flutter          | `API_BASE_URL` ending in `/api/v1`; optional `GOOGLE_SERVER_CLIENT_ID`                                                                                  |
+
+The example defaults to SQLite and database sessions/queues. Laravel defaults can differ when an environment variable is absent. Do not expose real credentials in reports or screenshots.
 
 <a id="environment-mail-and-google-login"></a>
-
 <a id="environment-configuration"></a>
 
-### Configuration
+### Mail and Google login
 
-Configure `MAIL_MAILER=smtp` and `MAIL_SECURITY_MAILER=smtp` with the provider's authorized sender, host, port and scheme. Security mail is synchronous; approval/status mail uses the queue. The [mail verification runbook](DEPLOYMENT.md#mail) distinguishes provider connection from actual inbox acceptance. Do not paste real credentials into reports.
+Configure `MAIL_MAILER=smtp` and `MAIL_SECURITY_MAILER=smtp` with an authorized sender and provider settings. Security mail sends synchronously; operational approval/status mail needs the queue. A successful connection check does not prove inbox delivery; follow the [email verification runbook](DEPLOYMENT.md#mail).
 
-Google's registered redirect must exactly match `GOOGLE_REDIRECT_URI`. The existing local example is `http://localhost:8000/auth/google/callback`; use the same hostname throughout login. Mobile Google sign-in additionally needs platform OAuth configuration, described in the [mobile README](../mobile/README.md#authentication-and-configuration).
+Google's registered redirect must exactly match `GOOGLE_REDIRECT_URI`. The local example is `http://localhost:8000/auth/google/callback`; use the same hostname throughout login. Mobile sign-in also requires matching platform OAuth settings and the Web OAuth client ID as `GOOGLE_SERVER_CLIENT_ID`; see the [mobile configuration](../mobile/README.md#authentication-and-configuration).
 
-The example environment defaults to SQLite, database sessions and database queues. Defaults in Laravel configuration can differ when an environment variable is absent. Provider availability, OAuth console settings and live environment values were not verified in this cleanup.
+Provider availability, OAuth console settings and live environment values are installation-specific and were not verified during this cleanup.
 
-Sources: [example environment](../web/.env.example), [database configuration](../web/config/database.php), [mail configuration](../web/config/mail.php), [provider configuration](../web/config/services.php), [Compose definition](../web/docker-compose.yml).
+Sources: [example environment](../web/.env.example), [database](../web/config/database.php), [mail](../web/config/mail.php), [providers](../web/config/services.php), [Compose](../web/docker-compose.yml).
 
----
-
-<div align="center">
-
-**LubosMart** · Setup and development · [Documentation](README.md)
-
-</div>
+[Documentation](README.md)

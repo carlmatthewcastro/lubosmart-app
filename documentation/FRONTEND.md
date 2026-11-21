@@ -2,174 +2,97 @@
 
 # Frontend
 
-**The React interface, shared components and source code map.**
+**React/Inertia.js conventions and a screen-to-source map.**
 
 [Home](../README.md) · [Documentation](README.md) · [Website](https://lubosmart.app)
 
 </div>
 
----
-
-## Overview
-
-This guide covers the implemented React and Inertia.js website and where to edit it. It combines interface conventions, development commands, role screen locations and the path from a URL to its Laravel data source.
-
-**In this guide:** [Interface and development](#interface) · [Frontend code map](#code-map)
-
 <a id="interface"></a>
 
 ## Interface and development
 
-<a id="interface-context"></a>
+React and TypeScript render the website. Laravel supplies Inertia.js page props, redirects and validation errors; Blade provides the initial HTML shell. Follow the [UI/UX standards](standards/UI_UX_RULES.md) before changing presentation.
 
-### Context
+Paths below are relative to `web/`. React pages and most shared components intentionally live under `resources/views/`; they are not per-role Blade templates.
 
-React and TypeScript provide the interface. Inertia.js connects pages and forms to Laravel; Blade supplies the initial HTML document.
+| Location                                                  | Purpose                                                         |
+| --------------------------------------------------------- | --------------------------------------------------------------- |
+| `resources/js/app.tsx`                                    | Starts React/Inertia.js and resolves page names                 |
+| `resources/views/pages/`                                  | Public, authentication, account and role screens                |
+| `resources/views/components/`, `resources/views/layouts/` | Shared UI, navigation and application layouts                   |
+| `resources/js/hooks/`, `resources/js/types/`              | Reusable behavior and types                                     |
+| `resources/css/app.css`                                   | Global styles and theme tokens                                  |
+| `resources/views/app.blade.php`                           | Fonts, document metadata and Inertia.js mount point             |
+| `vite.config.js`, `tsconfig.json`                         | Build integration, resolution aliases and included source paths |
 
-Start with the [frontend code map](FRONTEND.md#code-map) to find each role's dashboard, related screens, sidebar, shared components, and backend data source.
+### Data and interaction
 
-<a id="interface-source-locations"></a>
+React hooks manage local state; Inertia.js `useForm`, links and router calls handle forms and navigation. Some panels use `fetch` for JSON reads/polling. SWR is also used by account settings, change requests and the notification inbox. No Redux, Zustand or TanStack Query dependency is declared.
 
-### Source locations
-
-| Location                        | Purpose                                                   |
-| ------------------------------- | --------------------------------------------------------- |
-| `resources/js/app.tsx`          | Starts React/Inertia.js and resolves pages                |
-| `resources/views/pages/`        | Public, account, marketplace, Admin and Logistics screens |
-| `resources/views/components/`   | Shared layouts, forms, dialogs and UI components          |
-| `resources/js/hooks/`           | Reusable UI behavior                                      |
-| `resources/css/app.css`         | Tailwind styles and theme                                 |
-| `resources/views/app.blade.php` | Inertia.js shell and asset loading                        |
-| `vite.config.js`                | React, Laravel and Tailwind build integration             |
-
-<a id="interface-communication-and-state"></a>
-
-<a id="interface-how-it-works"></a>
-
-### How it works
-
-Laravel supplies page props through Inertia.js. React hooks manage local UI state; `useForm` manages form data/errors; Inertia.js links and router calls handle navigation/mutations. Selected panels use native `fetch` for JSON reads and polling.
-
-No separate Redux, Zustand or TanStack Query layer is declared. The versioned API serves JSON to the existing frontend while Inertia.js navigation continues. Server-side validation and authorization remain authoritative.
-
-<a id="interface-interface-guidance"></a>
-
-### Interface guidance
-
-Reuse existing components and the purple theme. Keep layouts responsive, fields labelled, errors visible, and buttons disabled while submitting. Support keyboard navigation, dark mode and reduced motion where the existing components do.
-
-Role screens are documented under [Functions](WORKFLOWS.md#guide). Buyer password signup activates after email verification; Seller and Logistics applications require Admin review, and affiliated Rider applications require Logistics review.
-
-<a id="interface-development-commands"></a>
+Reuse shared components and existing request patterns. Preserve form values, server errors, submission feedback, keyboard paths, responsive layouts, dark mode and reduced-motion behavior. Authorization and business rules stay on the server; changing the visible role component cannot grant access. Use [Workspaces](WORKSPACES.md) for role requirements and [Workflows](WORKFLOWS.md) for transitions.
 
 <a id="interface-commands"></a>
+<a id="interface-development-commands"></a>
 
-### Commands
+### Verification commands
 
 Run from `web/`:
 
 ```powershell
-npm run dev
-npm run build
+npx eslint resources/js resources/views
 npx tsc --noEmit
-npx eslint resources/js
 npm run format:check
+npm run build
 ```
 
-SSR source/build configuration exists, but the Docker deployment runs the client asset build and has no SSR service.
-
----
+Target ESLint to changed files when appropriate, including `.tsx` files under `resources/views/`. Review the complete [UI/UX verification requirements](standards/UI_UX_RULES.md#performance-and-validation) for relevant tests and browser acceptance. These commands do not establish accessibility compliance. SSR source/build configuration exists, but Compose runs the client build and defines no SSR service.
 
 <a id="code-map"></a>
 
 ## Frontend code map
 
-<a id="code-map-how-it-works"></a>
+### Dashboards and related screens
 
-### How it works
+The role dashboard entry points below are under `resources/views/pages/`. Shared workflows remain in domain folders.
 
-LubosMart uses Laravel + Inertia.js + React (TypeScript). The visible screens are `.tsx` files in `resources/views/pages`, rather than separate Blade templates for each role. `resources/views/app.blade.php` is the HTML shell: it loads assets, fonts, and the Inertia.js mount point.
+| Role      | Dashboard                                                                                               | Other screens                                                                                                                            |
+| --------- | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Buyer     | [buyer/dashboard.tsx](../web/resources/views/pages/buyer/dashboard.tsx), `/dashboard/buyer`             | `marketplace/catalog.tsx`, `marketplace/cart.tsx`, `marketplace/orders.tsx`, `settings/addresses.tsx`                                    |
+| Seller    | [seller/dashboard.tsx](../web/resources/views/pages/seller/dashboard.tsx), `/dashboard/seller`          | `marketplace/inventory.tsx`, `marketplace/orders.tsx`, `marketplace/waybill.tsx`, `marketplace/reports.tsx`                              |
+| Rider     | [rider/dashboard.tsx](../web/resources/views/pages/rider/dashboard.tsx), `/dashboard/rider`             | `marketplace/deliveries.tsx`, `marketplace/reports.tsx`                                                                                  |
+| Logistics | [logistics/dashboard.tsx](../web/resources/views/pages/logistics/dashboard.tsx), `/dashboard/logistics` | `logistics/parcels.tsx`, `logistics/shipping-rates.tsx`, `logistics/reports.tsx`, `management/accounts.tsx`, `management/registrations/` |
+| Admin     | [admin/dashboard.tsx](../web/resources/views/pages/admin/dashboard.tsx), `/dashboard/admin`             | `admin/`, account/registration management and shared order/delivery/report screens                                                       |
+| Shared    | —                                                                                                       | `auth/`, `onboarding/application.tsx`, `settings/`, `support/`                                                                           |
+| Public    | —                                                                                                       | `public/home.tsx`, `public/platform-information.tsx` and public marketplace screens                                                      |
 
-<a id="code-map-dashboard-files-by-role"></a>
+Buyer, Seller and Rider dashboards reuse [components/workspace/dashboard.tsx](../web/resources/views/components/workspace/dashboard.tsx). Role entry files own their titles, descriptions, primary actions and shortcuts. The [workspace dispatcher](../web/resources/views/pages/workspace/dashboard.tsx) retains a legacy Logistics fallback; current requests render dedicated role dashboards.
 
-### Dashboard files by role
+Inspect role branches before editing shared order, report, delivery or account screens. Keep shared validation feedback consistent and extract role-specific presentation only when needed.
 
-| Role                                     | Dashboard UI                                                                    | Dashboard URL          |
-| ---------------------------------------- | ------------------------------------------------------------------------------- | ---------------------- |
-| Buyer                                    | [buyer/dashboard.tsx](../web/resources/views/pages/buyer/dashboard.tsx)         | `/dashboard/buyer`     |
-| Seller                                   | [seller/dashboard.tsx](../web/resources/views/pages/seller/dashboard.tsx)       | `/dashboard/seller`    |
-| Rider (legacy label: Courier)            | [rider/dashboard.tsx](../web/resources/views/pages/rider/dashboard.tsx)         | `/dashboard/rider`     |
-| Logistics (legacy label: Sorting Center) | [logistics/dashboard.tsx](../web/resources/views/pages/logistics/dashboard.tsx) | `/dashboard/logistics` |
-| Admin                                    | [admin/dashboard.tsx](../web/resources/views/pages/admin/dashboard.tsx)         | `/dashboard/admin`     |
+### Navigation, layout and styles
 
-Buyer, Seller, and Courier each own their dashboard title, description, primary action, workflow steps, and shortcut cards. Their common greeting, metric cards, recent activity, and layout live in [components/workspace/dashboard.tsx](../web/resources/views/components/workspace/dashboard.tsx). Edit that shared component when a change should apply to all three; add role-specific sections in the corresponding role page when it should apply to one role.
-
-[pages/workspace/dashboard.tsx](../web/resources/views/pages/workspace/dashboard.tsx) dispatches the existing Inertia.js page to those role components. Current Buyer, Seller, Rider, Logistics and Admin requests render their dedicated role dashboards. The workspace dispatcher retains a legacy Logistics fallback.
-
-The authenticated role and approval status are checked on the server. Choosing a different frontend component does not grant another role's access.
-
-<a id="code-map-other-screens-by-role"></a>
-
-### Other screens by role
-
-Paths below are relative to `resources/views/pages/`. Some screens are intentionally shared across roles; inspect their role branches before changing them.
-
-| Role                                     | Screen files                                                                                                                                        |
-| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Buyer                                    | `marketplace/catalog.tsx`, `marketplace/cart.tsx`, `marketplace/orders.tsx`, `settings/addresses.tsx`                                               |
-| Seller                                   | `marketplace/inventory.tsx`, `marketplace/orders.tsx`, `marketplace/waybill.tsx`, `marketplace/reports.tsx`                                         |
-| Rider (legacy label: Courier)            | `marketplace/deliveries.tsx`, `marketplace/reports.tsx`                                                                                             |
-| Logistics (legacy label: Sorting Center) | `logistics/parcels.tsx`, `logistics/shipping-rates.tsx`, `logistics/reports.tsx`, `management/accounts.tsx`, `management/registrations/`            |
-| Admin                                    | `admin/`, `management/accounts.tsx`, `management/registrations/`, `marketplace/orders.tsx`, `marketplace/deliveries.tsx`, `marketplace/reports.tsx` |
-| Shared account screens                   | `auth/`, `onboarding/application.tsx`, `settings/`, `support/`                                                                                      |
-| Public website                           | `public/home.tsx`, `public/platform-information.tsx`                                                                                                |
-
-Do not copy shared order, report, delivery, or account screens into each role folder. Shared files keep validation feedback and workflows consistent. Extract role-specific sections into components when those sections become substantially different.
-
-<a id="code-map-sidebar-layout-and-styles"></a>
-
-### Sidebar, layout, and styles
-
-| What you want to change                      | File or folder                                                                                                  |
-| -------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| Role menu labels, links, and groups          | [components/navigation/app-sidebar.tsx](../web/resources/views/components/navigation/app-sidebar.tsx)           |
-| Navigation item rendering                    | [components/navigation/nav-main.tsx](../web/resources/views/components/navigation/nav-main.tsx)                 |
-| Sidebar and main content arrangement         | [layouts/app/app-sidebar-layout.tsx](../web/resources/views/layouts/app/app-sidebar-layout.tsx)                 |
-| Shared page headings, cards, fields, notices | [components/shared/marketplace-ui.tsx](../web/resources/views/components/shared/marketplace-ui.tsx)             |
-| Reusable buttons, dialogs, inputs            | [components/ui/](../web/resources/views/components/ui)                                                          |
-| Admin toolbar and floating messages          | [components/admin/](../web/resources/views/components/admin)                                                    |
-| Sorting Center toolbar                       | [components/logistics/logistics-toolbar.tsx](../web/resources/views/components/logistics/logistics-toolbar.tsx) |
-| Global colors, typography, and theme         | [resources/css/app.css](../web/resources/css/app.css)                                                           |
-| Fonts, document metadata, asset loading      | [resources/views/app.blade.php](../web/resources/views/app.blade.php)                                           |
-
-<a id="code-map-trace-a-screen-from-its-url"></a>
+| Area                                     | Source                                                                                     |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------ |
+| Role menus and groups                    | [app-sidebar.tsx](../web/resources/views/components/navigation/app-sidebar.tsx)            |
+| Navigation items                         | [nav-main.tsx](../web/resources/views/components/navigation/nav-main.tsx)                  |
+| Sidebar/content arrangement              | [app-sidebar-layout.tsx](../web/resources/views/layouts/app/app-sidebar-layout.tsx)        |
+| Page headings, fields, cards and notices | [marketplace-ui.tsx](../web/resources/views/components/shared/marketplace-ui.tsx)          |
+| Buttons, dialogs and inputs              | [components/ui/](../web/resources/views/components/ui/)                                    |
+| Admin controls                           | [components/admin/](../web/resources/views/components/admin/)                              |
+| Logistics toolbar                        | [logistics-toolbar.tsx](../web/resources/views/components/logistics/logistics-toolbar.tsx) |
+| Global theme and typography              | [app.css](../web/resources/css/app.css)                                                    |
+| Fonts, metadata and asset loading        | [app.blade.php](../web/resources/views/app.blade.php)                                      |
 
 ### Trace a screen from its URL
 
-For example, `/dashboard/seller` follows this path:
+For `/dashboard/seller`:
 
 1. [routes/web.php](../web/routes/web.php) matches `dashboard/{role}`.
-2. [DashboardController.php](../web/app/Http/Controllers/DashboardController.php) verifies the role, queries Seller workspace data, and returns `seller/dashboard`.
-3. [resources/js/app.tsx](../web/resources/js/app.tsx) resolves that name to `resources/views/pages/seller/dashboard.tsx`.
-4. The resolved Seller page uses the shared dashboard components.
-5. The shared `Page` component supplies the application layout and sidebar.
+2. [DashboardController](../web/app/Http/Controllers/DashboardController.php) checks the role, queries Seller workspace data and returns `seller/dashboard`.
+3. [app.tsx](../web/resources/js/app.tsx) resolves the name to `resources/views/pages/seller/dashboard.tsx`.
+4. The Seller page uses shared dashboard components; the shared `Page` supplies the layout and sidebar.
 
-Edit React files for presentation. Edit the controller or its service for data and business behavior. Keep authorization in Laravel middleware, policies, and controllers; hiding a frontend button is not authorization.
+Use React files for presentation and the relevant controller/service for server data. Keep role entry points under `pages/buyer`, `seller`, `rider`, `logistics` and `admin`; shared workflows belong in their existing domain folders. Laravel permissions remain authoritative.
 
-In VS Code, press **Ctrl+P** and enter a path such as `seller/dashboard.tsx`. To find the backend for another screen, search **Ctrl+Shift+F** for its Inertia.js name, for example `marketplace/inventory`.
-
-<a id="code-map-organization-for-future-work"></a>
-
-### Organization for future work
-
-Keep role dashboard entry files in `pages/buyer`, `pages/seller`, `pages/rider`, `pages/logistics` (Sorting Center), and `pages/admin`. Keep shared workflows under their existing domain folders (`marketplace`, `management`, `support`, `settings`). Put reusable UI in `components`, layouts in `layouts`, and backend behavior in Laravel's `app` folders.
-
-This keeps the existing React/Inertia.js architecture and gives each role a clear starting point. Converting dashboards to Blade would be a separate architectural migration, rather than a folder cleanup.
-
----
-
-<div align="center">
-
-**LubosMart** · Frontend · [Documentation](README.md)
-
-</div>
+[Documentation](README.md)

@@ -1,65 +1,25 @@
-<div align="center">
-
 # Connect the Flutter client
 
-**Connect the native client to the shared Laravel API.**
-
-[Home](../../README.md) · [Documentation](../README.md) · [Website](https://lubosmart.app)
-
-</div>
-
----
-
-## Overview
-
-This guide covers test networking, token sessions and safe mobile mutations. It is for developers connecting the Flutter client to an isolated Laravel test installation.
+Mobile UI development is paused pending the new Figma design. The existing client remains available as an API integration reference.
 
 <a id="how-it-works"></a>
-
-## How it works
-
-The native client is in [mobile](../../mobile/README.md). Follow that README for Flutter/Android setup. The Laravel root remains the server; do not duplicate its database or business logic into the app folder.
-
 <a id="test-network"></a>
-
 <a id="configuration"></a>
 
-## Configuration
+## Setup and networking
 
-Use synthetic accounts in an isolated test installation. From the Laravel root:
-
-```powershell
-php artisan serve --host=0.0.0.0 --port=8000
-```
-
-From mobile, use flutter run with API_BASE_URL=http://10.0.2.2:8000/api/v1 for an Android emulator, or the PC's reachable LAN address for a phone. Local HTTP is enabled only for debug development; use HTTPS for actual operation. APP_URL and asset/pagination URLs must be reachable from the phone. No firewall or deployment change was performed.
+Follow [Flutter setup and API connection](../SETUP.md#flutter) for SDK requirements, emulator/LAN addresses and test-server startup. Use the [mobile README](../../mobile/README.md) and [Rider Android guide](../../mobile/RIDER_ANDROID.md) for entry points, builds and USB setup.
 
 <a id="session-flow"></a>
 
-## Session flow
+## Sessions
 
-1. POST auth/session with email/password/device_name, or configured Google provider access token to auth/google.
-2. Securely save data.access_token, kind, user and expires_at; send Authorization: Bearer.
-3. If kind=onboarding, use only onboarding status/verify/resend/application endpoints. Replace the token after verification. Approval is still required; promote only when eligible.
-4. If kind=operational, use /me and role endpoints. On 401 clear login state and sign in again. A 403 can mean lost eligibility or role denial.
-5. Logout revokes the current token. Password reset or important account changes revoke tokens and can require review.
-
-For new accounts use multipart auth/register with required role fields/documents. The Flutter form performs location selection and policy consent. Backend validation remains authoritative. Google enrollment still requires documents and approval; company invitations retain their activation flow.
+The [API authentication guide](GUIDE.md#authentication-and-boundaries) covers operational and onboarding tokens, verification, promotion, revocation and Google enrollment.
 
 <a id="safely-submit-changes"></a>
 
-## Safely submit changes
+## Mutations and acceptance
 
-Keep action UUIDs until a response conclusively resolves the action. Never create a new checkout_key/request_key just because a response timed out. Compare latest server state after conflicts. Stock editing sends the last-read expected_stock; do not silently overwrite newer stock.
+Use the [write and retry rules](GUIDE.md#writes-and-retries) for mutation identifiers, conflicts, multipart uploads and private downloads. See [role coverage and acceptance limits](ROLE_COVERAGE.md) before relying on the retained mobile screens.
 
-Use multipart POST plus \_method for file-bearing PUT/PATCH. Private proof/evidence downloads require bearer headers. GET locations is a raw array; other lists can use either Resource or nested Laravel paginator envelopes. See [API details](GUIDE.md).
-
-The Android SDK is now installed and its toolchain checks pass. See the Android setup and APK report for the current build status and USB testing instructions. No Android phone or emulator was connected during setup; actual native integration still needs the device checklist.
-
----
-
-<div align="center">
-
-**LubosMart** · Connect the Flutter client · [Documentation](../README.md)
-
-</div>
+[Documentation](../README.md)

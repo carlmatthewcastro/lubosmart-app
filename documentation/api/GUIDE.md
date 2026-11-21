@@ -1,67 +1,80 @@
 <div align="center">
 
-# LubosMart API
+# API integration
 
-**Authentication, response formats and safe API integration.**
+**Authentication, response formats and safe client integration.**
 
 [Home](../../README.md) · [Documentation](../README.md) · [Website](https://lubosmart.app)
 
 </div>
 
----
-
 ## Overview
 
-This guide covers the implemented versioned API and its client integration rules. It is for backend and mobile developers working alongside the existing Laravel and Inertia.js website.
+The shared Laravel API is served under `/api/v1`, alongside the session-authenticated Inertia.js website. The retained [Flutter client](../../mobile/README.md) covers Buyer, Seller and Rider workflows; mobile UI development is paused pending new Figma designs. For test networking and SDK requirements, use [Flutter setup](../SETUP.md#flutter).
 
-<a id="how-it-works"></a>
+## Contract references and limitations
 
-## How it works
+| Reference                                                                   | How to use it                                                                  |
+| --------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| [Endpoint inventory](ENDPOINTS.md)                                          | Older 82-operation snapshot, with middleware and controller mappings           |
+| [OpenAPI](openapi.json) and [Postman](lubosmart-v1.postman_collection.json) | Matching integration snapshots; incomplete against current routes and behavior |
+| [Finance/return compatibility](FINANCE_2026_11_11.md)                       | Later cash, wallet and version-3 return additions and legacy behavior          |
+| [Mobile role coverage](ROLE_COVERAGE.md)                                    | Retained native modules, website-only operations and acceptance limits         |
 
-The versioned Laravel API is served under /api/v1. A separate Flutter application lives in [mobile](../../mobile/README.md), focused on Buyer, Seller and Rider. Existing Laravel/Inertia.js pages and the shared database remain in place.
-
-Start with the [role coverage](ROLE_COVERAGE.md), [endpoint inventory](ENDPOINTS.md), [OpenAPI contract](openapi.json), [Postman collection](lubosmart-v1.postman_collection.json) and [connection guide](MOBILE_CONNECTION_GUIDE.md).
+The snapshots omit newer routes, including finance, wallet, notification and return-proof operations. OpenAPI also retains the old `apps/mobile` description. Check [routes/api.php](../../web/routes/api.php), [routes/mobile.php](../../web/routes/mobile.php) and the relevant request/controller before implementing against a snapshot. Flexible `RoleResponse` projections are not a fully typed generated SDK contract.
 
 <a id="authentication-and-boundaries"></a>
 
 ## Authentication and boundaries
 
-> [!IMPORTANT]
-> November 11 finance additions, shipping retention/product remittances and Seller recipient disclosure changes are documented in [Finance API additions](FINANCE_2026_11_11.md). The older generated OpenAPI/Postman snapshots have not been regenerated for those additions.
+V1 requires per-device Sanctum bearer tokens. Browser sessions and CSRF cookies alone do not authenticate it. Existing `/api/account/*` endpoints retain their same-origin session/CSRF boundary.
 
-Use Authorization: Bearer with per-device Laravel Sanctum tokens. V1 is stateless: browser sessions and CSRF cookies alone do not authenticate it. Existing /api/account routes keep their web authentication boundary.
+1. Send `POST /auth/session` with `email`, `password` and `device_name`, or use configured Google sign-in at `POST /auth/google`.
+2. Store `data.access_token`, `kind`, `user` and `expires_at` in OS secure storage. Send `Authorization: Bearer <token>`; never log tokens.
+3. For `kind=onboarding`, use only the allowed status, verification, resend, application, promotion and logout routes. Replace the saved token whenever the server issues one, including after verification. Promotion succeeds only when operational eligibility is met.
+4. For `kind=operational`, use `/me` and authorized role endpoints. A 401 requires clearing the expired/revoked session and signing in again; 403 can mean lost eligibility or role denial. There is no refresh token.
+5. Logout revokes the current token. Password reset and sensitive account/status changes revoke tokens; changed documents or partner details may require review.
 
-POST /auth/session accepts email/password/device_name. Approved operational accounts receive a 30-day token (configured server-side); unverified or pending Buyer/Seller/Rider accounts receive a restricted one-hour onboarding token. Enrollment and OTP verification do not bypass approval. POST /onboarding/promote exchanges an eligible onboarding token; replace the stored token on every issuance. DELETE /onboarding/token revokes restricted access. Existing /auth/tokens remains the operational-only login endpoint, including previously supported company/Admin roles.
+Approved operational accounts receive a server-configured token lifetime, defaulting to 30 days; eligible incomplete/unverified/pending/rejected Buyer, Seller and Rider accounts receive restricted one-hour onboarding access. Enrollment and email verification do not bypass approval. `POST /onboarding/promote` exchanges eligible access; `DELETE /onboarding/token` revokes onboarding access. `POST /auth/tokens` remains an operational-only login endpoint, including supported Logistics/Admin accounts.
 
-POST /auth/google verifies a provider access token. Unknown identities receive registration_required without a device token, then complete multipart registration using google_access_token. The server verifies email identity again and prohibits password fields in this flow. Existing emails cannot be silently linked. Company-invited Riders must activate the invitation through its existing flow.
+Register using multipart `POST /auth/register` with role fields, documents and policy consent. New complete Buyer/Seller registrations require Admin review; Rider review belongs to affiliated Logistics. The server enforces age, location, uniqueness, document and account-state rules.
 
-Password reset and sensitive account/status changes revoke device tokens. Changed documents/partner details can require re-review. Expiry requires sign-in again; there is no refresh token. Use OS secure storage and never log tokens. Operational eligibility, role, center membership and resource ownership are checked on each request.
+Google sign-in verifies a provider access token. Unknown identities receive `registration_required` without a device token, then enroll using `google_access_token`. Native enrollment prohibits password fields and verifies identity again. An existing email cannot be silently linked; use the website's supported linking flow. Company-invited Riders must activate through their invitation. See [web/native enrollment differences](../standards/REGISTRATION_REQUIREMENTS.md#google-registration).
 
 <a id="response-details"></a>
 
-## Response details
+## Response formats
 
-JSON resources use data; resource pagination adds root links/meta. New role read paginators may instead use data.data with data.current_page/last_page/next_page_url. The Flutter rows helper supports both. GET /locations returns a raw array. Quotes retain options. Mutations may return message rather than a resource; token deletion returns 204. Proof/evidence return private binary files, report export returns CSV. OpenAPI includes all routes; RoleResponse intentionally remains flexible for newer read projections, so it is not a fully typed generated SDK contract.
+| Response               | Shape                                                                                      |
+| ---------------------- | ------------------------------------------------------------------------------------------ |
+| Resource               | Root `data`; pagination adds `links` and `meta`                                            |
+| Some role read lists   | Nested paginator: `data.data`, `data.current_page`, `data.last_page`, `data.next_page_url` |
+| Locations              | Raw array                                                                                  |
+| Shipping quote         | `options`, with numeric peso and explicitly named cent fields where supplied               |
+| Mutation               | May return `message`; token deletion returns 204                                           |
+| Private proof/evidence | Authorized binary download; include bearer headers                                         |
+| Report export          | CSV                                                                                        |
 
-Errors contain safe message/code and validation errors; statuses include 401/403/404/409/422/429. Responses use private/no-store. Handle revoked credentials and Retry-After. Public and authenticated requests are throttled.
+Errors contain safe `message`/`code` and validation `errors`, with 401/403/404/409/422/429 as applicable. Handle `Retry-After`; public and authenticated requests are throttled. Protected responses are private/no-store. Role, center membership, assignment and ownership are checked server-side.
 
-Resource money is generally a two-decimal peso string. Shipping quotes can expose numeric pesos and fee_cents; financial reports use explicitly named integer-cent fields. The Flutter client totals money in centavos. Parent order totals differ from a single parcel's COD amount; shipping is excluded from commission.
+Resource money is generally a two-decimal peso string; reports use explicitly named integer-cent fields. Total in centavos and preserve server allocations. A parent order total differs from an individual parcel's COD. Use server `cod_total`/`cod_due_cents`; vouchers are already included in net merchandise and coins are a payment source. Shipping is excluded from commission and remains cash.
 
 <a id="writes-and-retries"></a>
 
 ## Writes and retries
 
-Checkout shares the website action, locks and reviewed totals. Preserve checkout_key across uncertain retries; delivery and waybill actions use request_key. A new UUID means a new action. Cart quantities are absolute. Seller inventory updates require expected_stock; existing variant rows also require their own expected_stock. Return receipt requires physical condition and an explicit restock decision; damaged items cannot be automatically restocked.
-
-JSON writes use their documented HTTP method. For uploaded files use multipart POST; PUT/PATCH additionally supply \_method=PUT/PATCH so PHP parses files. Waybill audit requires packages=1 and request_key; the client creates the printable PDF from the authorized parcel response.
+- Preserve `checkout_key` and delivery/waybill `request_key` UUIDs across uncertain retries. A new UUID means a new action; check server state after timeouts or conflicts.
+- Cart quantities are absolute. Inventory edits require last-read `expected_stock`; existing variant rows also require their own expected stock.
+- Use the documented method for JSON writes. For file-bearing PUT/PATCH, send multipart POST with `_method=PUT` or `_method=PATCH` so PHP parses uploads.
+- Waybill audit requires `packages=1` and `request_key`; the client builds a printable PDF from the authorized parcel response.
+- Return receipt requires physical condition and explicit restock intent. Damaged goods cannot automatically restock. Use server actions and task status, not a legacy parcel-return status, for reverse custody.
 
 <a id="regenerate-and-validate"></a>
-
 <a id="commands"></a>
 
-## Commands
+## Regeneration and verification
 
-Run from `web/`:
+For a separately reviewed contract update, run from `web/`:
 
 ```powershell
 node scripts/generate-mobile-api-contract.cjs
@@ -69,17 +82,8 @@ php artisan test tests/Feature/Api
 node tests/Frontend/mobile-api-http-check.cjs
 ```
 
-> [!NOTE]
-> The generator rewrites `ENDPOINTS.md` as well as the JSON contracts. Its Markdown output includes the shared header, Overview, navigation, headings and footer, so regeneration preserves the documentation design. Regeneration still changes the integration snapshots; review those changes separately.
+The generator rewrites `ENDPOINTS.md`, OpenAPI and Postman. Review the resulting route inventory, schemas, examples and prose together; regeneration can replace the inventory's manual snapshot notice. Its structural checks compare routes and local schema references, not full semantic correctness or external OpenAPI validation.
 
-The generator compares every documented route to Laravel's route list, checks local schema references and recreates the parameterized Postman collection and endpoint inventory. This is a structural consistency check, not a full external OpenAPI validator. Postman request bodies are editable templates: fill required fields and role-specific documents, select files, and set IDs from your own test resources. Do not run the whole collection blindly against real data or export populated secrets.
+Postman bodies are editable templates. Supply required fields, files and IDs from owned test resources; do not run the full collection blindly against live data or export populated secrets. This documentation cleanup did not regenerate contracts or run application tests. Native/device acceptance remains separate from source coverage.
 
-The mobile scope does not include every Admin/Logistics website feature. See [coverage and remaining acceptance](ROLE_COVERAGE.md).
-
----
-
-<div align="center">
-
-**LubosMart** · LubosMart API · [Documentation](../README.md)
-
-</div>
+[Documentation](../README.md)

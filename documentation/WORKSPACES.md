@@ -2,245 +2,145 @@
 
 # Workspaces
 
-**Buyer, Seller, Rider, Logistics and Admin in one reference.**
+**Buyer, Seller, Rider, Logistics and Admin responsibilities.**
 
 [Home](../README.md) · [Documentation](README.md) · [Website](https://lubosmart.app)
 
 </div>
 
----
-
 ## Overview
 
-This guide describes the five implemented website workspaces and their responsibilities. Each role has its own section with account requirements, available actions, business boundaries and source references.
+Each website workspace is scoped to its role, account approval and owned or assigned records. Use this guide for capabilities and [Workflows](WORKFLOWS.md) for the connected order, custody and financial rules.
 
-**In this guide:** [Buyer](#buyer) · [Seller](#seller) · [Rider](#rider) · [Logistics](#logistics) · [Admin](#admin)
+[Buyer](#buyer) · [Seller](#seller) · [Rider](#rider) · [Logistics](#logistics) · [Admin](#admin)
+
+## Registration and access
+
+| Role      | Requirements and reviewer                                                                                           |
+| --------- | ------------------------------------------------------------------------------------------------------------------- |
+| Buyer     | Personal/contact/address details and private government ID; Admin review                                            |
+| Seller    | Personal details, declared category, ID and business documents for the Seller type; Admin review                    |
+| Rider     | Personal details, vehicle, plate, affiliated operational center, ID, license and OR/CR; affiliated Logistics review |
+| Logistics | Personal/company details, ID, business documents, TIN and service regions; Admin review                             |
+| Admin     | Private provisioning; unavailable through public signup                                                             |
+
+New complete applications remain pending after email verification until the designated reviewer approves them. This includes password-based Buyer signup: the current [lifecycle service](../web/app/Services/AccountVerificationLifecycle.php) and [registration test definitions](../web/tests/Feature/Auth/BuyerSellerRegistrationTest.php) require review. Rejected applicants can correct and resubmit. Legacy accounts and company invitations retain their applicable activation flows.
+
+Documents use private storage; applicable role rules validate file types and a 5 MB limit. Operational access requires approved status and verified email. Riders additionally require an operational affiliated center and the capability for the assigned leg. Suspension and deactivation block access through existing sessions/tokens as well as new sign-in.
+
+See [registration field coverage](standards/REGISTRATION_REQUIREMENTS.md) for the complete field mapping and web/native Google enrollment distinction.
 
 <a id="buyer"></a>
 
 ## Buyer
 
-<a id="buyer-how-it-works"></a>
+| Area                 | Supported actions                                                                                                                                      |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Shopping             | Search/filter products, view options and visible verified-purchase reviews, manage a wishlist                                                          |
+| Cart and addresses   | Adjust quantities, remove items and manage delivery addresses                                                                                          |
+| Checkout             | Review server-calculated shipping, select an eligible store voucher and optionally use Lubos Coins against merchandise; create separate Seller parcels |
+| Orders               | Search/filter owned parcels, track progress and view authorized delivery proof                                                                         |
+| Follow-up            | Message Sellers, use support/complaint conversations and rate delivered items                                                                          |
+| Cancellation/returns | Cancel while all Seller orders remain pending; request eligible original item quantities for refund review                                             |
 
-### How it works
+Current version-3 refunds credit Lubos Coins through Admin approval. Physical-return tasks remain separate, and original tracking/COD history is preserved. Automatic bank/provider refunds are not implemented. See [finance and returns](WORKFLOWS.md#finance).
 
-Buyers discover products and place COD orders. Email/password Buyer registration requires a valid government ID (JPG, PNG or PDF, maximum 5 MB), stored privately with the application, and activates after email verification. Legacy/Google onboarding requires an ID application and Admin review. Cart/checkout and operational features require a verified approved account.
-
-<a id="buyer-workspace-functions"></a>
-
-### Workspace functions
-
-| Function     | Current behavior                                                       |
-| ------------ | ---------------------------------------------------------------------- |
-| Browse       | Search/filter products by category and view listing details            |
-| Cart         | Add products, adjust quantities and remove items                       |
-| Addresses    | Manage saved delivery addresses                                        |
-| Checkout     | Review server-calculated shipping and place COD orders split by Seller |
-| Orders       | View fulfillment/delivery status and authorized proof of delivery      |
-| Cancellation | Cancel while all Seller orders are pending; stock is restored          |
-| Support      | Use order conversations and support/complaint threads                  |
-
-<a id="buyer-orders-and-returns"></a>
-
-### Orders and returns
-
-Buyers communicate with Sellers and receive rider/center status updates. They can select size/color options, apply one store voucher at checkout, search/filter their parcels and rate delivered items. Product pages show visible verified-purchase reviews. Current version-3 requests support eligible item quantities and Admin-approved Lubos Coins credits, with a separate physical-return task when required. Original tracking/COD history stays intact. Automatic bank/provider refunds are not implemented. See [finance and returns](WORKFLOWS.md#finance).
-
-<a id="buyer-source-references"></a>
-
-### Source references
-
-Sources: `MarketplaceController`, `OrderController`, `SupportCaseController`, `CreateOrderFromCart`, `resources/views/pages/marketplace/`.
-
----
+Sources: `MarketplaceController`, `OrderController`, `SupportCaseController`, `CreateOrderFromCart`, `web/resources/views/pages/marketplace/`.
 
 <a id="seller"></a>
 
 ## Seller
 
-<a id="seller-context"></a>
+| Area             | Supported actions                                                                                                        |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Dashboard        | Own-store queues, task counts, workload charts, recent parcels and completed proceeds                                    |
+| Inventory        | Photos, prices, size/color option stock, packed weight, listing visibility and registered-category compliance            |
+| Inventory search | Product-name search and published, hidden, low-stock (under 5) or missing-weight filters, retained through pagination    |
+| Fulfillment      | Prepare pending orders, mark ready for pickup and print the internal waybill                                             |
+| Order queues     | New, preparing, ready, in delivery, delivery issues, completed and cancelled; numeric ID or tracking/recipient search    |
+| Promotions       | Fixed-peso shop vouchers, eligible usage limits and public/private visibility                                            |
+| Finance          | Own-store sales/commission reports and exports, manual payout history and recorded-cost profit ledger                    |
+| Returns/support  | Confirm physical receipt and condition, restock eligible intact quantities, use order messages and support               |
+| Settings         | Shared personal, store/bank, address, document, contact and security settings with existing confirmation/review controls |
 
-### Context
+Seller preparation advances `pending` → `processing` → `shipped`; the interface describes `shipped` as Ready for Pickup. This does not establish physical custody. Sellers cannot perform Rider pickup, facility receipt, dispatch, delivery proof or COD collection operations.
 
-Sellers manage their store's products and fulfillment. Registration requires an ID, business permit, declared category and Admin approval.
-
-<a id="seller-workspace-functions"></a>
-
-### Workspace functions
-
-| Function          | Current behavior                                                                                                                                                                                         |
-| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Dashboard         | Own-store order queues, live task counts, workload charts, recent parcels and all-time completed proceeds                                                                                                |
-| Inventory         | Create/edit products, photos, price, stock, packed weight and active/hidden status                                                                                                                       |
-| Inventory search  | Product-name search with published, hidden, low-stock (under 5), and missing-weight filters; filters persist through pagination                                                                          |
-| Compliance        | Products must follow the store's declared department and moderation restrictions                                                                                                                         |
-| Fulfillment       | Review own orders; advance pending → processing → shipped                                                                                                                                                |
-| Order queues      | New, preparing, ready for pickup, in delivery, delivery issues, completed and cancelled; numeric search matches parcel/order IDs, other text matches tracking/recipient                                  |
-| Waybill           | Print the internal parcel waybill                                                                                                                                                                        |
-| Tracking/messages | Follow parcel status and communicate with the Buyer                                                                                                                                                      |
-| Reports           | View completed sales, commission and proceeds figures                                                                                                                                                    |
-| Account settings  | Shared Rider/Seller settings categories: personal details, store and bank details, registered address, private document status, contact and security; existing confirmation and Admin review rules apply |
-| Support           | Open messages and complaints through the existing support workspace; order conversations remain attached to each parcel                                                                                  |
-
-<a id="seller-how-it-works"></a>
-
-### How it works
-
-Sellers prepare parcels for Logistics pickup. Shipping uses stored quotes; the default commission is 10% of item subtotal excluding shipping. Reported proceeds do not prove a completed payout.
-
-Sellers can manage size/color option stock and fixed peso store vouchers. Buyers can rate delivered items; authorized Admins moderate reviews. Sellers also have own-store report exports, manual payout history, returned-goods receipt/restock and a recorded-cost profit ledger. Automatic bank transfers and audited tax accounting are not implemented. See [finance and returns](WORKFLOWS.md#finance) for rules and limits.
-
-<a id="seller-source-references"></a>
-
-### Source references
-
-Sources: `InventoryController`, `OrderController`, `ReportController`, `Store`, `Product`, `SellerOrder`.
+Commission defaults to 10% of net merchandise, excluding shipping. Displayed proceeds are distinct from a recorded payout. Automatic bank transfers and audited tax accounting are outside the implemented ledger. Use [finance rules](WORKFLOWS.md#finance) for settlement prerequisites.
 
 <a id="seller-seller-workspace-verification-2026-10-22"></a>
 
-### Seller workspace verification (2026-10-22)
+### Verification references
 
-Seller reuses the Logistics/Rider toolbar, chart and metric components, plus a shared operational profile component. Queue counts and lists are scoped to the signed-in Seller's store through `SellerWorkspace`; the notification endpoint requires an approved, verified Seller and does not cache responses. Seller cannot perform pickup, receiving, dispatch, proof upload or COD collection operations.
+Seller queues and counts are scoped through `SellerWorkspace`. The Seller notification endpoint requires an approved, verified account and does not cache responses. Shared toolbar, chart, metric and operational-profile components support the workspace.
 
-Run `php artisan test --compact tests/Feature/SellerWorkspaceTest.php` for Seller queue, search, isolation, confirmation and review checks. The existing marketplace flow suite covers the connected checkout, fulfillment, Logistics/Rider delivery, proof and cash workflow. Run `node tests/Frontend/seller-workspace-browser-check.cjs` for the disposable SQLite browser scenario, including stock/weight saves, preparation, waybill printing and profile saves. It writes screenshots and results under `storage/app/seller-workspace-ui-check` and does not use the configured application database.
+From `web/`, use `php artisan test --compact tests/Feature/SellerWorkspaceTest.php` for queue/search/isolation checks. The connected marketplace tests cover checkout and delivery boundaries. `node tests/Frontend/seller-workspace-browser-check.cjs` exercises a disposable SQLite scenario and writes to the root `.tools/development-artifacts/storage-app/seller-workspace-ui-check/`. These are verification entry points, not results from this documentation cleanup.
 
----
+Sources: `InventoryController`, `OrderController`, `ReportController`, `SellerWorkspace`, `Store`, `Product`, `SellerOrder`.
 
 <a id="rider"></a>
 
 ## Rider
 
-<a id="rider-how-it-works"></a>
+Riders sign up at `/register?role=rider` through three steps: personal/contact details, Rider/address/documents, then review and account security. Back retains entered details and selected files. The server validates the complete submission before creating the account; after email verification, it goes directly to the Logistics review queue without a second application submission.
 
-### How it works
+Only the selected Logistics company reviews Rider applications. Admin can inspect them but cannot approve them. Public Rider signup uses email/password; supported existing Google sign-in/linking and company invitation activation remain compatible. Incomplete Google-created Rider signup is blocked.
 
-The interface calls this role Rider; its stored role is `rider`. Existing database names such as `rider_profiles` and `deliveries.rider_id` remain.
+| Area                 | Supported actions                                                                                 |
+| -------------------- | ------------------------------------------------------------------------------------------------- |
+| Assigned work        | View capability-appropriate pickup, delivery and eligible return tasks                            |
+| Custody              | Scan and confirm assigned pickup and delivery handovers, with facility processing between them    |
+| Delivery             | Start delivery and submit private proof, recipient details and exact remaining COD confirmation   |
+| Exceptions           | Record reasoned failed attempts; Logistics decides hold, retry or return-to-center handling       |
+| Cash                 | Submit collected cash handover; Logistics verifies actual receipt and Admin separately reconciles |
+| History/compensation | View permitted work history, reports and own Logistics-recorded fees/payments                     |
+| Support              | Use authorized conversations and account tools                                                    |
 
-<a id="rider-registration"></a>
+Assignments must satisfy center, capability and coverage checks. Pickup and delivery Riders may differ; assignment history does not itself prove custody. Rider compensation requires actual work evidence and is separate from COD or shipping totals. Logistics owns compensation records; Admin has no access to that ledger. Self-assignment and automatic bank transfers are not implemented.
 
-### Registration
-
-Riders submit one registration at `/register?role=rider`, presented in three steps: personal/contact details with grouped name fields, Rider/address details and documents, then review/account security. Each step validates before continuing; Back retains details and selected files. The final submission includes their password, vehicle and plate number, operational Logistics center, ID, driver's license and OR/CR. All requirements are validated before creating an account.
-
-After email verification they go directly to the waiting page; there is no second details submission for a new signup. Only the selected Logistics company/center reviews Rider applications; Admin can inspect them but cannot approve them. Rejection permits corrected resubmission through the existing application workflow. Delivery access remains gated by Logistics approval.
-
-Public Rider signup uses email/password; existing Rider accounts can still use supported Google sign-in/linking, while incomplete Google-created Rider signup is blocked.
-
-Existing company-created invitations and their activation URLs remain compatible. They are no longer the main signup flow. The Company Riders page prioritizes application review and account management.
-
-<a id="rider-workspace-functions"></a>
-
-### Workspace functions
-
-| Function        | Current behavior                                                          |
-| --------------- | ------------------------------------------------------------------------- |
-| Assigned work   | View parcels assigned to the Rider                                        |
-| Pickup/delivery | Advance assigned → picked_up → in_transit → out_for_delivery → delivered  |
-| Proof           | Upload a private delivery photo before confirming completion              |
-| COD             | Confirm collection at delivery; center receives cash and Admin reconciles |
-| History/support | View delivery history/reports and authorized conversations                |
-
-Operations require an approved account and operational center. Assignment must match center and service-area eligibility. Center receipt/sorting is required before dispatch for destination/weight quoted orders.
-
-Reasoned failed attempts, Logistics holds/retries and scanned return-to-center receipt are implemented. Riders also see their own Logistics-recorded fees/payment history and can collect approved return-to-Seller parcels assigned by Logistics. Admin has no rider-payments access. Fees require actual work evidence; COD/shipping totals are not wages. First-come self-assignment and automatic bank transfers are not implemented. See [finance and returns](WORKFLOWS.md#finance) and the Logistics and Rider demo.
-
-<a id="rider-source-references"></a>
-
-### Source references
-
-Sources: `DeliveryController`, `DashboardController`, `ReportController`, `User::canOperate`, `rider_service_area`.
-
----
+Sources: `DeliveryController`, `DashboardController`, `ReportController`, `User::canOperate()`, `User::canRide()`, `rider_service_area`. See [scanning/POD](WORKFLOWS.md#scanning) and [finance/returns](WORKFLOWS.md#finance).
 
 <a id="logistics"></a>
 
 ## Logistics
 
-<a id="logistics-context"></a>
+Logistics companies coordinate their own Riders, coverage, parcels and cash handovers.
 
-### Context
+| Area               | Supported actions                                                                                                                       |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Rider management   | Review affiliated applications, configure pickup/delivery capabilities and apply permitted restrictions; cannot undo Admin restrictions |
+| Coverage and rates | Publish barangay coverage, base fees, included weight, extra-kilogram fees and maximum weight                                           |
+| Pickup             | Approve requests and assign eligible Riders                                                                                             |
+| Scan Parcel        | Camera/scanner/manual lookup with parcel review and authorized receipt/sorting/dispatch actions                                         |
+| Facility work      | Record receipt condition and destination bin/route; prepare one-parcel dispatch, followed by Rider acceptance                           |
+| Exceptions/returns | Record hold/retry decisions, scanned return-to-center receipt and independent approved return-task assignments                          |
+| Cash/remittances   | Verify actual cumulative Rider receipt, preserve discrepancy history, retain shipping and submit merchandise remittance                 |
+| Compensation       | Record evidence-backed parcel fees or explicit weekly agreements and actual payment references                                          |
+| Reports/support    | Scoped parcel reports/exports and conversations                                                                                         |
 
-> [!NOTE]
-> The October update below is historical. Use the [current finance and returns contract](WORKFLOWS.md#finance) for version-3 item/quantity refunds and independent return tasks.
+Quoted orders use the Buyer-selected provider. Legacy unallocated parcels can be claimed by an eligible center. Both Seller pickup and Buyer destination require coverage; fees depend on destination and packed weight. Publishing the first rate enables Logistics quoting, after which unsupported checkout is blocked instead of falling back to flat fees. Existing orders retain their quotes.
 
-Update, 2026-10-26: Logistics exclusively handles Rider fees and payment records at `/rider-payments`; Admin cannot access that ledger. Logistics assigns approved whole-parcel returns; the assigned Rider collects and Seller confirms receipt. Admin separately handles Buyer refund decisions/records and Seller settlements. See [finance and returns](WORKFLOWS.md#finance). These manual workflows supersede the older payout/return gaps below; automatic bank transfers, batch manifests, GPS routing and physical device acceptance remain outside the implemented scope.
+Cash shortages remain unresolved until full receipt is verified. A remittance submission alone does not establish platform funding or permit Seller settlement. Logistics exclusively manages Rider compensation. Batch manifests, GPS routing and automatic transfers remain outside the documented implementation; physical-device acceptance is separate.
 
-Logistics companies coordinate Riders, coverage and parcel custody. Registration requires ID, business/DTI permit and Admin approval. The stored role is `logistics`.
-
-<a id="logistics-workspace-functions"></a>
-
-### Workspace functions
-
-| Function             | Current behavior                                                                                                                                                                        |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Rider management     | Review own Riders and apply permitted account changes; cannot undo Admin restrictions                                                                                                   |
-| Rider signup         | Riders create their own accounts, verify email and choose the company/center; Logistics reviews the submitted requirements in Rider Applications                                        |
-| Shipping rates       | Configure published barangay coverage, base fee, included weight, extra-kilogram fee and maximum weight                                                                                 |
-| Pickup               | Approve pickup requests and assign eligible Riders                                                                                                                                      |
-| Scan Parcel          | Open Operations > Scan Parcel in the sidebar for camera/scanner/manual lookup, parcel review and receipt/sorting/dispatch confirmations in one place                                    |
-| Parcel processing    | Scan/enter the attached tracking reference, record receipt condition and destination bin/route, then prepare a one-parcel dispatch manifest; assigned Rider separately accepts handover |
-| Exceptions / returns | Record Logistics decisions for failed delivery, hold, retry or scanned return-to-center receipt; damaged parcels remain held for escalation                                             |
-| Cash handover        | Confirm actual cumulative cash and a receipt reference; shortages stay unresolved; Admin reconciles only verified full handovers                                                        |
-| Reports/messages     | View/export completed parcel reports and scoped conversations                                                                                                                           |
-
-<a id="logistics-how-it-works"></a>
-
-### How it works
-
-Quoted orders go to the Buyer-selected provider. Legacy unallocated parcels can be claimed by a center. Shipping fees use destination and packed weight; both Seller pickup and Buyer destination need coverage.
-
-Publishing the first shipping rate enables Logistics quotes. After that, unsupported checkout is blocked rather than reverting to flat fees. Existing orders keep their original quotes. Report shipping totals are not Rider earnings or confirmed payouts.
-
-Updated 2026-10-16: printable Code 39 tracking labels, scanner/manual entry, optional supported-browser camera capture and parcel event/custody history are implemented locally. See Logistics implementation and acceptance for verified checks and limitations. That October 16 record is historical. Current QR/POD and reverse-return behavior is documented in the [scanning guide](WORKFLOWS.md#scanning) and [finance/returns guide](WORKFLOWS.md#finance). Physical acceptance, batch manifests and GPS routing are not established by that report.
-
-<a id="logistics-source-references"></a>
-
-### Source references
-
-Sources: `DeliveryController`, `RiderServiceAreaController`, `app/Http/Controllers/Logistics/`, `app/Services/Logistics/`, `resources/views/pages/logistics/`.
-
----
+Sources: `DeliveryController`, `RiderServiceAreaController`, `web/app/Http/Controllers/Logistics/`, `web/app/Services/Logistics/`. Earlier October changes are retained in [historical reviews](reviews/README.md).
 
 <a id="admin"></a>
 
 ## Admin
 
-<a id="admin-how-it-works"></a>
+Approved, verified Admins share the current Admin permissions. Public registration cannot select this role.
 
-### How it works
+| Area          | Supported actions                                                                                                                  |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Reviews       | Approve/reject eligible Buyer, Seller and Logistics applications; inspect Rider submissions without taking over Logistics approval |
+| Accounts      | Review profiles and apply authorized restrictions/reactivation with reasons                                                        |
+| Compliance    | Enforce Seller category rules, warn, hide/restore products and suspend Sellers                                                     |
+| Support       | Review complaints, messages and private evidence; record resolutions                                                               |
+| Finance       | Configure commission, view reports, reconcile verified COD, confirm actual platform receipt and record eligible Seller payouts     |
+| Refunds       | Review original item quantities/amounts, credit Lubos Coins and record responsibility independently of physical returns            |
+| Content/audit | Publish policies/announcements and inspect recorded decisions                                                                      |
 
-Admin oversees accounts, compliance and platform operations. Accounts are privately provisioned; public signup cannot select Admin. Approved, verified Admins share the current Admin permissions.
+Refund approval credits coins and records liability atomically; it does not wait for Buyer acceptance, Seller receipt or cash-reserve funding. Seller settlement separately requires delivery, reconciliation, verified funding and resolved holds/balances. Historical sales remain intact. Admin cannot create, read or pay Rider compensation records.
 
-<a id="admin-workspace-functions"></a>
+Sources: `web/routes/web.php`, Admin/account/review/support/report controllers, `web/app/Services/Admin/`, `web/app/Policies/`. See [approval notifications](WORKFLOWS.md#approvals) and [finance](WORKFLOWS.md#finance).
 
-### Workspace functions
-
-| Function             | Current behavior                                                                                                                |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| Registration reviews | Approve/reject eligible Buyer, Seller and Logistics applications; Rider approval and management belong exclusively to Logistics |
-| Account management   | Review profiles and apply authorized restrictions/reactivation with recorded reasons                                            |
-| Seller compliance    | Check category compliance, warn, hide/restore products or suspend Sellers                                                       |
-| Support              | Review complaints, messages and private evidence; record resolutions                                                            |
-| Finance/reports      | Configure commission, view sales/commission reports and reconcile COD after cash handover                                       |
-| Platform content     | Publish announcements and policies                                                                                              |
-| Audit                | Read recorded decisions and status changes                                                                                      |
-
-<a id="admin-finance-and-returns"></a>
-
-### Finance and returns
-
-Admin records Seller payouts only after full COD receipt and reconciliation, and reviews current version-3 item/quantity refund requests. Approval credits Lubos Coins and records liability separately from any required physical-return task; it does not wait for Seller receipt or cash-reserve funding. See the [current finance/returns contract](WORKFLOWS.md#finance). Historical sales remain intact; adjustments and Seller balances are separate. Admin cannot create, read or pay Rider compensation records; Logistics handles them exclusively.
-
-<a id="admin-source-references"></a>
-
-### Source references
-
-Sources: `routes/web.php`, admin/account/review/support/report controllers, `app/Services/Admin/`, `app/Policies/`.
-
----
-
-<div align="center">
-
-**LubosMart** · Workspaces · [Documentation](README.md)
-
-</div>
+[Documentation](README.md)
