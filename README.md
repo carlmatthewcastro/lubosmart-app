@@ -1,129 +1,211 @@
 <div align="center">
 
-<img src="web/public/images/brand/logo.svg" width="80" height="76" alt="LubosMart logo" />
+<img src="documentation/assets/readme/banner.svg" width="100%" alt="LubosMart shopping bag with a connected delivery route" />
 
 # LubosMart
 
-**E-commerce and delivery for Filipino communities.**
+**Local shopping. Connected delivery.**
 
-Local shopping, store management, parcel delivery and cash reconciliation in one website.
+A marketplace for Filipino communities, from the first product search to the final delivery and cash handover.
 
-[Visit LubosMart](https://lubosmart.app) · [Documentation](documentation/README.md) · [Run locally](#run-locally) · [Workspaces](documentation/WORKSPACES.md)
+[![Laravel 12](https://img.shields.io/badge/Laravel-12-FF2D20?style=flat-square&logo=laravel&logoColor=white)](web/composer.json)
+[![React 19](https://img.shields.io/badge/React-19-149ECA?style=flat-square&logo=react&logoColor=white)](web/package.json)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white)](web/package.json)
+[![Inertia.js 2](https://img.shields.io/badge/Inertia.js-2-6D47B1?style=flat-square)](web/package.json)
+[![Tailwind CSS 4](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](web/package.json)
+
+[Visit LubosMart](https://lubosmart.app) · [Features](#features) · [Setup](#setup) · [Screenshots](#screenshots) · [Documentation](#documentation)
 
 </div>
 
 ---
 
-## Overview
+<a id="overview"></a>
 
-LubosMart connects Buyers with local Sellers and carries each order through preparation, parcel custody, delivery and financial reconciliation. Buyer, Seller, Rider, Logistics and Admin have dedicated workspaces with server-enforced permissions.
+## What is LubosMart?
 
-The Web platform is implemented with Laravel 12, React and Inertia.js. A separate Flutter application uses the implemented versioned API and the same Laravel business rules and database.
+LubosMart brings **Buyers, Sellers, Riders, Logistics teams and Admins** into one e-commerce and delivery platform. Buyers shop from local stores, Sellers prepare orders, and delivery teams move each parcel through scanning checkpoints and proof of delivery. Cash handovers, returns and Seller settlements stay connected to the original order.
 
-## Workspaces
+The website runs on Laravel, React and Inertia.js. The backend owns authentication, permissions, stock, delivery rules and financial records. A separate Flutter client shares the versioned API; mobile interface development is currently paused while the team prepares a new Figma design.
 
-| Workspace     | What you can do                                                                                                                 |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| **Buyer**     | Browse the marketplace, manage your cart and addresses, apply shop vouchers, place orders, track deliveries and request returns |
-| **Seller**    | Manage products and stock, prepare orders and waybills, create shop vouchers, and review sales and settlements                  |
-| **Rider**     | Handle assigned pickups and deliveries, scan parcel checkpoints, submit delivery proof and record COD handovers                 |
-| **Logistics** | Manage Riders, coverage and shipping rates; receive, sort and dispatch parcels; confirm cash handovers                          |
-| **Admin**     | Review applications, manage accounts and compliance, handle support and refund decisions, and reconcile platform funds          |
+<a id="workspaces"></a>
 
-Shared features include account verification, Google sign-in, notifications, messaging, private document access and role-based permissions. The [workspace guide](documentation/WORKSPACES.md) covers account requirements, actions and access boundaries for all five roles.
+## Features
 
-## From checkout to delivery
+### Shopping and checkout
 
-1. A Buyer checks out with an address and an available shipping option. The server validates vouchers and opt-in Lubos Coins; shipping remains cash.
-2. Each Seller prepares their parcel and waybill. A multi-store purchase has separate parcels and tracking references.
-3. Logistics teams and assigned Riders record custody through three forward checkpoints: pickup, facility receipt and delivery-Rider handover.
-4. The delivery Rider submits proof, recipient information and confirmation of the remaining COD when cash is due.
-5. Rider and Logistics record actual cash handovers. Logistics retains shipping and remits merchandise cash; Admin confirms reconciliation and platform receipt before eligible Seller settlement.
+- **Find local products:** browse the marketplace, search by product, filter by category and view product details and reviews.
+- **Choose and save:** select supported product options, manage a wishlist, update cart quantities and save delivery addresses.
+- **Review the total:** see server-calculated shipping, apply eligible shop vouchers and opt into available Lubos Coins before checkout.
+- **Place COD orders:** orders containing multiple stores become separate Seller parcels with their own tracking references.
+- **Follow each parcel:** check order progress, view authorized delivery proof, message the Seller and rate delivered items.
+- **Request help or returns:** use support conversations and submit eligible item quantities for review.
 
-> [!NOTE]
-> Returns and refunds follow a separate review workflow. Approved refunds credit Lubos Coins. Financial approval, physical return custody and settlement recovery remain separate. Payment records and settlement confirmations record financial activity; bank transfers require separate handling.
+### Store operations
 
-Read the [workflow guide](documentation/WORKFLOWS.md) for current scanning, finance, vouchers, returns and account-review rules.
+- **Manage a catalog:** maintain product photos, prices, options, stock, packed weight and listing visibility.
+- **Work through order queues:** review new orders, prepare parcels and mark them ready for pickup.
+- **Print waybills:** use the parcel's tracking identity for the existing scanning and delivery workflow.
+- **Run store promotions:** manage shop vouchers with eligibility and usage rules checked at checkout.
+- **Review store performance:** see sales, commission, proceeds, settlement history and supported cost records.
+- **Handle customer follow-up:** keep order messages, support and physical returns attached to the relevant work.
+
+### Delivery and logistics
+
+- **Give Riders their assigned work:** pickup, dispatch, delivery and eligible return tasks follow server-enforced assignment rules.
+- **Scan custody checkpoints:** record pickup, facility receipt and delivery-Rider handover against the parcel reference.
+- **Capture delivery proof:** submit recipient information, fresh proof and COD confirmation through the supported delivery flow.
+- **Manage a delivery operation:** Logistics teams maintain their Riders, coverage, shipping rates, sorting and dispatch queues.
+- **Track cash separately:** record Rider cash handovers and Logistics reconciliation without treating delivered status as a cash receipt.
+
+### Administration and shared account tools
+
+- **Review applications and accounts:** required documents, verification and approval rules govern workspace access.
+- **Moderate and resolve:** manage compliance, complaints, support and return/refund decisions.
+- **Reconcile platform funds:** confirm financial records and eligible Seller settlement through the existing approval workflow.
+- **Stay connected:** shared notifications, messaging, account settings, private document access and optional Google sign-in.
+- **Keep permissions on the server:** each workspace receives only the data and actions its account is allowed to use.
+
+Read the [workspace guide](documentation/WORKSPACES.md) for each role's requirements and supported actions.
+
+<a id="from-checkout-to-delivery"></a>
+
+## How it works
+
+1. **Shop.** A Buyer chooses products and a delivery address. The server checks stock, vouchers, shipping and any selected Lubos Coins.
+2. **Prepare.** Each Seller receives their part of the order, prepares a parcel and prints its waybill.
+3. **Move.** The pickup Rider and Logistics team record custody as the parcel reaches the facility, sorting and delivery-Rider handover.
+4. **Deliver.** The assigned Rider completes the delivery with recipient details, proof and confirmation of remaining COD when cash is due.
+5. **Reconcile.** Rider and Logistics record actual cash handovers. Admin confirms reconciliation and platform receipt before eligible Seller settlement.
+
+> **Returns and refunds:** reviewed separately from forward delivery. Approved refunds credit Lubos Coins; financial approval and physical return custody remain separate. Recorded settlement activity does not perform a bank transfer.
+
+See [order, scanning and finance workflows](documentation/WORKFLOWS.md) for the complete rules.
+
+## Setup
+
+### Requirements
+
+| Requirement        | Version or setup                                                                |
+| ------------------ | ------------------------------------------------------------------------------- |
+| PHP                | 8.2+ with Laravel's required extensions                                         |
+| Composer           | 2                                                                               |
+| Node.js            | 22 with npm                                                                     |
+| Database           | Dedicated local database; SQLite or configured MySQL                            |
+| Mobile development | Optional Flutter SDK compatible with [mobile/pubspec.yaml](mobile/pubspec.yaml) |
+
+### First-time installation
+
+Clone the repository, open `web/` and follow the [Web installation guide](documentation/SETUP.md#web). It covers dependencies, environment configuration, the application key and development database preparation.
+
+Use a dedicated development database and synthetic accounts. Preserve existing environment files, application keys, customer data and private uploads when updating an existing installation.
+
+<a id="run-locally"></a>
+
+### Run locally on Windows
+
+Once setup is complete:
+
+1. Double-click **[Start LubosMart.cmd](Start%20LubosMart.cmd)** in the repository root.
+2. The launcher starts **Laravel, Vite and the notification queue**, then opens the website automatically.
+3. Keep its terminal open while working. Press **Ctrl+C** when you are done.
+
+The launcher reads `web/.env` and expects a local HTTP `APP_URL` on port 8000. Ports 8000 and 5173 must be available. Your configured database must be running; the launcher can start a local MySQL/MariaDB Windows service when exactly one is found and Windows permits it. The database service stays running when you stop the app.
+
+For launcher troubleshooting and other operating systems, see [local startup and manual commands](documentation/SETUP.md#development-website-and-shared-api).
+
+### Configuration
+
+| Area                            | Where to start                                                                              |
+| ------------------------------- | ------------------------------------------------------------------------------------------- |
+| Database, sessions and queues   | [Environment configuration](documentation/SETUP.md#environment)                             |
+| Mail and Google sign-in         | [Provider setup](documentation/SETUP.md#environment-mail-and-google-login)                  |
+| Production services and backups | [Deployment and operations](documentation/DEPLOYMENT.md)                                    |
+| Mobile API connection           | [Flutter setup](documentation/SETUP.md#flutter) and [API guide](documentation/api/GUIDE.md) |
+
+The Flutter source and API integration remain available as a reference. Its current screens are provisional while the new mobile Figma design is prepared; see the [mobile README](mobile/README.md).
+
+## Screenshots
+
+The following captures show the actual public LubosMart website. Click an image to open it at full size.
+
+### Homepage
+
+The public storefront introduces LubosMart, product categories and local shopping.
+
+[![LubosMart homepage with navigation, welcome section and product categories](documentation/assets/readme/homepage.png)](documentation/assets/readme/homepage.png)
+
+### Marketplace
+
+Product discovery with category navigation, search and listing cards.
+
+[![LubosMart marketplace showing search, categories and product listings](documentation/assets/readme/marketplace.png)](documentation/assets/readme/marketplace.png)
+
+### Sign-in on mobile
+
+The responsive website's sign-in screen, separate from the Flutter client.
+
+<a href="documentation/assets/readme/signin-mobile.png"><img src="documentation/assets/readme/signin-mobile.png" width="320" alt="LubosMart responsive website sign-in screen at a phone viewport" /></a>
+
+Capture details are recorded with the [screenshot assets](documentation/assets/readme/README.md). Screenshots illustrate the interface; product availability and displayed content can change.
 
 ## Technology
 
-| Layer                 | Logos                                                                                                                                                                                 | Stack                                                     |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| Website               | <img src="documentation/assets/icons/react.svg" width="26" height="26" alt="React" /> <img src="documentation/assets/icons/typescript.svg" width="26" height="26" alt="TypeScript" /> | React 19, TypeScript, Inertia.js 2                        |
-| Interface             | <img src="documentation/assets/icons/tailwindcss.svg" width="26" height="26" alt="Tailwind CSS" />                                                                                    | Tailwind CSS 4, Radix UI, Lucide                          |
-| Backend               | <img src="documentation/assets/icons/laravel.svg" width="26" height="26" alt="Laravel" /> <img src="documentation/assets/icons/php.svg" width="26" height="26" alt="PHP" />           | Laravel 12, PHP 8.2+, Eloquent                            |
-| API                   | —                                                                                                                                                                                     | Versioned JSON endpoints, Laravel Sanctum                 |
-| Mobile                | <img src="documentation/assets/icons/flutter.svg" width="26" height="26" alt="Flutter" />                                                                                             | Flutter and Dart; separate Buyer, Seller and Rider client |
-| Assets                | <img src="documentation/assets/icons/vite.svg" width="26" height="26" alt="Vite" /> <img src="documentation/assets/icons/nodejs.svg" width="26" height="26" alt="Node.js" />          | Vite 6, Node.js 22, npm                                   |
-| Database              | <img src="documentation/assets/icons/mysql.svg" width="26" height="26" alt="MySQL" />                                                                                                 | MySQL; SQLite supported for local development             |
-| Hosting configuration | <img src="documentation/assets/icons/docker.svg" width="26" height="26" alt="Docker" />                                                                                               | Docker Compose, Apache, Caddy                             |
-
-Laravel serves the website and owns authentication, authorization, business rules and data. Queue workers process background notifications. The [architecture guide](documentation/ARCHITECTURE.md) brings the system map, technology choices, backend and database together.
-
-## Run locally
-
-| Requirement | Version or setup                                             |
-| ----------- | ------------------------------------------------------------ |
-| PHP         | 8.2+ with Laravel's required extensions                      |
-| Composer    | 2                                                            |
-| Node.js     | 22 with npm                                                  |
-| Database    | Dedicated local database; follow the selected driver's setup |
-
-1. Open `web/` in your editor. Follow [Web installation](documentation/SETUP.md#web) to install dependencies, configure the local environment and prepare your development database.
-2. With setup complete, run these commands in **separate terminals inside `web/`**:
-
-    ```powershell
-    php artisan serve
-    ```
-
-    ```powershell
-    npm run dev
-    ```
-
-3. Open **http://localhost:8000**.
-
-| Task                                                   | Command or guide                                                |
-| ------------------------------------------------------ | --------------------------------------------------------------- |
-| Process queued notifications                           | `php artisan queue:work --tries=1`                              |
-| Build website assets                                   | `npm run build`                                                 |
-| Configure mail, Google login and environment variables | [Environment configuration](documentation/SETUP.md#environment) |
-| Develop the native client                              | [Flutter setup](documentation/SETUP.md#flutter)                 |
-| Work across both applications                          | [Development workflow](documentation/SETUP.md#development)      |
-
-Use a dedicated development database and synthetic accounts. Preserve existing application keys, customer data and private uploads.
+| Layer                 | Stack                                                     |
+| --------------------- | --------------------------------------------------------- |
+| Website               | React 19, TypeScript, Inertia.js 2                        |
+| Interface             | Tailwind CSS 4, Radix UI, Lucide                          |
+| Backend               | Laravel 12, PHP 8.2+, Eloquent                            |
+| Shared API            | Versioned JSON endpoints, Laravel Sanctum                 |
+| Data                  | MySQL; SQLite supported for local development             |
+| Build tools           | Vite 6, Node.js 22, npm                                   |
+| Mobile                | Flutter and Dart; UI work paused pending new Figma design |
+| Hosting configuration | Docker Compose, Apache and Caddy                          |
 
 ## Repository
 
 ```text
 lubosmart-app/
-├── web/             Laravel, React/Inertia.js website, shared API and backend tests
-├── mobile/          Flutter application and Android helper scripts
-├── documentation/   Category guides, API contracts, standards and dated reviews
-├── .agents/         Shared agent instructions and reusable task skills
-├── .github/         Repository automation
-└── README.md        Project overview and starting point
+├── web/                  Website, shared API, backend tests and Docker files
+├── mobile/               Flutter reference client and Android helper scripts
+├── documentation/        Product guides, API contracts, screenshots and standards
+├── scripts/              Local development launcher
+├── .agents/              Agent instructions and reusable workflows
+├── .github/              Repository automation
+├── Start LubosMart.cmd   Windows local startup
+└── README.md
 ```
 
-Run PHP, Composer, npm and Docker commands from `web/`; run Flutter commands from `mobile/`. Development snapshots, browser artifacts and completed build logs belong in the ignored root `.tools/development-artifacts/` directory.
+Run PHP, Composer, npm and Docker commands from `web/`; run Flutter commands from `mobile/`.
 
 ## Documentation
 
-One [documentation index](documentation/README.md) connects the full guides. Related topics share a document, so you can follow a category without opening several READMEs.
+| Guide                                                    | Contents                                                  |
+| -------------------------------------------------------- | --------------------------------------------------------- |
+| [Documentation index](documentation/README.md)           | Starting points, standards and dated reviews              |
+| [Workspaces](documentation/WORKSPACES.md)                | Buyer, Seller, Rider, Logistics and Admin capabilities    |
+| [Workflows](documentation/WORKFLOWS.md)                  | Orders, scanning, COD, returns, vouchers and approvals    |
+| [Setup and development](documentation/SETUP.md)          | Installation, local startup and environment configuration |
+| [Architecture](documentation/ARCHITECTURE.md)            | System structure, backend boundaries and database         |
+| [Frontend](documentation/FRONTEND.md)                    | Shared components and screen-to-source map                |
+| [API](documentation/api/GUIDE.md)                        | Authentication, endpoints and integration contracts       |
+| [Deployment and operations](documentation/DEPLOYMENT.md) | Production topology, backups and release procedures       |
 
-| Guide                                                    | Contents                                                               |
-| -------------------------------------------------------- | ---------------------------------------------------------------------- |
-| [Workspaces](documentation/WORKSPACES.md)                | Buyer, Seller, Rider, Logistics and Admin capabilities                 |
-| [Workflows](documentation/WORKFLOWS.md)                  | Orders, scanning, COD, Lubos Coins, returns, vouchers and approvals    |
-| [Architecture](documentation/ARCHITECTURE.md)            | System map, technology stack, backend boundaries and database          |
-| [Frontend](documentation/FRONTEND.md)                    | React/Inertia.js structure, shared components and screen-to-source map |
-| [Setup and development](documentation/SETUP.md)          | Web, Mobile, shared API and environment configuration                  |
-| [API](documentation/api/GUIDE.md)                        | Authentication, endpoints, response formats and integration contracts  |
-| [Deployment and operations](documentation/DEPLOYMENT.md) | Production topology, backups, release procedures and email acceptance  |
+<a id="contributing"></a>
 
-The index also links project standards, dated reviews and [documentation decisions to reconcile](documentation/README.md#documentation-decisions-and-verification). Historical proposals retain their original review scope; they do not describe the completed Web platform as planned. Native device acceptance and live-service verification remain specific to the target environment.
+## Contributing and support
 
-## Contributing
+- **Bugs and feature requests:** use [GitHub Issues](https://github.com/carlmatthewcastro/lubosmart-app/issues). Describe what happened, what you expected and how to reproduce it. Remove account details and private documents from attachments.
+- **Code contributions:** follow the [Git workflow](documentation/standards/GIT_WORKFLOW_RULES.md) and [UI/UX standards](documentation/standards/UI_UX_RULES.md). Keep changes focused and include relevant validation.
+- **Agent-assisted work:** start with [AGENTS.md](AGENTS.md) and follow the repository's shared instructions.
+- **Sensitive reports:** contact the repository owner privately. Keep credentials, tokens and private evidence out of public issues.
 
-Follow the [Git workflow](documentation/standards/GIT_WORKFLOW_RULES.md) and [UI/UX standards](documentation/standards/UI_UX_RULES.md). Use the existing LubosMart identity, shared components and supported Tailwind feature set. Preserve authentication, authorization and business workflows.
+---
 
-Agent guidance starts at [AGENTS.md](AGENTS.md), with detailed instructions and reusable skills under `.agents/`.
+<div align="center">
+
+**LubosMart** · Connecting local stores, communities and delivery teams.
+
+[Website](https://lubosmart.app) · [Documentation](documentation/README.md) · [Run locally](#run-locally-on-windows)
+
+</div>
