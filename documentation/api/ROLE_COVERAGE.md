@@ -2,7 +2,7 @@
 
 # Mobile role coverage
 
-**Implemented mobile role coverage and remaining device acceptance.**
+**Retained native modules, website boundaries and acceptance limits.**
 
 [Home](../../README.md) · [Documentation](../README.md) · [Website](https://lubosmart.app)
 
@@ -12,13 +12,13 @@
 
 ## Overview
 
-This guide maps the implemented Buyer, Seller and Rider mobile modules. It is for developers and reviewers distinguishing native coverage from website operations and device acceptance.
+This guide maps the retained Buyer, Seller and Rider modules. Mobile UI work is paused pending a new Figma design; these screens are provisional integration references, not the accepted design for the next app. See the [mobile README](../../mobile/README.md) for the current development scope.
 
 <a id="how-it-works"></a>
 
-## How it works
+## Retained coverage
 
-Implemented November 5, 2026. “Implemented” below means source and relevant automated checks exist; native device acceptance is still outstanding. See verification.
+The table retains the November 5, 2026 source-coverage baseline. "Implemented" means the module and associated check source existed at that review. It does not claim a fresh test run, parity with every later backend change or physical-device acceptance.
 
 | Module                                                                                                           | Buyer              | Seller                    | Rider                  |
 | ---------------------------------------------------------------------------------------------------------------- | ------------------ | ------------------------- | ---------------------- |
@@ -60,9 +60,13 @@ This is broad coverage of the three mobile roles, not a claim that every website
 | Costs and reports                                                                     | Costs/report payloads reuse the website's scoped calculations, with integer cent fields.                                                                      |
 | Locations                                                                             | raw array. Policies: data list of published policy id/title/body.                                                                                             |
 
-See each x-laravel-action in [OpenAPI](openapi.json) for the exact response projection.
+The `x-laravel-action` fields in the [OpenAPI snapshot](openapi.json) identify earlier handlers. Verify current projections in their controllers/resources and the [finance/return compatibility reference](FINANCE_2026_11_11.md); the snapshot does not cover later changes.
 
-The [endpoint inventory](ENDPOINTS.md) enumerates all 82 operations and their middleware boundaries.
+The [endpoint inventory](ENDPOINTS.md) lists the older 82-operation snapshot and middleware boundaries. It is incomplete against current source.
+
+## Acceptance still required
+
+The [retained Rider APK baseline](../../mobile/REFERENCE_UI_1_0_1.md) records development signing and historical checks. Use the [Rider Android checklist](../../mobile/RIDER_ANDROID.md#acceptance-still-required) for real QR/camera behavior, proof uploads, delivery/return mutations and website propagation. Verify current backend actions before reusing provisional screens. Native wallet/promotion interfaces, the future Figma UI, live networking and physical-device accessibility are not established by this coverage table.
 
 ---
 

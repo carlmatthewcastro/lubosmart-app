@@ -12,7 +12,7 @@
 
 ## Overview
 
-This guide covers the documented deployment topology, authorized release procedures and recovery requirements. It also includes transactional email checks and controlled inbox acceptance for operators maintaining an installation.
+This runbook covers the repository deployment topology, authorized release procedures, backups and transactional email checks. Dated local evidence is separated from operating instructions below.
 
 **In this guide:** [Deployment and backups](#deployment) · [Transactional email verification](#mail)
 
@@ -22,13 +22,7 @@ This guide covers the documented deployment topology, authorized release procedu
 
 <a id="deployment-how-it-works"></a>
 
-### How it works
-
-Repository layout update: deployment files and the environment now live in
-`web/`. Run the commands in this guide from `web/` and use it as the Docker build
-context. Compose explicitly retains the `lubosmart-app` project name to preserve
-the prior default volume names. Existing deployments using a custom project name
-must continue supplying that name. No deployment was performed for this move.
+Run application and Compose commands from `web/`, which contains deployment files and the environment. Compose uses project name `lubosmart-app`; existing deployments with a custom name must keep supplying that name to preserve their volumes.
 
 The repository describes production on an Azure Ubuntu VM with Docker Compose and Cloudflare DNS. Live VM/DNS settings, deployed versions, Cloudflare proxy/WAF/cache features and backup execution are unverified. Deployment is manual; GitHub Actions builds/tests do not deploy the VM.
 
@@ -36,7 +30,7 @@ The repository describes production on an Azure Ubuntu VM with Docker Compose an
 
 ### Local setup
 
-Use the canonical [Laravel/web setup](SETUP.md#web), [Flutter setup](SETUP.md#flutter) and [environment reference](SETUP.md#environment). Commands below concern separately authorized deployment work, not this documentation cleanup.
+Use [Setup](SETUP.md) for development and the shared [environment reference](SETUP.md#environment) for configuration names. Commands below require a separately authorized deployment.
 
 <a id="deployment-email-and-google-configuration"></a>
 
@@ -90,7 +84,7 @@ Only Caddy publishes ports. Caddy manages origin certificates; Apache runs PHP b
 
 Review/merge to `main`, connect through your established SSH access, and retrieve the approved release. Preserve production credentials and `APP_KEY`. Verify database/private-upload backups stored outside Docker volumes and copied off the VM before migrations.
 
-Run in the VM checkout; stop if any command fails:
+Run in the VM checkout's `web/` directory; stop if any command fails:
 
 ```bash
 git status --short
@@ -126,13 +120,11 @@ Sources: `Dockerfile`, `docker-compose.yml`, `Caddyfile`, `.github/workflows/`, 
 
 <a id="mail-how-it-works"></a>
 
-### How it works
-
 Google-linked accounts can request Forgot password or set a LubosMart password in
 Settings > Password after verifying an email code. Both Google sign-in and direct
 email/password sign-in remain available. Invitation-only accounts still need their
-activation flow. Codes expire after ten minutes, allow five verification attempts
-and are limited to three requests per email per hour.
+activation flow. Password/profile security codes expire after ten minutes, allow five verification attempts
+and are limited to three requests per email per hour. Registration verification uses a separate service with a five-minute expiry.
 
 <a id="mail-azure-docker-checks"></a>
 
@@ -143,9 +135,9 @@ and are limited to three requests per email per hour.
 Run these read-only checks on the VM after an authorized deployment:
 
 ```bash
-docker exec lubosmart-app-app-1 php artisan lubosmart:mail-status --check-connection
-docker exec lubosmart-app-app-1 php artisan queue:failed
-docker logs --tail 50 lubosmart-app-queue-1
+docker compose exec app php artisan lubosmart:mail-status --check-connection
+docker compose exec app php artisan queue:failed
+docker compose logs --tail 50 queue
 ```
 
 The mail-status command checks the security mailer only. Verify privately that both
@@ -181,13 +173,18 @@ controlled test fails; never infer inbox delivery from that message.
 
 <a id="mail-automated-coverage-and-ui-review"></a>
 
-### Automated coverage and UI review
+### Automated coverage and historical evidence
 
 `tests/Feature/Notifications/TransactionalMailTest.php` exercises all seven
 notification classes using Laravel's in-memory mail transport, verifies headers
 and HTML/plain text, and completes password reset using the rendered email code
 for both account types. Auth/settings tests cover verification and reset security.
 These tests send no external email and do not certify production delivery.
+
+<details>
+<summary>November 9, 2026 local regression and UI review</summary>
+
+These are retained historical results, not checks rerun during this documentation cleanup.
 
 Final local regression on 2026-11-09: 991 passed, 3 skipped (6,921 assertions)
 across Auth, Settings, Notifications, Account, API, Admin registration/management,
@@ -200,6 +197,10 @@ accounts, with copy explaining both sign-in methods. Current password is omitted
 only for initial setup. Branding, shared controls and email confirmation remain.
 ESLint, TypeScript, Prettier and production build passed. Browser visual, keyboard,
 zoom and screen-reader acceptance were not performed; WCAG compliance is unverified.
+
+</details>
+
+For other dated requirements and implementation reports, see [historical reviews](reviews/README.md).
 
 ---
 

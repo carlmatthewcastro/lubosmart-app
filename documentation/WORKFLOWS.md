@@ -12,54 +12,21 @@
 
 ## Overview
 
-This guide follows the implemented Web workflows across roles, stock, physical custody and money. It includes the current order journey, three forward scan checkpoints, version-3 returns, Lubos Coins, vouchers and account review controls.
+This guide follows orders across stock, physical custody and money, including three forward scan checkpoints, version-3 returns, Lubos Coins, vouchers and account review.
 
 **In this guide:** [Reading the current workflows](#guide) · [Order journey](#orders) · [Parcel scanning and delivery proof](#scanning) · [Finance, settlement and returns](#finance) · [Shop vouchers](#vouchers) · [Logistics account settings](#account-settings) · [Admin approval and notifications](#approvals)
 
 <a id="guide"></a>
 
-## Reading the current workflows
+## Reading the workflows
 
-<a id="guide-how-it-works"></a>
-
-### How it works
-
-Use one guide per topic from this table. Authorization, custody and money are separate: assignment is not receipt, delivery is not reconciliation, and displayed proceeds are not a payout.
-
-<a id="guide-workflows"></a>
-
-### Workflows
-
-| Topic                        | Current guide                                        | Scope                                                                       |
-| ---------------------------- | ---------------------------------------------------- | --------------------------------------------------------------------------- |
-| Buyer                        | [Buyer functions](WORKSPACES.md#buyer)               | Shopping, checkout, tracking and support                                    |
-| Seller                       | [Seller functions](WORKSPACES.md#seller)             | Listings, stock, preparation, waybills and reports                          |
-| Rider                        | [Rider functions](WORKSPACES.md#rider)               | Assigned work and account boundaries                                        |
-| Logistics                    | [Logistics functions](WORKSPACES.md#logistics)       | Company Riders, parcels, rates and cash                                     |
-| Admin                        | [Admin functions](WORKSPACES.md#admin)               | Reviews, compliance, disputes and reconciliation                            |
-| Orders                       | [Order journey](WORKFLOWS.md#orders)                 | Checkout, Seller parcels, stock, custody and cash                           |
-| Parcel scanning and proof    | [Scanning and POD](WORKFLOWS.md#scanning)            | Three forward checkpoints, camera/labels, completion and acceptance limits  |
-| Finance, returns and refunds | [Finance and returns](WORKFLOWS.md#finance)          | COD handovers, settlements, compensation, version-3 returns and Lubos Coins |
-| Vouchers                     | [Shop vouchers](WORKFLOWS.md#vouchers)               | Visibility, selection, revalidation and usage                               |
-| Account settings             | [Account settings](WORKFLOWS.md#account-settings)    | Logistics settings, private files and review controls                       |
-| Approval notifications       | [Approval and notifications](WORKFLOWS.md#approvals) | Queue/notification behavior; see onboarding qualification below             |
-
-<a id="guide-reading-older-account-and-workflow-guidance"></a>
-
-### Reading older account and workflow guidance
-
-> [!NOTE]
-> Role guides retain useful role-specific details. For custody and delivery, follow the current scanning guide; for refunds, follow the version-3 finance contract. Earlier whole-parcel/manual-refund descriptions are superseded. Buyer email/password signup activates after email verification as documented in the backend/Buyer guide; older blanket all-Buyer approval statements describe prior or legacy onboarding. The Rider role guide describes the combined signup form. No onboarding acceptance was rerun here.
-
----
+Assignment, physical custody and money are separate events. Use [Workspaces](WORKSPACES.md) for role capabilities and approval requirements; this guide owns the connected business rules. The current source uses three forward scan checkpoints and version-3 item/quantity refunds. Earlier proposals and whole-parcel return descriptions remain in [historical reviews](reviews/README.md).
 
 <a id="orders"></a>
 
 ## Order journey
 
 <a id="orders-how-it-works"></a>
-
-### How it works
 
 1. A Buyer selects products/options, address and a shipping quote. Checkout revalidates stock, prices and any store voucher. Coin use is opt-in against merchandise after discounts; shipping remains cash.
 2. One purchase creates a separate Seller parcel and tracking reference for each store. Checkout snapshots commercial details and protects repeat submissions with a Buyer-scoped request key.
@@ -82,17 +49,13 @@ Sources: [checkout action](../web/app/Actions/Checkout/CreateOrderFromCart.php),
 
 <a id="scanning-current-custody-refinement--november-16-2026"></a>
 
-### Current custody refinement — November 16, 2026
+### Forward checkpoints and replacement
 
-The Rider role now has Logistics-owned pickup/delivery/both capabilities and separate assignments. Three forward scans remain mandatory: Seller collection by the pickup Rider, facility receipt by Logistics, and dispatch acceptance by the delivery Rider. Sorting/assignment do not add scans. Final delivery uses private photo evidence, recipient name, selected DeliveryNotes, optional remarks, and exact remaining COD confirmation instead of a fourth forward scan.
+Logistics controls Rider pickup/delivery/both capabilities and separate assignments. Three forward scans are mandatory: pickup from the Seller, facility receipt, and delivery-Rider handover. Sorting and assignment add no scans. Final delivery uses proof and COD confirmation instead of a fourth scan.
 
-The remaining cash amount is net merchandise minus original coin payment plus shipping. Waybills, resources, notifications, and Rider screens use that amount. Voucher discounts already belong to net merchandise; do not subtract them twice or treat coins as a discount.
+After physical facility return of an undelivered parcel, Logistics may document an exceptional replacement and assign an eligible covered delivery Rider. The replacement scans `accept_transfer`; it has no forward-checkpoint key. Original checkpoint timestamps and the actual COD collector remain intact, and delivered parcels cannot reopen.
 
-Assignment history and actual custody are distinct. Logistics may replace an undelivered Rider after physical facility return with a documented reason. The replacement scans `accept_transfer`; original forward checkpoint timestamps and actual COD collector remain intact. This exception transfer has no forward-checkpoint key and cannot reopen a delivered parcel.
-
-New reverse returns use independent return events: delivery-capable Buyer collection → facility receipt → pickup-capable Seller-return assignment → facility release → Seller receipt/condition. They carry the same tracking reference and never reset completed forward checkpoints. Existing in-progress version-1 returns retain their historical handover behavior.
-
-See [Finance and Returns](WORKFLOWS.md#finance) for custody and financial rules.
+Reverse transport uses independent return events under the [finance/returns contract](#finance-returns-and-refund-funding), without resetting forward checkpoints. In-progress version-1 returns retain their historical handover behavior.
 
 <a id="scanning-label-and-camera-behavior"></a>
 
@@ -108,7 +71,7 @@ The shared web camera uses the native decoder and a ZXing fallback; label genera
 
 After the three forward checkpoints, sorting, assignment and Start Delivery, the assigned Rider submits a private JPG/PNG photo (up to 5 MB), recipient name, a contextual delivery note and COD confirmation when cash is due. The server derives the remaining cash amount. There is no fourth forward scan. Failed delivery is a separate reasoned action and does not create a COD collection. Signature and GPS are not required by this completion handler.
 
-Recipient-name and positive-COD requirements were checked in [DeliveryController](../web/app/Http/Controllers/DeliveryController.php). The November 14 report describes an earlier form without a required recipient name; preserve it as history. Use the [finance and returns guide](WORKFLOWS.md#finance) for current version-3 return tasks rather than that report's older reverse-return sequence.
+Source: [DeliveryController](../web/app/Http/Controllers/DeliveryController.php). Earlier form and reverse-return descriptions are historical; use [finance and returns](#finance) for current version-3 tasks.
 
 <a id="scanning-acceptance-limits"></a>
 
@@ -124,7 +87,7 @@ Validate printed labels, camera permissions, proof uploads and printer output on
 
 <a id="finance-current-source-contract--november-16-2026"></a>
 
-### Current source contract — November 16, 2026
+### Financial responsibilities
 
 This guide describes the implemented finance and returns contract. See [parcel checkpoints](WORKFLOWS.md#scanning) and [API compatibility](api/FINANCE_2026_11_11.md).
 
@@ -141,13 +104,13 @@ reference, with shipping retained by Logistics. Admin receives a notification,
 verifies COD reconciliation, and separately confirms actual receipt using the
 same handover reference. Submission alone never funds Seller settlement. Actual
 receipt date and evidence remain required; historical receipt workflows remain
-supported. These changes require no schema migration.
+supported.
 
 The account role remains **Rider**. Logistics controls `pickup`, `delivery`, or `both` capabilities. Existing accounts default to `both`; restricting capability is refused while active work, reverse transport, or outstanding COD would be stranded. Admin cannot configure Logistics wages.
 
 Parcels retain separate pickup/delivery Riders, assignment dates, append-only assignment records, and custody evidence. The old `rider_id` remains a current-assignment compatibility field. Historical checkpoint actors backfill reliable Rider identities; unknown assignment dates remain unknown. COD always belongs to the actual recorded collector. A pickup Rider keeps pickup history after dispatch assignment, with Buyer contact/proof restrictions.
 
-Ordinary reassignment ends before accepted custody. For an exceptional replacement, Logistics must receive the undelivered parcel at the facility, document the reason, and choose an eligible covered delivery Rider. The replacement scans and accepts a separate custody transfer. Original forward checkpoint timestamps remain unchanged.
+Ordinary reassignment ends before accepted custody. Exceptional replacement follows the [facility-return and transfer rules](#scanning-current-custody-refinement--november-16-2026).
 
 <a id="finance-cash-settlement-and-compensation"></a>
 
@@ -196,23 +159,15 @@ Checkout remains opt-in and spends available coins against merchandise after vou
 
 <a id="finance-shop-vouchers-and-reporting"></a>
 
-#### Shop vouchers and reporting
+#### Reporting
 
-The four configurable presets suggest PHP 10/200/20 uses, 20/400/20, 50/1,000/10, and 100/2,000/5, each for 30 days. Selection prefills editable settings; Seller confirmation activates the promotion and generates its code. Existing manual vouchers stay private unless explicitly made public. Templates respect the Seller's public/private selection.
-
-Public vouchers appear on product pages, store-filtered shop pages, and the cart/checkout. Buyers select an eligible suggestion, see the best eligible discount recommendation, and can remove it. Preview/selection never consumes a use. Locked checkout revalidates capacity, Buyer reuse, store eligibility, activation, expiry, and minimum spend. There is one voucher per checkout, no stacking/free-shipping promotion, and no automatic usage restoration after a completed return.
-
-Finance separates expected, collected, Logistics-received, reconciled, platform-funded, payable, paid, refunded, and outstanding values. Order-creation date, exact reference, and COD-status filters scope the transaction list. Live wallet liability and available unallocated refund backing are explicitly all-time figures. Logistics/Rider compensation remains inaccessible to Admin.
+Finance separates expected, collected, Logistics-received, reconciled, platform-funded, payable, paid, refunded and outstanding values. Order-creation date, exact reference and COD-status filters scope transaction lists. Live wallet liability and available unallocated refund backing are explicitly all-time figures. Logistics/Rider compensation remains inaccessible to Admin. Shop promotion rules are defined once under [Shop vouchers](#vouchers).
 
 <a id="finance-release-and-verification-history"></a>
 
-### Release and verification history
+### Scope and acceptance
 
-See [deployment and backup instructions](DEPLOYMENT.md#deployment) for release procedures.
-
-Automatic bank transfers, top-ups and withdrawals are not implemented in the described contract. Full physical return/cash handovers, accessibility and live-service acceptance remain subject to environment-specific acceptance.
-
----
+Automatic bank transfers, top-ups and withdrawals are not implemented. Physical return/cash handovers, accessibility and live-service acceptance require environment-specific verification. Use the [deployment and backup runbook](DEPLOYMENT.md#deployment) for authorized releases.
 
 <a id="vouchers"></a>
 
@@ -220,13 +175,9 @@ Automatic bank transfers, top-ups and withdrawals are not implemented in the des
 
 <a id="vouchers-context"></a>
 
-### Context
-
-Sellers manage fixed-peso store vouchers with minimum merchandise spend, expiry and use limits. Presets prefill editable settings; confirmation activates the promotion and generates a code. Existing manual vouchers stay private unless explicitly made public. See the [finance contract](WORKFLOWS.md#finance-shop-vouchers-and-reporting) for the documented preset values and reporting context.
+Sellers manage fixed-peso store vouchers with minimum merchandise spend, expiry and use limits. Four editable presets suggest PHP 10/200/20 uses, 20/400/20, 50/1,000/10 and 100/2,000/5, each for 30 days (discount/minimum spend/use limit). Confirmation activates the promotion and generates a code. Existing manual vouchers stay private unless explicitly made public; presets preserve the selected public/private visibility.
 
 <a id="vouchers-how-it-works"></a>
-
-### How it works
 
 Public vouchers appear on product pages, store-filtered shop pages and cart/checkout. Buyers can select an eligible suggestion, review the recommended eligible discount and remove it. Preview does not consume a use.
 
@@ -251,8 +202,6 @@ Sources: [voucher controller](../web/app/Http/Controllers/StoreVoucherController
 ## Logistics account settings
 
 <a id="account-settings-how-it-works"></a>
-
-### How it works
 
 The Logistics owner page is `/settings/account`; `/settings/profile` renders the
 same feature for approved Logistics accounts. Administrators review requests at
@@ -292,8 +241,7 @@ service proposal that omits that region must be revised or rejected.
 
 ### Configuration
 
-Run these during the normal release process; no configured application database
-was migrated as part of implementation:
+For an authorized release that introduces this feature, include snapshot backfill and vetted location import in the [normal deployment process](DEPLOYMENT.md#deployment):
 
 ```powershell
 composer install
@@ -312,8 +260,8 @@ region_code,region_name,province_code,province_name,city_code,city_name,barangay
 
 > [!IMPORTANT]
 > Supply a vetted hierarchy joined to an authoritative postal-code crosswalk.
-> No production dataset or postal crosswalk was supplied. The feature deliberately
-> ships no invented location rows. Address changes are unavailable until imported,
+> The original feature record reports no supplied production postal crosswalk.
+> Deployment import status is unverified; do not invent location rows. Address changes are unavailable until imported,
 > and unknown hierarchy/postal combinations return 422. Multiple postal codes per
 > barangay can be imported; the UI fills the first available code. NCR uses the
 > existing registration convention of a synthetic Metro Manila province code
@@ -371,11 +319,11 @@ Feature tests cover locked fields, initial approval snapshots, named regions,
 masked/revealed TIN, hierarchy/postal validation, immediate removals and pending
 additions, mandatory-region checks at approval time, re-verification, owner-only
 documents, Admin decisions, OTP consumption, and transaction rollback on audit
-failure. Relevant existing registration/settings tests are also run.
+failure. Relevant registration/settings tests provide connected coverage. These are existing verification references; no application tests were run during this documentation cleanup.
 
-Browser artifacts are under `storage/app/account-settings-ui-check/`. Checks use
+Current browser artifacts are under the root `.tools/development-artifacts/storage-app/account-settings-ui-check/`. The existing harness uses
 an isolated temporary SQLite database with synthetic owners/admins and fake mail.
-They cover 320/768/1440 pixel reflow, cascading selects/postcode fill, TIN reveal,
+The checks cover 320/768/1440 pixel reflow, cascading selects/postcode fill, TIN reveal,
 CSRF-protected proposals, pending comparisons, keyboard focus, and Admin approval.
 Screenshots include light and dark states. These checks do not certify WCAG
 compliance; screen-reader testing and comprehensive zoom/contrast checks remain.
@@ -390,11 +338,9 @@ Run the browser check with `node tests/Frontend/account-settings-browser-check.c
 
 <a id="approvals-how-it-works"></a>
 
-### How it works
+New complete Buyer, Seller and Logistics registrations require Admin review after email verification. The current [account lifecycle](../web/app/Services/AccountVerificationLifecycle.php) keeps these applications pending; verification alone does not activate Buyer signup. Legacy paths retain their applicable lifecycle. See [registration and access](WORKSPACES.md#registration-and-access).
 
-Buyer password signup activates after email verification. Buyer review statements below apply to applications that still require review, such as legacy onboarding. See the [Buyer guide](WORKSPACES.md#buyer).
-
-Seller, Logistics and review-required Buyer applications require Admin approval. Email verification confirms the email address; it does not approve the account. A complete, verified registration remains `pending`, shows the waiting-for-approval page, and cannot access its operational dashboard. Only a valid Admin decision grants approval. Rider review remains exclusively with the affiliated Logistics company.
+A complete, verified registration remains `pending`, shows the waiting-for-approval page and cannot access its operational dashboard until approval. Rider review belongs exclusively to the affiliated Logistics company.
 
 <a id="approvals-admin-queue-and-notification-menu"></a>
 

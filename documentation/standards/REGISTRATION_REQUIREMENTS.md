@@ -2,71 +2,57 @@
 
 # Registration field coverage
 
-**Registration reference fields and website coverage.**
+**Supplied reference fields and current enrollment boundaries.**
 
 [Home](../../README.md) · [Documentation](../README.md) · [Website](https://lubosmart.app)
 
 </div>
 
----
+## Scope
 
-## Overview
-
-This reference maps the supplied ERP registration fields to the website and stored data. It is for maintainers checking field coverage; dated or legacy onboarding descriptions must be read with the current role guides.
-
-<a id="how-it-works"></a>
-
-## How it works
-
-User-requested registration reference: `ERP-Components.pdf`, supplied on
-2026-10-14. This maps its registration fields; it does not expand the task into
-the PDF's marketplace, payment or reporting features.
+This maps the registration fields from `ERP-Components.pdf`, supplied October 14, 2026, to the website and stored data. The original PDF is not included in this documentation set. It is a field reference, not an identified official SRS or authorization to expand marketplace/payment features.
 
 <a id="registration-requirements"></a>
 
 ## Registration requirements
 
-> [!NOTE]
-> The table preserves the supplied registration reference. Current password Buyer signup activates after email verification; legacy/Google onboarding can still require Admin review. See the [Buyer guide](../WORKSPACES.md#buyer).
+| Reference requirement                    | Website and stored data                                                                |
+| ---------------------------------------- | -------------------------------------------------------------------------------------- |
+| First/last name, optional middle initial | All role forms; validated `user_profiles` fields                                       |
+| Sex                                      | Required across role forms and application submission                                  |
+| Email and contact number                 | Normalized uniqueness checks                                                           |
+| Birthday and age                         | Birthday required; age calculated for display, never trusted from the request          |
+| Province, municipality/city, barangay    | Dependent location selections and server hierarchy validation                          |
+| Street, house/unit number                | Combined address line with separately saved components                                 |
+| Buyer ID                                 | Private upload attached to the application; Admin review                               |
+| Seller name/category                     | Shop metadata and registered category; Admin review                                    |
+| Seller documents                         | ID and business permit; DTI/SEC/BIR requirements vary by Seller type                   |
+| Rider details/documents                  | Vehicle, plate, affiliated center, ID/license and OR/CR; owning Logistics approval     |
+| Logistics details/documents              | Company name, ID, business permit and existing SEC/BIR/TIN/service-region requirements |
+| Verification and decisions               | Six-digit email code, pending-review state and approval/rejection notifications        |
 
-| PDF registration requirement            | Website and stored data                                                                               |
-| --------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| First name, last name                   | All role forms; validated names in `user_profiles`                                                    |
-| Optional middle initial                 | All role forms; nullable `user_profiles.middle_initial`                                               |
-| Required sex                            | All role forms and application submission; stored in profile                                          |
-| Email and contact number                | All role forms; normalized uniqueness checks                                                          |
-| Birthday and automatic age              | Birthday required for all roles; age calculated for display from birthday, never trusted from request |
-| Province, municipality/city, barangay   | Dependent Philippine location API selections with server hierarchy validation                         |
-| Street, house/unit number               | Manual inputs combined into address line and saved separately                                         |
-| Buyer ID                                | Private upload linked to the registration; Admin review                                               |
-| Seller business name and category       | Shop metadata and registered category; Admin review                                                   |
-| Seller ID and business permit           | Private uploads for all Seller types; existing DTI/SEC/BIR requirements retained by Seller type       |
-| Rider vehicle, plate, OR/CR, ID/license | Rider fields and private documents; only owning Logistics manages Rider approval/access               |
-| Logistics business name, ID and permit  | Company fields and private documents; existing SEC/BIR/TIN/service-area requirements retained         |
-| Wait for approval and email decision    | Signup explanation, email-code verification, pending-review page and approval/rejection email         |
+All forms retain the same Personal information fields, including Sex and the optional middle initial. Age remains calculated/read-only. Rider vehicle, affiliation and document fields belong to the next signup step. Account details and registration review use the same role-specific records and private documents.
 
-Accounts and Registration Review share role-specific details and document lists.
-Registration approval and account access remain separate workflows.
+### Approval boundary
+
+New complete Buyer, Seller and Logistics registrations require Admin review after email verification; Riders require affiliated Logistics review. Verification confirms email control and does not grant operational access. Rejected applications may be corrected and resubmitted. Legacy accounts and company invitations retain their applicable lifecycle.
+
+Sources: [registration service](../../web/app/Services/RegisterAccount.php), [verification lifecycle](../../web/app/Services/AccountVerificationLifecycle.php), [registration test definitions](../../web/tests/Feature/Auth/BuyerSellerRegistrationTest.php). See [Workspaces](../WORKSPACES.md#registration-and-access) for access boundaries.
 
 <a id="google-registration"></a>
 
 ## Google registration
 
-Unknown Google sign-in identities first choose a registration role. Google name
-and email prefill the selected form; provider ID is retained only in the server
-session. Registration still collects required information, password, consent and
-uploads and uses the existing six-digit email-code verification. Pending Google
-identity expires after 30 minutes. Existing Google accounts continue to sign in
-through the established role and account-status checks.
+Web and native enrollment intentionally use different password handling. Both preserve required role details, documents, policy consent, server validation and approval rules.
 
-All roles use the same Personal information group, including required Sex.
-Rider-specific vehicle, affiliation and document fields belong to the next step.
-The age control is labeled Age and remains calculated/read-only.
+| Flow             | Behavior                                                                                                                                                                                                                                                   |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Website          | Unknown Google identities choose a role; trusted name/email prefill the form. The pending provider identity stays in the session for 30 minutes. Enrollment collects a password and uploads, then uses the existing email-code verification.               |
+| Native API       | Google sign-in returns `registration_required` for an unknown identity. Multipart enrollment supplies `google_access_token`; password fields are prohibited. The server rechecks verified provider email and stores no local password for this enrollment. |
+| Existing account | Sign-in/linking preserves the established role and account-state checks. Native Google cannot silently link an existing email.                                                                                                                             |
 
----
+Public Rider signup uses email/password; supported existing Google sign-in/linking and company invitation activation remain compatible. Do not infer that Google prefill completes a Rider application.
 
-<div align="center">
+Sources: [web registration controller](../../web/app/Http/Controllers/Auth/RegisteredUserController.php), [Google session service](../../web/app/Services/GoogleRegistration.php), [native request](../../web/app/Http/Requests/Api/MobileRegisterRequest.php), [native controller](../../web/app/Http/Controllers/Api/V1/MobileAuthController.php).
 
-**LubosMart** · Registration field coverage · [Documentation](../README.md)
-
-</div>
+[Documentation](../README.md)
