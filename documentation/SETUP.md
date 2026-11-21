@@ -71,10 +71,11 @@ php artisan key:generate
 ```powershell
 php artisan migrate
 php artisan db:seed --class=MarketplaceCategorySeeder
-composer run dev
 ```
 
-3. Open `http://localhost:8000`. The category seeder avoids the default seeder's synthetic user. `composer run dev` starts Laravel, Vite, a queue listener and log monitoring. On Windows, use `PHP_CLI_SERVER_WORKERS=1` if PHP reports an unsupported-fork warning.
+3. On Windows, return to the repository root and double-click **[Start LubosMart.cmd](../Start%20LubosMart.cmd)**. It starts Laravel, Vite and the notification queue, then opens the local website automatically. Keep its terminal open while working; press **Ctrl+C** to stop the app. For other operating systems, follow [manual startup](#development-manual-startup).
+
+The category seeder avoids the default seeder's synthetic user. For subsequent local runs, use the launcher after starting your configured database; installation, migrations and seeding are separate setup steps.
 
 <a id="web-configuration"></a>
 
@@ -109,14 +110,42 @@ code --new-window mobile
 
 ### Website and shared API
 
+On Windows, double-click **[Start LubosMart.cmd](../Start%20LubosMart.cmd)** in the repository root after
+completing installation. It starts Laravel, Vite and the notification queue in
+one terminal, then opens the browser. It uses PHP and Node.js from `PATH` and
+the database configured in `web/.env`. If local MySQL is unavailable, it attempts
+to start the installed MySQL/MariaDB Windows service when exactly one is found.
+If Windows denies service startup, start that service through Windows Services
+and launch again. Keep the terminal open; press **Ctrl+C** to stop the development
+servers. The database service stays running. The launcher expects a local HTTP
+`APP_URL` on port 8000 and requires ports 8000 and 5173 to be available.
+
+If the launcher reports a missing dependency, complete the [web installation](#web)
+first. If port 8000 or 5173 is in use, close the previous development server before
+launching again. The launcher reads the existing `web/.env`; it does not install
+dependencies, generate application keys, migrate or seed the database.
+
+<a id="development-manual-startup"></a>
+
+#### Manual startup
+
+For other operating systems or when you need separate terminals:
+
 1. In a terminal inside `web/`, run these in separate terminals:
 
 ```powershell
 php artisan serve --host=127.0.0.1 --port=8000
+```
+
+```powershell
 npm run dev
 ```
 
-2. Open http://127.0.0.1:8000. Run `php artisan queue:work --tries=1` when queued notifications are needed. Use `npm run build` for production assets. On Windows, separate terminals avoid the Unix-only Pail dependency in Composer's combined dev command.
+```powershell
+php artisan queue:work --tries=1
+```
+
+2. Open http://127.0.0.1:8000. Keep these terminals open while working. Use `npm run build` for production assets. On Windows, the launcher or separate terminals avoid the Unix-only Pail dependency in Composer's combined dev command.
 
 For a new installation, follow [web setup](SETUP.md#web); preserve existing environment files, keys, databases and uploads.
 

@@ -70,17 +70,10 @@ Laravel serves the website and owns authentication, authorization, business rule
 | Database    | Dedicated local database; follow the selected driver's setup |
 
 1. Open `web/` in your editor. Follow [Web installation](documentation/SETUP.md#web) to install dependencies, configure the local environment and prepare your development database.
-2. With setup complete, run these commands in **separate terminals inside `web/`**:
+2. On Windows, double-click **[Start LubosMart.cmd](Start%20LubosMart.cmd)** in the repository root. It starts Laravel, Vite and the notification queue together, then opens the website in your browser using `APP_URL` from `web/.env` (local HTTP on port 8000).
+3. Keep the launcher terminal open. Press **Ctrl+C** when you are done to stop Laravel, Vite and the queue worker.
 
-    ```powershell
-    php artisan serve
-    ```
-
-    ```powershell
-    npm run dev
-    ```
-
-3. Open **http://localhost:8000**.
+Your configured database must be available. The launcher can start an installed local MySQL/MariaDB Windows service when exactly one is found; the database service stays running after you stop the app. See [launcher setup and troubleshooting](documentation/SETUP.md#development-website-and-shared-api) for requirements and manual startup on other operating systems.
 
 | Task                                                   | Command or guide                                                |
 | ------------------------------------------------------ | --------------------------------------------------------------- |
