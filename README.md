@@ -110,7 +110,7 @@ Once setup is complete:
 2. The launcher starts **Laravel, Vite and the notification queue**, then opens the website automatically.
 3. Keep its terminal open while working. Press **Ctrl+C** when you are done.
 
-The launcher reads `web/.env` and expects a local HTTP `APP_URL` on port 8000. Ports 8000 and 5173 must be available. Your configured database must be running; the launcher can start a local MySQL/MariaDB Windows service when exactly one is found and Windows permits it. The database service stays running when you stop the app.
+The launcher reads `web/.env` and expects a local HTTP `APP_URL` on port 8000. Ports 8000 and 5173 must be available. If your local database is stopped, the launcher starts its MySQL/MariaDB Windows service when exactly one is found. Accept the Windows administrator prompt if it appears; only database service startup requests administrator access. The database service stays running when you stop the app.
 
 For launcher troubleshooting and other operating systems, see [local startup and manual commands](documentation/SETUP.md#development-website-and-shared-api).
 

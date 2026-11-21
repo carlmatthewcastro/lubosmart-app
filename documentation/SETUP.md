@@ -115,8 +115,11 @@ completing installation. It starts Laravel, Vite and the notification queue in
 one terminal, then opens the browser. It uses PHP and Node.js from `PATH` and
 the database configured in `web/.env`. If local MySQL is unavailable, it attempts
 to start the installed MySQL/MariaDB Windows service when exactly one is found.
-If Windows denies service startup, start that service through Windows Services
-and launch again. Keep the terminal open; press **Ctrl+C** to stop the development
+If Windows requires administrator access, the launcher opens a Windows permission
+prompt. Accept it to start the database and continue automatically. Only service
+startup runs with administrator access; Laravel, Vite and the queue run normally.
+If the prompt is cancelled, launch again and accept it. If the service still fails
+to start, inspect its error in Windows Services. Keep the terminal open; press **Ctrl+C** to stop the development
 servers. The database service stays running. The launcher expects a local HTTP
 `APP_URL` on port 8000 and requires ports 8000 and 5173 to be available.
 

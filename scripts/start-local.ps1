@@ -24,6 +24,29 @@ function Get-LocalSetting([string] $Name, [string] $Fallback) {
     return (($line -split '=', 2)[1].Trim().Trim('"').Trim("'"))
 }
 
+function Start-LocalDatabaseService([string] $ServiceName) {
+    try {
+        Start-Service -Name $ServiceName -ErrorAction Stop
+        return
+    } catch {
+        Write-Host 'Windows needs administrator permission to start the database. Accept the Windows permission prompt to continue.'
+    }
+
+    # Elevate only the service startup, keeping the development servers unelevated.
+    $escapedName = $ServiceName.Replace("'", "''")
+    $serviceCommand = "try { Start-Service -Name '$escapedName' -ErrorAction Stop; exit 0 } catch { exit 1 }"
+    $encodedCommand = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($serviceCommand))
+    try {
+        $startup = Start-Process -FilePath "$PSHOME\powershell.exe" -Verb RunAs -WindowStyle Hidden `
+            -ArgumentList @('-NoProfile', '-NonInteractive', '-EncodedCommand', $encodedCommand) -Wait -PassThru -ErrorAction Stop
+    } catch {
+        throw "Windows did not allow database startup. Launch again and accept the administrator prompt. $($_.Exception.Message)"
+    }
+    if ($startup.ExitCode -ne 0) {
+        throw "Windows could not start database service '$ServiceName', even with administrator permission. Check its status and error in Windows Services."
+    }
+}
+
 try {
     Set-Location -LiteralPath $webRoot
     foreach ($command in @('php.exe', 'node.exe', 'npm.cmd')) {
@@ -65,11 +88,7 @@ try {
             $databaseService = $databaseServices[0]
             if ($databaseService.Status -ne 'Running') {
                 Write-Host "Starting database service $($databaseService.Name)..."
-                try {
-                    Start-Service -Name $databaseService.Name
-                } catch {
-                    throw "Start $($databaseService.Name) through Windows Services, then launch again. $($_.Exception.Message)"
-                }
+                Start-LocalDatabaseService $databaseService.Name
             }
             $deadline = (Get-Date).AddSeconds(20)
             while (-not (Test-LocalPort $dbHost $dbPort)) {
