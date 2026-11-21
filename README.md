@@ -141,12 +141,6 @@ Product discovery with category navigation, search and listing cards.
 
 [![LubosMart marketplace showing search, categories and product listings](documentation/assets/readme/marketplace.png)](documentation/assets/readme/marketplace.png)
 
-### Sign-in on mobile
-
-The responsive website's sign-in screen, separate from the Flutter client.
-
-<a href="documentation/assets/readme/signin-mobile.png"><img src="documentation/assets/readme/signin-mobile.png" width="320" alt="LubosMart responsive website sign-in screen at a phone viewport" /></a>
-
 Capture details are recorded with the [screenshot assets](documentation/assets/readme/README.md). Screenshots illustrate the interface; product availability and displayed content can change.
 
 ## Technology
