@@ -1,72 +1,51 @@
-# LubosMart Flutter application
+# LubosMart mobile
 
-Open this `mobile/` folder directly in VS Code. The website and shared API live in `../web/`. See the [development guide](../documentation/SETUP.md#development).
+The Flutter client is on hold while the team prepares a new Figma design. The website and shared Laravel API in [`web/`](../web/) remain the current priority. Resume mobile interface work from the agreed Figma mockups and guide.
 
-The latest installed **1.0.1 reference-layout correction**, verification results and remaining phone checks are documented in [Rider 1.0.1 delivery](REFERENCE_UI_1_0_1.md). The [earlier redesign report](REDESIGN_2026_11_17.md) is retained as historical evidence.
+The existing Buyer, Seller and Rider client is retained as a reference for API integration and account workflows. Its screens are provisional; the new Figma design will guide the next app.
 
-For the dedicated live **Rider Android application**, use `lib/rider_main.dart` and the [Rider build, installation and physical-device guide](RIDER_ANDROID.md). From the mobile folder, run `scripts\rider-android.cmd build debug` or `build release`. This entry point only accepts Rider accounts and defaults to `https://lubosmart.app/api/v1`.
+## Project structure
 
-Separate native client for Buyer, Seller and Rider. Laravel lives in ../web/ and remains the shared backend for the website and mobile app. The client derives its workspace from the authenticated account; it cannot grant itself a role.
+| Path | Purpose |
+| --- | --- |
+| `lib/main.dart` | Buyer, Seller and Rider entry point |
+| `lib/rider_main.dart` | Dedicated Rider entry point |
+| `lib/core/api.dart` | API transport, secure sessions and mutation identifiers |
+| `lib/features/` | Existing account and role workflows |
+| `lib/ui/` | Existing shared widgets and Rider presentation |
+| `assets/` | Referenced branding, illustrations, icons, fonts and font licenses |
+| `test/` | API and widget regression tests |
+| `scripts/` | Windows Android helpers using the workspace SDKs |
 
-See the [Flutter setup guide](../documentation/SETUP.md#flutter) for SDK installation and API configuration. Physical-device journeys and release signing require separate acceptance.
+Unused PNG icons and superseded delivery reports have been removed. Keep assets referenced by Dart code, including the dynamic icon map in `lib/ui/rider_design.dart`, and declare bundled files in `pubspec.yaml`. Native Android/iOS launcher and splash resources belong to their platform projects.
 
 ## Run locally
 
-Use a separate test installation and synthetic accounts. Preserve any existing Laravel .env, application key, database and uploads. Do not migrate or seed a live database just to try this app.
+Open `mobile/` in your editor. Install Flutter compatible with [`pubspec.yaml`](pubspec.yaml), which requires Dart `^3.13.7`. See [Flutter setup](../documentation/SETUP.md#flutter) for SDK and backend setup.
 
-1. Install Flutter compatible with pubspec.yaml (verified here with Flutter 3.47.9 / Dart 3.13.7). The workspace SDK is at ../.tools/flutter/bin; it is ignored by Git.
-2. The workspace Android SDK and Java are configured on this machine. Run scripts/android-mobile.cmd doctor from the mobile folder to verify them. For another machine, install the Android SDK and platform tools, accept its licenses and run flutter doctor -v. Android Studio is optional for command-line builds and USB phone testing; an emulator is a separate installation.
-3. Start the Laravel test server from ../web/: php artisan serve --host=0.0.0.0 --port=8000.
-4. In this folder run:
+From this folder:
 
 ```powershell
 flutter pub get
 flutter analyze
 flutter test
-flutter devices
-flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000/api/v1
+flutter run --target lib/main.dart --dart-define=API_BASE_URL=http://10.0.2.2:8000/api/v1
 ```
 
-10.0.2.2 reaches the host PC from the Android emulator. For a physical phone on the same controlled test network, substitute the PC's LAN address. The phone's localhost refers to the phone. Network/firewall access must already permit the connection. The debug Android manifest allows local HTTP; release requests require HTTPS. Configure Laravel APP_URL and asset URLs so the device can reach images and pagination links too.
+`10.0.2.2` reaches the development PC from an Android emulator. For a physical phone, supply a reachable test API address. Start Laravel from `web/` against a dedicated test database with synthetic accounts. Preserve existing application keys, databases and uploads.
 
-A development APK can be built with:
-
-```powershell
-flutter build apk --debug --dart-define=API_BASE_URL=http://10.0.2.2:8000/api/v1
-```
-
-Use a reachable HTTPS URL for release builds. Android currently retains the generated development application ID and debug release signing; choose your own application ID, launcher assets and protected release signing before distribution. iOS compilation requires macOS/Xcode, a bundle ID, provisioning and platform permission checks; it was not run on this Windows machine. Do not treat a successful Dart test as an installed native app test.
+For Rider builds, installation and the retained APK, see [Rider Android](RIDER_ANDROID.md).
 
 ## Authentication and configuration
 
-The client stores bearer tokens and pending mutation UUIDs in OS secure storage. Registration, email codes, password recovery, application corrections and approval gates use the API. An onboarding token cannot access marketplace operations. Company-invited Riders must finish their invitation activation first. Important profile/document changes can revoke tokens and require re-review.
+`API_BASE_URL` selects the shared Laravel API. Supply an authorized test URL explicitly: the Rider helper defaults to `https://lubosmart.app/api/v1`. Release builds require HTTPS.
 
-Google sign-in is optional and hidden without GOOGLE_SERVER_CLIENT_ID. Configure Google OAuth credentials for your Android package/signing certificate and iOS bundle/client URL scheme as required by the installed google_sign_in package; then pass the server client ID:
+`GOOGLE_SERVER_CLIENT_ID` enables the optional Google sign-in button. It requires matching Android/iOS OAuth configuration and the Web OAuth client ID as server client ID. Pass it with `--dart-define=GOOGLE_SERVER_CLIENT_ID=your-web-client-id` when running or building; the Rider helper does not supply it. Never commit credentials.
 
-```powershell
-flutter run --dart-define=API_BASE_URL=https://your-test-host/api/v1 --dart-define=GOOGLE_SERVER_CLIENT_ID=your-web-oauth-client-id
-```
+The server controls roles, approval, assignments and allowed actions. The client stores bearer tokens in OS secure storage and preserves supported mutation identifiers for explicit retries. A timeout requires checking server state before retrying a write.
 
-No real Google credentials are included. The server verifies the provider access token and verified email. Existing email accounts are not silently linked; link them through the website. Unknown Google accounts still complete role documents, verification and approval.
+## Current baseline
 
-## Implemented workspaces
+The retained local Rider APK is **1.0.1 (build 2)**. Its metadata and verification limits are recorded in the [baseline report](REFERENCE_UI_1_0_1.md). It is development-signed; a distributable store release needs production signing and platform acceptance.
 
-| Role      | Native screens and actions                                                                                                                                                                                    |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Buyer     | Catalog/search/options/reviews, wishlist, cart, addresses and location selection, shipping/voucher review, COD checkout, purchases/cancellation, parcel messages/proof, delivered reviews and return requests |
-| Seller    | Own orders/preparation, waybill review/PDF print, inventory/images/options with stock snapshots, vouchers, costs/voids/profit, unsettled sales/payout history, reports, returns receipt and messages          |
-| Rider     | Own parcel queues/details/timeline, camera scan or explained manual waybill entry, custody transitions allowed by server, recipient/proof/COD capture, return collection, earnings and payment history        |
-| All three | Password/Google sign-in, registration and required documents, email verification/recovery, approval/corrections, private support conversations/evidence, protected profile changes, appearance and logout     |
-
-Admin and Logistics management, approval decisions, company invitation activation, return approval/assignment/refund recording and payout management remain website workflows. The mobile interface does not perform bank transfers.
-
-## Code and tests
-
-- lib/core/api.dart: guarded API origin, bearer transport, secure session restoration, multipart method override, money parsing and persistent action UUIDs.
-- lib/features: account/onboarding, Buyer shopping, orders/custody, Seller finance/inventory and shared support/settings.
-- lib/ui/common.dart: shared forms, confirmations, guarded actions, error/retry UI and foreground-only refresh.
-- test: transport/UUID/security tests and role workspace/cart/PDF widget tests.
-
-A timeout does not prove a mutation failed. The client preserves a pending checkout, print or delivery intent and reuses its UUID on explicit retry; it does not silently replay writes. Read refresh pauses when the app/page is inactive.
-
-See the [API coverage](../documentation/api/ROLE_COVERAGE.md), [OpenAPI](../documentation/api/openapi.json), [Postman collection](../documentation/api/lubosmart-v1.postman_collection.json), and verification and manual acceptance guide.
+The new Figma design, mobile UI rebuild and physical-device acceptance remain future work. Keep the API contracts and server authorization intact when rebuilding. See the [API guide](../documentation/api/GUIDE.md) and [role coverage](../documentation/api/ROLE_COVERAGE.md).

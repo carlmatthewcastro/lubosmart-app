@@ -7,7 +7,7 @@ set "GRADLE_USER_HOME=%MOBILE_REPO%\.tools\gradle"
 set "MOBILE_FLUTTER=%MOBILE_REPO%\.tools\flutter\bin\flutter.bat"
 set "PATH=%MOBILE_REPO%\.tools\flutter\bin;%ANDROID_HOME%\platform-tools;%PATH%"
 if not exist "%ANDROID_HOME%\platform-tools\adb.exe" (
-  echo Android SDK is incomplete. See documentation/setup/FLUTTER.md.
+  echo Android SDK is incomplete. See documentation/SETUP.md, Flutter section.
   exit /b 1
 )
 if not exist "%MOBILE_FLUTTER%" (
