@@ -98,8 +98,8 @@ export default function Home({
                     const siblings = Array.from(entry.target.parentElement?.children ?? []);
                     const animation = entry.target.animate(
                         [
-                            { opacity: 0, translate: '0 20px' },
-                            { opacity: 1, translate: '0 0' },
+                            { opacity: 0, transform: 'translateY(20px)' },
+                            { opacity: 1, transform: 'translateY(0)' },
                         ],
                         {
                             duration: 650,

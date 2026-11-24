@@ -121,6 +121,9 @@
 }
 .auth-reference-panel-nav {
     display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px 24px;
     align-items: center;
     flex-shrink: 0;
     min-height: 56px;
@@ -135,6 +138,17 @@
     color: var(--primary);
     font-size: 14px;
     font-weight: 600;
+}
+.auth-reference-blocked .auth-reference-panel h1 {
+    padding-right: 0;
+    font-size: clamp(24px, 4vw, 28px);
+    font-weight: 600;
+    letter-spacing: -0.025em;
+}
+.auth-reference-blocked .auth-reference-description {
+    margin-block: 12px 20px;
+    font-size: 14px;
+    line-height: 1.75;
 }
 .auth-reference-panel h1 {
     padding-right: 32px;
