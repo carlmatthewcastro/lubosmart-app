@@ -1,7 +1,8 @@
-import { Badge, Card, Empty, Page, buttonClass, secondaryClass } from '@/components/shared/marketplace-ui';
-import { DashboardMetric, DashboardQueues, DashboardWelcome } from '@/components/workspace/dashboard-panels';
-import { type SharedData, type UserRole } from '@/types';
-import { Link, usePage, usePoll } from '@inertiajs/react';
+import { Badge, Card, Empty, Page } from '@/components/shared/marketplace-ui';
+import DashboardBanner from '@/components/workspace/dashboard-banner';
+import { DashboardMetric, DashboardQueues } from '@/components/workspace/dashboard-panels';
+import { type UserRole } from '@/types';
+import { Link, usePoll } from '@inertiajs/react';
 import { CheckCheck, Clock3, Package, ShoppingBag, Store, Truck, type LucideIcon } from 'lucide-react';
 
 export interface WorkspaceDashboardProps {
@@ -17,38 +18,22 @@ export interface WorkspaceDashboardContent {
     primary: string;
     href: string;
     steps: string[];
-    links: { title: string; text: string; href: string; icon: LucideIcon }[];
+    links: { title: string; text: string; href: string; icon?: LucideIcon }[];
 }
 export default function WorkspaceDashboard({
     role,
     stats,
     records,
     storeStatus,
-    companyName,
     content,
 }: WorkspaceDashboardProps & { content: WorkspaceDashboardContent }) {
     usePoll(30000, { only: ['stats', 'records'] });
-    const { auth } = usePage<SharedData>().props;
     const activityHref = ['rider', 'logistics'].includes(role) ? '/deliveries' : '/orders';
-    const roleTitle = role === 'rider' ? 'Rider' : role === 'logistics' ? 'Logistics' : role === 'seller' ? 'Seller' : 'Buyer';
     const RoleIcon = role === 'buyer' ? ShoppingBag : role === 'seller' ? Store : Truck;
     const metrics = Object.entries(stats);
     return (
         <Page title={content.title} description={content.description}>
-            <DashboardWelcome
-                compact={role === 'buyer'}
-                label={role === 'buyer' ? 'Your local marketplace' : roleTitle + ' portal'}
-                title={'Welcome back, ' + auth.user.name.trim().split(/\s+/)[0] + '.'}
-                description={companyName ? 'Your deliveries with ' + companyName + '.' : content.description}
-                icon={RoleIcon}
-            >
-                <Link href={content.href} className={buttonClass}>
-                    {content.primary}
-                </Link>
-                <Link href="/settings/profile" className={secondaryClass}>
-                    My account
-                </Link>
-            </DashboardWelcome>
+            <DashboardBanner role={role} />
             {role === 'seller' && storeStatus !== 'approved' && (
                 <Card>Your store is awaiting approval. Product publishing requires an approved store.</Card>
             )}
@@ -73,9 +58,11 @@ export default function WorkspaceDashboard({
                             href={item.href}
                             className="group bg-card hover:border-primary/40 flex min-w-0 items-center gap-4 rounded-2xl border p-5 transition-colors"
                         >
-                            <span aria-hidden="true" className="bg-accent text-primary rounded-xl p-3">
-                                <item.icon className="size-5" />
-                            </span>
+                            {item.icon && (
+                                <span aria-hidden="true" className="bg-accent text-primary rounded-xl p-3">
+                                    <item.icon className="size-5" />
+                                </span>
+                            )}
                             <div className="min-w-0 flex-1">
                                 <h2 className="font-semibold">{item.title}</h2>
                                 <p className="text-muted-foreground mt-1 text-xs leading-relaxed">{item.text}</p>

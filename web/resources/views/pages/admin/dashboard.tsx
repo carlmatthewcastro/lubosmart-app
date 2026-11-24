@@ -1,22 +1,12 @@
 import { DashboardAnalytics, type DashboardAnalyticsData } from '@/components/admin/dashboard-analytics';
 import { InfoModal } from '@/components/shared/info-modal';
-import { Badge, buttonClass, Card, money, Page, roleLabel, secondaryClass } from '@/components/shared/marketplace-ui';
-import { DashboardMetric, DashboardWelcome } from '@/components/workspace/dashboard-panels';
+import { Badge, Card, money, Page, roleLabel } from '@/components/shared/marketplace-ui';
+import DashboardBanner from '@/components/workspace/dashboard-banner';
+import { DashboardMetric } from '@/components/workspace/dashboard-panels';
 import { activityAction, activityDate, titleCase } from '@/lib/admin-display';
 import type { SharedData } from '@/types';
 import { Link, usePage, usePoll } from '@inertiajs/react';
-import {
-    ArrowRight,
-    ChartNoAxesCombined,
-    ClipboardCheck,
-    History,
-    Inbox,
-    MessageCircle,
-    MessageSquareWarning,
-    Percent,
-    ShieldCheck,
-    Users,
-} from 'lucide-react';
+import { ArrowRight, ClipboardCheck, History, Inbox, MessageCircle, MessageSquareWarning, Percent, ShieldCheck, Users } from 'lucide-react';
 
 type AdminOverviewData = {
     applications: { id: number; name: string; role: string; submittedAt: string | null }[];
@@ -38,7 +28,7 @@ export default function AdminDashboard({
     records: { id: number; label: string; status: string; detail: string; occurredAt?: string }[];
 }) {
     usePoll(30000, { only: ['summary', 'analytics', 'stats', 'records', 'adminOverview'] });
-    const { auth, adminWorkspace } = usePage<SharedData>().props;
+    const { adminWorkspace } = usePage<SharedData>().props;
     const permissions = adminWorkspace?.permissions ?? [];
     const metrics = [
         {
@@ -93,28 +83,7 @@ export default function AdminDashboard({
     const attentionTotal = attention.reduce((total, item) => total + item.value, 0);
     return (
         <Page headerInNavbar title="Admin Dashboard" description="Track sales, commission, and delivery progress, then act on your review queues.">
-            <DashboardWelcome
-                label="Platform overview"
-                title={'Welcome back, ' + auth.user.name.trim().split(/\s+/)[0] + '.'}
-                description="See how your platform is performing, then take care of the items waiting for review."
-                icon={ChartNoAxesCombined}
-                illustration="platform"
-            >
-                <div className="flex flex-wrap gap-3">
-                    {attention[0] && (
-                        <Link href={attention[0].href} className={buttonClass}>
-                            {attention[0].action}
-                            <ArrowRight aria-hidden="true" className="size-4" />
-                        </Link>
-                    )}
-                    {permissions.includes('accounts') && (
-                        <Link href="/accounts" className={secondaryClass}>
-                            <Users aria-hidden="true" className="size-4" />
-                            Manage accounts
-                        </Link>
-                    )}
-                </div>
-            </DashboardWelcome>
+            <DashboardBanner role="admin" />
             <section aria-label="Marketplace summary" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 {summary.orders !== undefined && (
                     <DashboardMetric
@@ -122,7 +91,6 @@ export default function AdminDashboard({
                         label="Total orders"
                         value={summary.orders}
                         hint="All-time marketplace orders, across all statuses"
-                        icon={ChartNoAxesCombined}
                         href="/reports"
                     />
                 )}

@@ -1,8 +1,8 @@
-import { Badge, buttonClass, Card, Empty, money, Page, secondaryClass } from '@/components/shared/marketplace-ui';
+import { Badge, Card, Empty, money, Page } from '@/components/shared/marketplace-ui';
+import DashboardBanner from '@/components/workspace/dashboard-banner';
 import { DashboardFinance, DashboardOverview } from '@/components/workspace/dashboard-overview';
-import { DashboardMetric, DashboardWelcome } from '@/components/workspace/dashboard-panels';
-import type { SharedData } from '@/types';
-import { Link, usePage, usePoll } from '@inertiajs/react';
+import { DashboardMetric } from '@/components/workspace/dashboard-panels';
+import { Link, usePoll } from '@inertiajs/react';
 import { Boxes, ClipboardCheck, Package, PackageCheck, Wallet } from 'lucide-react';
 
 type RecentOrder = {
@@ -32,26 +32,9 @@ export default function SellerDashboard({
     recentOrders: RecentOrder[];
 }) {
     usePoll(30000, { only: ['summary', 'queues', 'recentOrders', 'completedProceeds'] });
-    const { auth } = usePage<SharedData>().props;
     return (
         <Page title="Seller dashboard" headerInNavbar description="Your inventory, order preparation, deliveries, and sales.">
-            <DashboardWelcome
-                label="Store overview"
-                title={'Welcome back, ' + auth.user.name.trim().split(/\s+/)[0] + '.'}
-                description="Keep stock current, prepare incoming orders, and follow each parcel through delivery."
-                context={store?.name ?? 'Your store'}
-                icon={Package}
-                illustration="store"
-            >
-                <div className="flex flex-wrap gap-3">
-                    <Link href="/orders?stage=pending" className={buttonClass}>
-                        Prepare orders
-                    </Link>
-                    <Link href="/inventory" className={secondaryClass}>
-                        Manage inventory
-                    </Link>
-                </div>
-            </DashboardWelcome>
+            <DashboardBanner role="seller" />
 
             {!store || store.status !== 'approved' ? (
                 <Empty

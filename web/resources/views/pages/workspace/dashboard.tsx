@@ -1,6 +1,6 @@
 import WorkspaceDashboard, { type WorkspaceDashboardContent, type WorkspaceDashboardProps } from '@/components/workspace/dashboard';
 import BuyerDashboard from '@/pages/buyer/dashboard';
-import { ChartNoAxesCombined, ClipboardCheck, Truck } from 'lucide-react';
+import { ClipboardCheck, Truck } from 'lucide-react';
 
 // Logistics requests use logistics/dashboard. Keep the legacy fallback for this page.
 const logisticsCenterContent: WorkspaceDashboardContent = {
@@ -12,7 +12,7 @@ const logisticsCenterContent: WorkspaceDashboardContent = {
     links: [
         { title: 'Parcel operations', text: 'Receive, assign, and monitor deliveries.', href: '/deliveries', icon: Truck },
         { title: 'Rider applications', text: 'Review riders joining your center.', href: '/reviews', icon: ClipboardCheck },
-        { title: 'Center reports', text: 'Follow completed parcels and sales.', href: '/reports', icon: ChartNoAxesCombined },
+        { title: 'Center reports', text: 'Follow completed parcels and sales.', href: '/reports' },
     ],
 };
 

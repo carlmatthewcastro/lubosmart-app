@@ -1,6 +1,6 @@
 import { Card, money, secondaryClass } from '@/components/shared/marketplace-ui';
 import { Link } from '@inertiajs/react';
-import { ArrowRight, ChartNoAxesCombined, Wallet } from 'lucide-react';
+import { ArrowRight, Wallet } from 'lucide-react';
 import { useId } from 'react';
 
 export function DashboardOverview({
@@ -28,10 +28,7 @@ export function DashboardOverview({
     const path = points.map((point, index) => `${index ? 'L' : 'M'}${point.x},${point.y}`).join(' ');
     return (
         <Card className="border-primary/15 min-w-0">
-            <div className="flex items-center gap-3">
-                <ChartNoAxesCombined aria-hidden className="text-primary size-5 shrink-0" />
-                <h2 className="text-lg font-semibold">{title}</h2>
-            </div>
+            <h2 className="text-lg font-semibold">{title}</h2>
             <p className="text-muted-foreground mt-2 text-xs leading-relaxed">{description}</p>
             <svg
                 viewBox="0 0 600 220"
