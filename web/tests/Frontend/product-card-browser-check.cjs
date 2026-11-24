@@ -6,7 +6,8 @@ const assert = require('node:assert/strict');
 const net = require('node:net');
 
 const root = path.resolve(__dirname, '../..');
-const output = path.join(root, '../.tools/development-artifacts/storage-app/product-card-ui-check');
+const browserName = process.env.LUBOSMART_PRODUCT_BROWSER === 'edge' ? 'edge' : 'chrome';
+const output = path.join(root, '../.tools/development-artifacts/storage-app/product-card-ui-check', browserName);
 const stage = fs.mkdtempSync(path.join(os.tmpdir(), 'lubosmart-auth-browser-'));
 const database = path.join(stage, 'test.sqlite');
 fs.writeFileSync(database, '');
@@ -79,7 +80,15 @@ async function until(predicate, label) {
         );
         fs.appendFileSync(
             variantSeed,
-            ' foreach (App\\Models\\Product::orderBy("id", "desc")->get() as $index => $product) { $names = ["Phone Grip Ring", "Travel Gadget Storage Pouch", "Wired Earphones 3.5mm", "Adjustable Tablet Stand"]; $images = ["grip.jpg", "gadgetpouch.jpg", "earphones.jpg", "tablet.jpg"]; $prices = [85, 245, 185, 295]; $product->update(["name" => $names[$index], "image_path" => $images[$index], "price" => $prices[$index]]); }',
+            ' foreach ([["Large / cream", 5], ["Medium / blue", 0]] as [$name, $stock]) { App\\Models\\ProductVariant::create(["product_id" => App\\Models\\Product::first()->id, "name" => $name, "stock" => $stock, "is_active" => true]); }',
+        );
+        fs.appendFileSync(
+            variantSeed,
+            ' foreach (App\\Models\\Product::orderBy("id", "desc")->get() as $index => $product) { $names = ["Phone Grip Ring", "Travel Gadget Storage Pouch", "Wired Earphones 3.5mm", "Adjustable Tablet Stand"]; $images = ["demo/catalog/photos/584d32926a3c-grip.jpg", "demo/catalog/photos/96aa0ecf7dbb-gadgetpouch.jpg", "demo/catalog/photos/14bb1099f84b-earphones.jpg", "demo/catalog/photos/a90ca17496ba-tablet.jpg"]; $prices = [85, 245, 185, 295]; $product->update(["name" => $names[$index], "image_path" => $images[$index], "price" => $prices[$index]]); }',
+        );
+        fs.appendFileSync(
+            variantSeed,
+            ' $originals = App\\Models\\Product::all(); foreach (range(1, 3) as $copy) { foreach ($originals as $original) { $clone = $original->replicate(); $clone->save(); foreach ($original->variants as $variant) { $variant->replicate()->fill(["product_id" => $clone->id])->save(); } } } foreach (App\\Models\\Product::latest("id")->limit(3)->get() as $index => $product) { $names = ["Plant Label Set 20s", "Watering Can 1 Liter", "Seedling Pot Set 6s"]; $photos = ["labels.jpg", "watering.jpg", "pots.jpg"]; $product->update(["name" => $names[$index], "image_path" => $photos[$index]]); }',
         );
         const seeded = spawnSync('php', [variantSeed], { cwd: root, env, encoding: 'utf8', windowsHide: true });
         assert.equal(seeded.status, 0, seeded.stdout + seeded.stderr);
@@ -91,8 +100,17 @@ async function until(predicate, label) {
         fs.mkdirSync(browserPublic);
         fs.cpSync(path.join(root, 'public/build'), path.join(browserPublic, 'build'), { recursive: true });
         fs.cpSync(path.join(root, 'public/images'), path.join(browserPublic, 'images'), { recursive: true });
-        for (const file of ['grip.jpg', 'gadgetpouch.jpg', 'earphones.jpg', 'tablet.jpg'])
+        for (const file of ['grip.jpg', 'gadgetpouch.jpg', 'earphones.jpg', 'tablet.jpg', 'labels.jpg', 'watering.jpg', 'pots.jpg'])
             fs.copyFileSync(path.join(root, 'database/demo/assets/photos', file), path.join(browserPublic, 'images/products/samples', file));
+        const demoPhotos = path.join(browserPublic, 'images/products/samples/demo/catalog/photos');
+        fs.mkdirSync(demoPhotos, { recursive: true });
+        for (const [filename, original] of Object.entries({
+            '584d32926a3c-grip.jpg': 'grip.jpg',
+            '96aa0ecf7dbb-gadgetpouch.jpg': 'gadgetpouch.jpg',
+            '14bb1099f84b-earphones.jpg': 'earphones.jpg',
+            'a90ca17496ba-tablet.jpg': 'tablet.jpg',
+        }))
+            fs.copyFileSync(path.join(root, 'database/demo/assets/photos', original), path.join(demoPhotos, filename));
         assert.ok(fs.existsSync(path.join(browserPublic, 'build/manifest.json')), 'Completed production build required');
         const fixture = fs
             .readFileSync(path.join(root, 'tests/Fixtures/auth-browser-router.php'), 'utf8')
@@ -116,8 +134,8 @@ async function until(predicate, label) {
         const browser = [
             'C:/Program Files/Google/Chrome/Application/chrome.exe',
             'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe',
-        ].find((file) => fs.existsSync(file));
-        assert.ok(browser, 'Chrome or Edge required');
+        ].find((file) => file.endsWith(browserName === 'edge' ? 'msedge.exe' : 'chrome.exe') && fs.existsSync(file));
+        assert.ok(browser, browserName + ' required');
         processes.push(
             spawn(
                 browser,
@@ -219,10 +237,10 @@ async function until(predicate, label) {
         };
         const viewport = async (width, height) =>
             cdp('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: width < 600 });
-        const screenshot = async (name) => {
+        const screenshot = async (name, captureBeyondViewport = true) => {
             // Theme and button transitions should finish before visual evidence is captured.
             await delay(250);
-            const data = await cdp('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true });
+            const data = await cdp('Page.captureScreenshot', { format: 'png', captureBeyondViewport });
             fs.writeFileSync(path.join(output, name + '.png'), Buffer.from(data.data, 'base64'));
         };
         const record = (name, details) => {
@@ -243,22 +261,32 @@ async function until(predicate, label) {
             );
         };
 
+        if (process.env.PRODUCT_CARD_BASELINE === '1') {
+            for (const width of [320, 800, 1440]) {
+                await viewport(width, 1000);
+                await navigate('/shop');
+                await until(() => evaluate('!!document.querySelector(".product-card")'), 'baseline cards');
+                await screenshot('before-shop-cards-' + width);
+            }
+            return;
+        }
+
         for (const route of ['/', '/shop']) {
             await viewport(1440, 1000);
             await navigate(route);
             await until(() => evaluate('!!document.querySelector(".product-card")'), 'cards');
-            for (const width of [320, 540, 800, 1100, 1440, 1920]) {
+            for (const width of [320, 540, 800, 1100, 1440, 1536, 1916, 1920]) {
                 await viewport(width, 1000);
                 await delay(250);
                 const result = await evaluate(
-                    `(()=>{const grid=document.querySelector('.product-grid');return {overflow:document.documentElement.scrollWidth>innerWidth,columns:getComputedStyle(grid).gridTemplateColumns.split(' ').length,cards:[...grid.querySelectorAll('.product-card')].map(card=>{const box=card.querySelector('.product-card-image'),img=box.querySelector('img'),r=box.getBoundingClientRect(),c=card.getBoundingClientRect();return {compact:Math.abs(r.height-160)<1,white:getComputedStyle(box).backgroundColor,fit:img&&getComputedStyle(img).objectFit,title:card.querySelector('h2').getBoundingClientRect().height,top:Math.round(c.top),height:c.height,action:card.querySelector('.mt-auto').getBoundingClientRect().bottom};})};})()`,
+                    `(()=>{const grid=document.querySelector('.product-grid');return {overflow:document.documentElement.scrollWidth>innerWidth,columns:getComputedStyle(grid).gridTemplateColumns.split(' ').length,cards:[...grid.querySelectorAll('.product-card')].map(card=>{const box=card.querySelector('.product-card-image'),img=box.querySelector('img'),r=box.getBoundingClientRect(),c=card.getBoundingClientRect();return {compact:Math.abs(r.height-144)<1&&r.width<=(innerWidth>=800?260:375),white:getComputedStyle(box).backgroundColor,fit:img&&getComputedStyle(img).objectFit,title:card.querySelector('h2').getBoundingClientRect().height,top:Math.round(c.top),height:c.height,action:card.querySelector('.mt-auto').getBoundingClientRect().bottom};})};})()`,
                 );
                 assert.equal(result.overflow, false, route + ' overflow ' + width);
                 for (const card of result.cards) {
                     assert.ok(card.compact, JSON.stringify(card));
                     assert.equal(card.white, 'rgb(255, 255, 255)');
-                    assert.equal(card.title, 44);
-                    if (card.fit) assert.equal(card.fit, 'contain');
+                    assert.ok(card.title > 0 && card.title <= 40, JSON.stringify(card));
+                    if (card.fit) assert.equal(card.fit, 'cover');
                     const row = result.cards.filter((c) => c.top === card.top);
                     assert.ok(row.every((c) => Math.abs(c.height - card.height) < 1));
                     assert.ok(row.every((c) => Math.abs(c.action - card.action) < 1));
@@ -267,21 +295,120 @@ async function until(predicate, label) {
                     "(()=>{const grid=document.querySelector('.product-grid'),cards=[...grid.querySelectorAll('.product-card')],top=cards[0].getBoundingClientRect().top,row=cards.filter(c=>Math.abs(c.getBoundingClientRect().top-top)<1);return grid.getBoundingClientRect().right-Math.max(...row.map(c=>c.getBoundingClientRect().right));})()",
                 );
                 assert.ok(unusedRight < 2, route + ' unused row width at ' + width + ': ' + unusedRight);
-                assert.ok(result.columns >= 1 && result.columns <= 5);
+                assert.ok(result.columns >= 1);
+                if (width === 1920) assert.ok(result.columns >= 6, 'Wide screens retain compact columns');
                 record(route + ' ' + width, result);
-                if ([320, 1440].includes(width)) await screenshot((route === '/' ? 'home' : 'shop') + '-cards-' + width);
+                if ([320, 800, 1440, 1536, 1916].includes(width)) await screenshot((route === '/' ? 'home' : 'shop') + '-cards-' + width);
             }
         }
         await viewport(1440, 1000);
         await navigate('/shop');
+        const previewClip = await evaluate(
+            "(()=>{const grid=document.querySelector('.product-grid'),first=grid.querySelector('.product-card').getBoundingClientRect(),cards=[...grid.querySelectorAll('.product-card')].map(c=>c.getBoundingClientRect()).filter(r=>Math.abs(r.top-first.top)<1);return {x:first.x,y:first.y+scrollY,width:Math.max(...cards.map(r=>r.right))-first.x,height:Math.max(...cards.map(r=>r.height)),scale:1};})()",
+        );
+        const preview = await cdp('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, clip: previewClip });
+        fs.writeFileSync(path.join(output, 'compact-product-preview.png'), Buffer.from(preview.data, 'base64'));
         await click('.product-card-variants button');
         await until(() => evaluate('!!document.querySelector("[role=dialog]")'), 'variant dialog');
-        const option = await evaluate('document.querySelector("[role=dialog] select").options[1].value');
-        await set('[role=dialog] select', option);
+        assert.equal(await evaluate('document.querySelector("[role=dialog] button:disabled").textContent.trim()'), 'Add to cart');
+        assert.equal(await evaluate('document.querySelectorAll("[role=dialog] input[type=radio]:disabled").length'), 1);
+        await click('[role=dialog] input[type=radio]:not(:disabled)');
+        assert.equal(await evaluate('document.querySelector("[role=dialog] a").textContent.trim()'), 'Add to cart');
+        assert.equal(await evaluate('new URL(document.querySelector("[role=dialog] a").href).pathname'), '/login');
+        await screenshot('product-options-desktop', false);
+        await evaluate("document.documentElement.classList.add('dark')");
+        await screenshot('product-options-dark', false);
+        await evaluate("document.documentElement.classList.remove('dark')");
         await evaluate('Array.from(document.querySelectorAll("[role=dialog] button")).find(b=>b.textContent.trim()==="Done").click()');
         await until(() => evaluate('!document.querySelector("[role=dialog]")'), 'variant closes');
-        assert.equal(await evaluate('document.querySelector(".product-card-variants button").textContent'), 'Small / purple');
-        record('Variant selector', 'Dialog selection retained beneath title');
+        assert.equal(await evaluate('document.querySelector(".product-card-variants button").textContent'), 'Large / cream');
+        for (const width of [320, 1440]) {
+            await viewport(width, 1000);
+            await click('.product-card-variants button');
+            await until(() => evaluate('!!document.querySelector("[role=dialog]")'), 'reopen option picker');
+            assert.equal(
+                await evaluate('document.querySelector("[role=dialog] input:checked").value'),
+                await evaluate('document.querySelector("[role=dialog] input[type=radio]").value'),
+            );
+            assert.ok(
+                await evaluate(
+                    '(()=>{const d=document.querySelector("[role=dialog]"),r=d.getBoundingClientRect();return r.left>=0&&r.right<=innerWidth&&d.scrollWidth<=d.clientWidth;})()',
+                ),
+            );
+            if (width === 320) await screenshot('product-options-mobile', false);
+            await evaluate('document.querySelector("[role=dialog] input:checked").focus()');
+            await cdp('Input.dispatchKeyEvent', { type: 'keyDown', key: 'ArrowRight', code: 'ArrowRight' });
+            await cdp('Input.dispatchKeyEvent', { type: 'keyUp', key: 'ArrowRight', code: 'ArrowRight' });
+            assert.equal(
+                await evaluate('document.querySelector("[role=dialog] input:checked").value'),
+                await evaluate('document.querySelectorAll("[role=dialog] input[type=radio]:not(:disabled)")[1].value'),
+            );
+            await cdp('Input.dispatchKeyEvent', { type: 'keyDown', key: 'ArrowLeft', code: 'ArrowLeft' });
+            await cdp('Input.dispatchKeyEvent', { type: 'keyUp', key: 'ArrowLeft', code: 'ArrowLeft' });
+            await cdp('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape' });
+            await cdp('Input.dispatchKeyEvent', { type: 'keyUp', key: 'Escape', code: 'Escape' });
+            await until(() => evaluate('!document.querySelector("[role=dialog]")'), 'Escape closes option picker');
+            assert.ok(await evaluate('document.activeElement.matches(".product-card-variants button")'));
+        }
+        assert.ok(await evaluate("[...document.querySelectorAll('.product-card .reference-button')].every(a=>a.textContent.trim()==='Add to cart')"));
+        record(
+            'Variant selector',
+            'Radio selection, stock/disabled choices, retained choice, keyboard arrows, Escape/focus restoration, mobile fit and guest Add to cart destinations',
+        );
+        // Missing and failed images keep the same compact frame and usable actions.
+        const images = await evaluate(
+            "[...document.querySelectorAll('.product-card img')].map(i=>({loaded:i.complete&&i.naturalWidth>0,src:i.src}))",
+        );
+        assert.ok(images.length > 0 && images.every((i) => i.loaded), JSON.stringify(images));
+        assert.ok(
+            images.every((i) => !i.src.includes('/images/products/demo-standardized/')),
+            'All photos use their original source with the same crop, without padded demo substitutions',
+        );
+        await evaluate("document.querySelector('.product-card img').dispatchEvent(new Event('error'))");
+        assert.ok(await evaluate("document.querySelector('.product-card').textContent.includes('Photo unavailable')"));
+        assert.ok(await evaluate("[...document.querySelectorAll('.product-card h2 a')].every(a=>new URL(a.href).pathname.startsWith('/products/'))"));
+        assert.ok(await evaluate("[...document.querySelectorAll('.product-card .reference-button')].every(a=>new URL(a.href).pathname==='/login')"));
+        record(
+            'Image loading, fallback and guest destinations',
+            'All fixture photos loaded; failure shows fallback; detail and sign-in URLs preserved',
+        );
+        await navigate('/shop');
+        await evaluate("document.documentElement.classList.add('dark')");
+        await screenshot('shop-cards-dark');
+        await evaluate("document.documentElement.classList.remove('dark')");
+        for (const width of [320, 800, 1440]) {
+            await viewport(width, 1000);
+            await navigate('/shop');
+            await click('button[aria-label="List view"]');
+            await until(() => evaluate('!!document.querySelector(".catalog-list-view")'), 'list mode');
+            const list = await evaluate(
+                "(()=>{const c=document.querySelector('.product-card'),b=c.querySelector('.product-card-image').getBoundingClientRect();return {overflow:document.documentElement.scrollWidth>innerWidth,compact:Math.abs(b.height-144)<1};})()",
+            );
+            assert.equal(list.overflow, false);
+            assert.equal(list.compact, true);
+            record('List view ' + width, list);
+        }
+        await navigate('/login');
+        await set('input[type=email]', 'buyer@dashboard.example.com');
+        await set('input[type=password]', 'Browser@2026');
+        await click('form:has(input[type=password]) button[type=submit]');
+        await until(() => evaluate('location.pathname!=="/login"'), 'buyer login');
+        await viewport(1440, 1000);
+        await navigate('/shop');
+        await evaluate('document.querySelector(".product-card-variants").closest("article").querySelector(".mt-auto button").click()');
+        await until(() => evaluate('!!document.querySelector("[role=dialog]")'), 'Add to cart opens required options');
+        await click('[role=dialog] input[type=radio]:not(:disabled)');
+        await evaluate('Array.from(document.querySelectorAll("[role=dialog] button")).find(b=>b.textContent.trim()==="Add to cart").click()');
+        await until(
+            () => evaluate('!document.querySelector("[role=dialog]")&&document.body.textContent.includes("Added to cart")'),
+            'successful variant add',
+        );
+        await navigate('/cart');
+        assert.ok(await evaluate('document.body.textContent.includes("Large / cream")'));
+        record(
+            'Approved buyer adds a variant',
+            'Card action requests options; dialog adds selected variant, closes on success, and cart displays that variant',
+        );
         assert.deepEqual(runtimeErrors, []);
     } catch (error) {
         checks.push({ name: 'Browser run', status: 'FAIL', details: error.message });

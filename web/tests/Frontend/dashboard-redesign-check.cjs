@@ -7,9 +7,30 @@ module.exports = async function dashboardRedesign({ role, viewport, evaluate, de
         assert.equal(await evaluate('document.documentElement.scrollWidth <= innerWidth + 1'), true, `${role} overflow at ${width}`);
         assert.equal(await evaluate('document.querySelectorAll("main h1").length'), 1);
         assert.equal(await evaluate('document.querySelector("main").textContent.includes("Welcome back")'), true);
+        const banner = await evaluate(`(() => {
+            const banner = document.querySelector('[data-dashboard-banner="${role}"]');
+            const link = banner?.querySelector('a');
+            return { count: document.querySelectorAll('[data-dashboard-banner]').length,
+                heading: banner?.querySelector('h2')?.textContent.trim(),
+                logo: banner?.querySelector('image')?.getAttribute('href'),
+                action: link?.textContent.trim(), href: link?.getAttribute('href'),
+                height: banner?.getBoundingClientRect().height };
+        })()`);
+        assert.equal(banner.count, 1);
+        assert.equal(banner.heading, 'Welcome back, Browser!');
+        assert.equal(banner.logo, '/images/brand/logo.svg');
+        const actions = {
+            admin: ['Manage Accounts', '/accounts'],
+            buyer: ['Continue Shopping', '/shop'],
+            seller: ['Manage Store', '/inventory'],
+            logistics: ['Manage Parcels', '/deliveries'],
+            rider: ['View Assignments', '/deliveries'],
+        };
+        assert.deepEqual([banner.action, banner.href], actions[role]);
+        if (width === 1440) assert.ok(banner.height >= 240 && banner.height <= 280, `${role} banner height ${banner.height}`);
         assert.equal(
             await evaluate(
-                `!!document.querySelector('section[aria-label="Account overview"], section[aria-label="Store summary"], section[aria-label="Marketplace summary"], section[aria-label="Parcel summary"]')`,
+                `!!document.querySelector('section[aria-label="Account overview"], section[aria-label="Store summary"], section[aria-label="Marketplace summary"], section[aria-label="Parcel summary"], section[aria-label="Rider summary"]')`,
             ),
             true,
         );

@@ -39,7 +39,7 @@ export default function PublicHeader({ home = false }: { home?: boolean }) {
             )}
             <Link href="/" className="reference-brand" aria-label="LubosMart home">
                 <img src={assets.brand.logo} width={44} height={44} alt="" />
-                {home ? <span className="app-wordmark">LubosMart</span> : <AppWordmark />}
+                <AppWordmark />
             </Link>
             <nav
                 id={home ? 'home-navigation' : undefined}

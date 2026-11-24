@@ -71,6 +71,12 @@ export default function Catalog({
     const { auth } = usePage<SharedData>().props;
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [view, setView] = useState<'grid' | 'list'>('grid');
+    const categoryMenu = useRef<HTMLDetailsElement>(null);
+    const closeCategoryMenu = () => {
+        if (!categoryMenu.current?.open) return;
+        categoryMenu.current.open = false;
+        categoryMenu.current.querySelector('summary')?.focus();
+    };
     const rootCategories = categories.filter((category) => !category.parent_id);
     const categoryIcon = (name: string) => {
         const Icon = /automotive|motorcycle/i.test(name)
@@ -101,8 +107,18 @@ export default function Catalog({
     searchData.current = form.data;
     const setData = form.setData;
     useEffect(() => {
-        setData('search', filters.search ?? '');
-    }, [filters.search, setData]);
+        setData({
+            store: filters.store ?? '',
+            search: filters.search ?? '',
+            category: String(filters.category ?? ''),
+            min_price: filters.min_price ?? '',
+            max_price: filters.max_price ?? '',
+            availability: filters.availability ?? '',
+            rating: String(filters.rating ?? ''),
+            sort: filters.sort ?? 'latest',
+        });
+        closeCategoryMenu();
+    }, [filters, setData]);
     useEffect(() => {
         const search = form.data.search.trim();
         if (search === (filters.search ?? '')) return;
@@ -148,7 +164,19 @@ export default function Catalog({
                                 name="category"
                                 value={category.id}
                                 checked={form.data.category === String(category.id)}
-                                onChange={(e) => form.setData('category', e.target.value)}
+                                onChange={(e) => {
+                                    const category = e.target.value;
+                                    form.setData('category', category);
+                                    router.get(
+                                        destination,
+                                        { ...form.data, category },
+                                        {
+                                            preserveState: true,
+                                            preserveScroll: true,
+                                            onSuccess: () => setDrawerOpen(false),
+                                        },
+                                    );
+                                }}
                             />
                             <span>{category.name}</span>
                         </label>
@@ -248,7 +276,14 @@ export default function Catalog({
         >
             <PublicVouchers vouchers={publicVouchers} />
             <nav id="catalog-categories" aria-label="Product categories" className="catalog-categories flex flex-wrap gap-2">
-                <Link href={destination} className={secondaryClass} aria-current={!filters.category ? 'page' : undefined}>
+                <Link
+                    href={destination}
+                    preserveState
+                    preserveScroll
+                    onClick={closeCategoryMenu}
+                    className={secondaryClass}
+                    aria-current={!filters.category ? 'page' : undefined}
+                >
                     <LayoutGrid className="size-4 shrink-0" aria-hidden="true" />
                     All products
                 </Link>
@@ -257,6 +292,9 @@ export default function Catalog({
                         key={category.id}
                         href={destination}
                         data={{ ...filters, category: String(category.id) }}
+                        preserveState
+                        preserveScroll
+                        onClick={closeCategoryMenu}
                         className={secondaryClass}
                         aria-current={String(filters.category) === String(category.id) ? 'page' : undefined}
                     >
@@ -265,7 +303,16 @@ export default function Catalog({
                     </Link>
                 ))}
                 {rootCategories.length > 5 && (
-                    <details className="catalog-more-categories">
+                    <details
+                        ref={categoryMenu}
+                        className="catalog-more-categories"
+                        onKeyDown={(event) => {
+                            if (event.key === 'Escape') {
+                                event.preventDefault();
+                                closeCategoryMenu();
+                            }
+                        }}
+                    >
                         <summary>
                             More categories <ChevronDown className="size-4" aria-hidden="true" />
                         </summary>
@@ -275,6 +322,9 @@ export default function Catalog({
                                     key={category.id}
                                     href={destination}
                                     data={{ ...filters, category: String(category.id) }}
+                                    preserveState
+                                    preserveScroll
+                                    onClick={closeCategoryMenu}
                                     aria-current={String(filters.category) === String(category.id) ? 'page' : undefined}
                                 >
                                     {categoryIcon(category.name)}

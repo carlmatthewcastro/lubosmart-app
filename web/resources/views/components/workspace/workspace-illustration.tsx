@@ -1,10 +1,9 @@
 import HomeDeliveryTruck from '@/components/marketplace/home-delivery-truck';
-import { ChartNoAxesCombined, Check, Package, ShieldCheck, Store } from 'lucide-react';
+import { Check, Package, ShieldCheck, Store } from 'lucide-react';
 
 /** Decorative delivery scene. Semantic colors follow the selected theme. */
 export function WorkspaceIllustration({ variant = 'delivery' }: { variant?: 'delivery' | 'store' | 'platform' }) {
     if (variant !== 'delivery') {
-        const Icon = variant === 'store' ? Store : ChartNoAxesCombined;
         const DetailIcon = variant === 'store' ? Package : ShieldCheck;
         return (
             <svg aria-hidden="true" focusable="false" viewBox="0 0 480 240" className="text-primary h-auto w-full">
@@ -15,7 +14,7 @@ export function WorkspaceIllustration({ variant = 'delivery' }: { variant?: 'del
                 <rect x="99" y="40" width="254" height="36" rx="18" fill="currentColor" opacity=".1" />
                 <circle cx="119" cy="58" r="4" fill="color-mix(in srgb, var(--brand-orange), white 30%)" />
                 <circle cx="133" cy="58" r="4" fill="currentColor" opacity=".35" />
-                <Icon x="124" y="94" width="90" height="90" strokeWidth="1.4" />
+                {variant === 'store' && <Store x="124" y="94" width="90" height="90" strokeWidth="1.4" />}
                 <rect x="236" y="103" width="89" height="9" rx="4" fill="currentColor" opacity=".25" />
                 <rect x="236" y="125" width="66" height="7" rx="3" fill="currentColor" opacity=".12" />
                 <rect x="236" y="148" width="80" height="30" rx="8" fill="currentColor" opacity=".1" />

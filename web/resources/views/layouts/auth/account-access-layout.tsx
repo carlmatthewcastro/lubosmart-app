@@ -20,6 +20,7 @@ export default function AccountAccessLayout({
     compactLogin = false,
     compactRecovery = false,
     emailConfirmation = false,
+    accountBlocked = false,
 }: {
     title: string;
     description: ReactNode;
@@ -33,6 +34,7 @@ export default function AccountAccessLayout({
     compactLogin?: boolean;
     compactRecovery?: boolean;
     emailConfirmation?: boolean;
+    accountBlocked?: boolean;
 }) {
     const [dirty, setDirty] = useState(false);
     const leaving = useRef(false);
@@ -94,7 +96,7 @@ export default function AccountAccessLayout({
                 }}
             >
                 <DialogContent
-                    className={`auth-reference-shell ${compactLogin ? 'auth-reference-login' : ''} ${compactRecovery ? 'auth-reference-recovery' : ''} ${emailConfirmation ? 'auth-reference-email-confirmation' : ''} ${registrationDetails ? 'auth-reference-details' : registering && !verification ? 'auth-reference-signup' : ''}`}
+                    className={`auth-reference-shell ${accountBlocked ? 'auth-reference-blocked' : ''} ${compactLogin ? 'auth-reference-login' : ''} ${compactRecovery ? 'auth-reference-recovery' : ''} ${emailConfirmation ? 'auth-reference-email-confirmation' : ''} ${registrationDetails ? 'auth-reference-details' : registering && !verification ? 'auth-reference-signup' : ''}`}
                     overlayClassName="auth-modal-overlay"
                     onPointerDownOutside={(event) => event.preventDefault()}
                     onCloseAutoFocus={(event) => event.preventDefault()}

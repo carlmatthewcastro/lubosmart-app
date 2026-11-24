@@ -1,7 +1,7 @@
 import { Card, money, secondaryClass } from '@/components/shared/marketplace-ui';
 import { titleCase } from '@/lib/admin-display';
 import { Link } from '@inertiajs/react';
-import { ArrowUpRight, ChartNoAxesCombined, PackageCheck, Wallet } from 'lucide-react';
+import { ArrowUpRight, PackageCheck, Wallet } from 'lucide-react';
 import { useId, useState } from 'react';
 
 export type DashboardAnalyticsData = {
@@ -48,14 +48,14 @@ export function DashboardAnalytics({ data }: { data: DashboardAnalyticsData }) {
             </div>
             <div className="grid gap-4 sm:grid-cols-3">
                 {[
-                    { label: 'Product sales', value: money(data.sales), hint: 'Completed parcels · excludes shipping', icon: ChartNoAxesCombined },
+                    { label: 'Product sales', value: money(data.sales), hint: 'Completed parcels · excludes shipping', icon: undefined },
                     { label: 'Platform commission', value: money(data.commission), hint: 'Recorded commission on completed parcels', icon: Wallet },
                     { label: 'Completed parcels', value: data.completedParcels.toLocaleString(), hint: 'Based on delivery date', icon: PackageCheck },
                 ].map((item) => (
                     <Card key={item.label} className="min-w-0">
                         <div className="flex items-center justify-between gap-3">
                             <p className="text-muted-foreground text-sm">{item.label}</p>
-                            <item.icon aria-hidden="true" className="text-primary size-5 shrink-0" />
+                            {item.icon && <item.icon aria-hidden="true" className="text-primary size-5 shrink-0" />}
                         </div>
                         <p className="mt-4 text-2xl font-semibold break-words tabular-nums">{item.value}</p>
                         <p className="text-muted-foreground mt-2 text-xs leading-relaxed">{item.hint}</p>

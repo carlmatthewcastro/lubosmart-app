@@ -1,0 +1,13 @@
+# Account access unavailable — 2026-11-21
+
+The shared authentication navigation lacked wrapping and spacing between the home and logout actions. Added wrapping, a row/column gap, and distributed alignment. The blocked page now uses the account-access layout directly, with one heading, a decorative status icon before the heading, the server message as its dialog description, next steps, and an access retry button with pending feedback. Scoped heading styles keep this screen compact without changing onboarding titles.
+
+Validation: targeted ESLint, TypeScript, production build, LogisticsApprovalChainTest and AccountBoundaryTest passed (36 tests, 375 assertions). Isolated Chrome checks passed at 320px, 645px, and 1440px for overflow, separated navigation actions, and a single panel heading. The retry completed and re-enabled its button. Light and dark screenshots are in `.tools/development-artifacts/blocked-access/`; the 645px screenshot was visually reviewed. The build reported four existing unresolved artwork URLs. Full keyboard, screen-reader, zoom, and theme contrast audits remain unverified.
+
+Read-only local database diagnosis found four approved riders assigned to active center #2. Its company owner is approved and email verified, but the center has no approved, email-verified logistics operator in its users relationship. The operational scope requires that relationship as well as an eligible owner, so those riders are blocked. One additional unverified rider is assigned to center #1, which also has no eligible linked operator. This does not establish which account appears in the supplied screenshot. No account status, membership, approval rule, or database data was changed.
+
+## Follow-up: restore local rider access
+
+After the user reported that login remained blocked, restored the missing center #2 membership for its existing company owner (#35). The repair checked that the center was active and its existing owner was a logistics account with approved status and verified email, then inserted only the missing membership in a transaction. No credentials or account approval statuses changed. Repair scripts and the before-state record are in `.tools/development-artifacts/blocked-access/`.
+
+All four affected approved riders (#39, #48, #64, #65) now pass the operational check. Authenticated requests through the HTTP kernel to `/dashboard/rider` return HTTP 200 with `rider/dashboard` for each account. AuthenticationTest and LogisticsApprovalChainTest pass (29 tests, 288 assertions). This verifies authenticated dashboard access; no real user's password was entered. The unrelated unverified rider at center #1 remains ineligible.

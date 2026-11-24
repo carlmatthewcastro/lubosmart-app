@@ -19,7 +19,7 @@ export function DashboardWelcome({
     title: string;
     description: string;
     context?: string;
-    icon: LucideIcon;
+    icon?: LucideIcon;
     illustration?: 'delivery' | 'store' | 'platform';
     compact?: boolean;
     children?: ReactNode;
@@ -40,7 +40,7 @@ export function DashboardWelcome({
             <div className="relative grid items-center gap-6 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
                 <div className="min-w-0">
                     <p className="text-primary mb-3 flex items-center gap-2 text-xs font-semibold tracking-wider uppercase">
-                        <Icon aria-hidden="true" className="size-4" />
+                        {Icon && <Icon aria-hidden="true" className="size-4" />}
                         {label}
                     </p>
                     <h2 className="text-2xl font-semibold tracking-tight break-words sm:text-3xl lg:text-4xl">{title}</h2>
@@ -67,7 +67,7 @@ export function DashboardMetric({
     label: string;
     value: number | string;
     hint: string;
-    icon: LucideIcon;
+    icon?: LucideIcon;
     href?: string;
     compact?: boolean;
 }) {
@@ -75,16 +75,18 @@ export function DashboardMetric({
     const content = (
         <>
             <div className="flex items-center gap-4">
-                <span
-                    aria-hidden="true"
-                    className={
-                        compact
-                            ? 'text-primary flex size-5 shrink-0 items-center justify-center'
-                            : 'bg-accent text-primary flex size-11 items-center justify-center rounded-xl'
-                    }
-                >
-                    <Icon className="size-5" />
-                </span>
+                {Icon && (
+                    <span
+                        aria-hidden="true"
+                        className={
+                            compact
+                                ? 'text-primary flex size-5 shrink-0 items-center justify-center'
+                                : 'bg-accent text-primary flex size-11 items-center justify-center rounded-xl'
+                        }
+                    >
+                        <Icon className="size-5" />
+                    </span>
+                )}
                 <div className="min-w-0 flex-1">
                     <h2 className="text-muted-foreground text-sm font-medium">{label}</h2>
                     <p className="mt-1 text-2xl font-semibold tracking-tight break-words tabular-nums">

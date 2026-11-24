@@ -1,6 +1,7 @@
-import { Badge, buttonClass, Card, Empty, money, Page, secondaryClass } from '@/components/shared/marketplace-ui';
+import { Badge, Card, Empty, money, Page } from '@/components/shared/marketplace-ui';
+import DashboardBanner from '@/components/workspace/dashboard-banner';
 import { DashboardFinance, DashboardOverview } from '@/components/workspace/dashboard-overview';
-import { DashboardMetric, DashboardWelcome } from '@/components/workspace/dashboard-panels';
+import { DashboardMetric } from '@/components/workspace/dashboard-panels';
 import type { SharedData } from '@/types';
 import { Link, usePage, usePoll } from '@inertiajs/react';
 import { ClipboardCheck, MapPinned, PackageCheck, PackageOpen, Truck, Wallet } from 'lucide-react';
@@ -17,7 +18,6 @@ type Parcel = {
     codResponsibility?: boolean;
 };
 export default function RiderDashboard({
-    companyName,
     queues,
     pendingCod,
     recentParcels,
@@ -63,20 +63,7 @@ export default function RiderDashboard({
     );
     return (
         <Page title="Rider dashboard" headerInNavbar description="Your assigned parcels, delivery proof, and COD responsibilities.">
-            <DashboardWelcome
-                label="Your delivery workspace"
-                title={'Welcome back, ' + auth.user.name.trim().split(/\s+/)[0] + '.'}
-                description="Keep your parcels moving. Review assignments, track deliveries, and stay on top of your handovers."
-                context={companyName || 'Your logistics company'}
-                icon={Truck}
-            >
-                <Link href="/deliveries" className={buttonClass}>
-                    My deliveries
-                </Link>
-                <Link href="/rider-payments" className={secondaryClass}>
-                    View compensation
-                </Link>
-            </DashboardWelcome>
+            <DashboardBanner role="rider" />
 
             <section aria-label="Rider summary" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <DashboardMetric

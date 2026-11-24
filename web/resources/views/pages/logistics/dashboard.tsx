@@ -1,9 +1,8 @@
 import { InfoModal } from '@/components/shared/info-modal';
-import { Badge, Card, Empty, Page, buttonClass, money, secondaryClass } from '@/components/shared/marketplace-ui';
+import { Badge, Card, Empty, Page, money } from '@/components/shared/marketplace-ui';
+import DashboardBanner from '@/components/workspace/dashboard-banner';
 import { DashboardFinance } from '@/components/workspace/dashboard-overview';
-import { DashboardWelcome } from '@/components/workspace/dashboard-panels';
-import type { SharedData } from '@/types';
-import { Link, usePage, usePoll } from '@inertiajs/react';
+import { Link, usePoll } from '@inertiajs/react';
 import { Boxes, CheckCircle2, CircleAlert, ClipboardCheck, PackageCheck, PackageOpen, Truck, type LucideIcon } from 'lucide-react';
 
 function DashboardMetric({ label, value, hint, icon: Icon, href }: { label: string; value: number; hint: string; icon: LucideIcon; href: string }) {
@@ -52,7 +51,6 @@ export default function LogisticsDashboard({
     setupChecklist?: { label: string; complete: boolean; count: number; description: string; url: string }[];
 }) {
     usePoll(30000, { only: ['summary', 'metrics', 'applications', 'recentParcels', 'setupChecklist'] });
-    const { auth } = usePage<SharedData>().props;
     return (
         <Page
             title="Logistics Dashboard"
@@ -60,20 +58,7 @@ export default function LogisticsDashboard({
             showLogisticsBanner={false}
             description="Manage your center, coordinate riders, and keep parcels moving."
         >
-            <DashboardWelcome
-                label="Your logistics workspace"
-                title={'Welcome back, ' + auth.user.name.trim().split(/\s+/)[0] + '.'}
-                description="Manage your center, coordinate riders, and keep parcels moving."
-                context={centers.map((center) => center.name).join(' / ') || 'Your logistics company'}
-                icon={Truck}
-            >
-                <Link href="/logistics/scan" className={buttonClass}>
-                    Scan parcel
-                </Link>
-                <Link href="/deliveries" className={secondaryClass}>
-                    Manage parcels
-                </Link>
-            </DashboardWelcome>
+            <DashboardBanner role="logistics" />
             <section aria-label="Parcel summary" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <DashboardMetric
                     label="Awaiting pickup approval"
